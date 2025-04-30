@@ -24,6 +24,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics"
 ]
 
+[project]
+name = "biochatter"
+
 [project.urls]
 Homepage = "https://biochatter.org"
 Documentation = "https://biochatter.org"
