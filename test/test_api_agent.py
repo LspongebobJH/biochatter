@@ -135,7 +135,7 @@ class TestInterpreter(BaseInterpreter):
         self,
         question: str,
         conversation_factory: Callable[..., Any],
-        response_text: str,
+        response: object,
     ) -> str:
         return "mock_summary"
 

@@ -81,7 +81,7 @@ structured query based on the input question.
 - `fetch_results(query_model: "BaseModel") -> Optional[str]`: Retrieves results
 from the API.
 
-- `summarise_results(question: str, response_text: str) -> Optional[str]`:
+- `summarise_results(question: str, response: object) -> Optional[str]`:
 Interprets and summarizes the API response with respect to the question.
 
 ### QueryParameters
@@ -138,7 +138,7 @@ logic.
 Key Method:
 
 - `summarise_results(question: str, conversation_factory: Callable,
-response_text: str) -> str`: Summarizes and interprets the API response.
+response: object) -> str`: Summarizes and interprets the API response.
 
 ## Setting up a new API integration
 
@@ -278,7 +278,7 @@ class NewAPIInterpreter(BaseInterpreter):
     def summarise_results(self,
         question: str,
         conversation_factory: Callable,
-        response_text: str) -> str:
+        response: object) -> str:
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -290,7 +290,7 @@ class NewAPIInterpreter(BaseInterpreter):
             ]
         )
         summary_prompt = NewAPI_SUMMARY_PROMPT.format(
-            question=question, context=response_text
+            question=question, context=response
         )
         output_parser = StrOutputParser()
         conversation = conversation_factory()

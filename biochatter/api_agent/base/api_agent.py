@@ -1,6 +1,5 @@
 """Base API agent module."""
 
-from collections.abc import Callable
 from typing import Any
 
 from biochatter.llm_connect import Conversation
@@ -26,7 +25,7 @@ from .agent_abc import BaseFetcher, BaseInterpreter, BaseQueryBuilder
 class APIAgent:
     def __init__(
         self,
-        conversation_factory: Conversation,
+        conversation: Conversation,
         query_builder: BaseQueryBuilder,
         fetcher: BaseFetcher,
         interpreter: BaseInterpreter,
@@ -39,7 +38,7 @@ class APIAgent:
 
         Attributes
         ----------
-            conversation_factory (Conversation): BioChatter conversation
+            conversation (Conversation): BioChatter conversation
 
             query_builder (BaseQueryBuilder): An instance of a child of the
                 BaseQueryBuilder class.
@@ -51,7 +50,7 @@ class APIAgent:
                 BaseInterpreter class.
 
         """
-        self.conversation_factory = conversation_factory
+        self.conversation = conversation
         self.query_builder = query_builder
         self.fetcher = fetcher
         self.interpreter = interpreter
@@ -70,8 +69,7 @@ class APIAgent:
         """
         # Generate query
         try:
-            conversation = self.conversation_factory()
-            query_models = self.query_builder.parameterise_query(question, conversation)
+            query_models = self.query_builder.parameterise_query(question, self.conversation)
         except Exception as e:
             raise Exception(f"Failed to generate query: {e}")
 
@@ -85,7 +83,7 @@ class APIAgent:
         try:
             final_answer = self.interpreter.summarise_results(
                 question=question,
-                conversation_factory=self.conversation_factory,
+                conversation=self.conversation,
                 response=response,
             )
         except Exception as e:

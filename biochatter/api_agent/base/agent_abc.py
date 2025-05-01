@@ -5,7 +5,6 @@ API interactions and result processing.
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, ConfigDict, Field, create_model
@@ -38,35 +37,12 @@ class BaseQueryBuilder(ABC):
             ],
         )
 
-    @abstractmethod
-    def create_runnable(
-        self,
-        query_parameters: "BaseModel",
-        conversation: "Conversation",
-    ) -> Callable:
-        """Create a runnable object for executing queries.
-
-        Must be implemented by subclasses. Should use the LangChain
-        `create_structured_output_runnable` method to generate the Callable.
-
-        Args:
-        ----
-            query_parameters: A Pydantic data model that specifies the fields of
-                the API that should be queried.
-
-            conversation: A BioChatter conversation object.
-
-        Returns:
-        -------
-            A Callable object that can execute the query.
-
-        """
-
+    
     @abstractmethod
     def parameterise_query(
         self,
         question: str,
-        conversation: "Conversation",
+        conversation: Conversation,
     ) -> list[BaseModel]:
         """Parameterise a query object.
 
@@ -103,6 +79,7 @@ class BaseFetcher(ABC):
     def fetch_results(
         self,
         query_models: list[BaseModel],
+        data: object,
         retries: int | None = 3,
     ):
         """Fetch results by submitting a query.
@@ -130,8 +107,8 @@ class BaseInterpreter(ABC):
     def summarise_results(
         self,
         question: str,
-        conversation_factory: Callable,
-        response_text: str,
+        conversation: Conversation,
+        response: object,
     ) -> str:
         """Summarise an answer based on the given parameters.
 
@@ -142,7 +119,7 @@ class BaseInterpreter(ABC):
             conversation_factory (Callable): A function that creates a
                 BioChatter conversation.
 
-            response_text (str): The response.text returned from the request.
+            response (object): The response.text returned from the request.
 
         Returns:
         -------

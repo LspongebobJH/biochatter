@@ -324,7 +324,7 @@ class OncoKBInterpreter(BaseInterpreter):
         self,
         question: str,
         conversation_factory: Callable,
-        response_text: str,
+        response: object,
     ) -> str:
         """Extract the answer from the BLAST results.
 
@@ -332,7 +332,7 @@ class OncoKBInterpreter(BaseInterpreter):
         ----
             question (str): The question to be answered.
             conversation_factory: A BioChatter conversation object.
-            response_text (str): The response.text returned by OncoKB.
+            response (object): The response.text returned by OncoKB.
 
         Returns:
         -------
@@ -353,7 +353,7 @@ class OncoKBInterpreter(BaseInterpreter):
         )
         summary_prompt = ONCOKB_SUMMARY_PROMPT.format(
             question=question,
-            context=response_text,
+            context=response,
         )
         output_parser = StrOutputParser()
         conversation = conversation_factory()

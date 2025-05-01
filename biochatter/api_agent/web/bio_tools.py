@@ -625,7 +625,7 @@ class BioToolsInterpreter(BaseInterpreter):
         self,
         question: str,
         conversation_factory: Callable,
-        response_text: str,
+        response: object,
     ) -> str:
         """Extract the answer from the BLAST results.
 
@@ -633,7 +633,7 @@ class BioToolsInterpreter(BaseInterpreter):
         ----
             question (str): The question to be answered.
             conversation_factory: A BioChatter conversation object.
-            response_text (str): The response.text returned by bio.tools.
+            response (object): The response.text returned by bio.tools.
 
         Returns:
         -------
@@ -655,7 +655,7 @@ class BioToolsInterpreter(BaseInterpreter):
         )
         summary_prompt = BIOTOOLS_SUMMARY_PROMPT.format(
             question=question,
-            context=response_text,
+            context=response,
         )
         output_parser = StrOutputParser()
         conversation = conversation_factory()
