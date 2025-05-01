@@ -1016,6 +1016,14 @@ class ScanpyPlSpatialQueryParameters(BaseModel):
         description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
     )
 
+TOOLS = [
+    ScanpyPlScatterQueryParameters,
+    ScanpyPlPcaQueryParameters,
+    ScanpyPlTsneQueryParameters,
+    ScanpyPlUmapQueryParameters,
+    ScanpyPlDrawGraphQueryParameters,
+    ScanpyPlSpatialQueryParameters,
+]
 
 class ScanpyPlQueryBuilder(BaseQueryBuilder):
     """A class for building a AnndataIO query object."""

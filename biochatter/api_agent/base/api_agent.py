@@ -1,8 +1,9 @@
 """Base API agent module."""
 
 from collections.abc import Callable
+from typing import Any
 
-from pydantic import BaseModel
+from biochatter.llm_connect import Conversation
 
 from .agent_abc import BaseFetcher, BaseInterpreter, BaseQueryBuilder
 
@@ -25,10 +26,10 @@ from .agent_abc import BaseFetcher, BaseInterpreter, BaseQueryBuilder
 class APIAgent:
     def __init__(
         self,
-        conversation_factory: Callable,
-        query_builder: "BaseQueryBuilder",
-        fetcher: "BaseFetcher",
-        interpreter: "BaseInterpreter",
+        conversation_factory: Conversation,
+        query_builder: BaseQueryBuilder,
+        fetcher: BaseFetcher,
+        interpreter: BaseInterpreter,
     ):
         """API agent class to interact with a tool's API for querying and fetching
         results.  The query fields have to be defined in a Pydantic model
@@ -38,8 +39,7 @@ class APIAgent:
 
         Attributes
         ----------
-            conversation_factory (Callable): A function used to create a
-                BioChatter conversation, providing LLM access.
+            conversation_factory (Conversation): BioChatter conversation
 
             query_builder (BaseQueryBuilder): An instance of a child of the
                 BaseQueryBuilder class.
@@ -57,49 +57,7 @@ class APIAgent:
         self.interpreter = interpreter
         self.final_answer = None
 
-    def parameterise_query(self, question: str) -> list[BaseModel] | None:
-        """Use LLM to parameterise a query (a list of Pydantic models) based on the given
-        question using a BioChatter conversation instance.
-        """
-        try:
-            conversation = self.conversation_factory()
-            return self.query_builder.parameterise_query(question, conversation)
-        except Exception as e:
-            print(f"Error generating query: {e}")
-            return None
-
-    def fetch_results(self, query_models: list[BaseModel]) -> str | None:
-        """Fetch the results of the query using the individual API's implementation
-        (either single-step or submit-retrieve).
-
-        Args:
-        ----
-            query_models: list of parameterised query Pydantic models
-
-        """
-        try:
-            return self.fetcher.fetch_results(query_models, 100)
-        except Exception as e:
-            print(f"Error fetching results: {e}")
-            return None
-
-    def summarise_results(
-        self,
-        question: str,
-        response_text: str,
-    ) -> str | None:
-        """Summarise the retrieved results to extract the answer to the question."""
-        try:
-            return self.interpreter.summarise_results(
-                question=question,
-                conversation_factory=self.conversation_factory,
-                response_text=response_text,
-            )
-        except Exception as e:
-            print(f"Error extracting answer: {e}")
-            return None
-
-    def execute(self, question: str) -> str | None:
+    def execute(self, question: str, data: Any) -> str | None:
         """Wrapper that uses class methods to execute the API agent logic. Consists
         of 1) query generation, 2) query submission, 3) results fetching, and
         4) answer extraction. The final answer is stored in the final_answer
@@ -112,29 +70,26 @@ class APIAgent:
         """
         # Generate query
         try:
-            query_models = self.parameterise_query(question)
-            if not query_models:
-                raise ValueError("Failed to generate query.")
-        except ValueError as e:
-            print(e)
+            conversation = self.conversation_factory()
+            query_models = self.query_builder.parameterise_query(question, conversation)
+        except Exception as e:
+            raise Exception(f"Failed to generate query: {e}")
 
         # Fetch results
         try:
-            response_text = self.fetch_results(
-                query_models=query_models,
-            )
-            if not response_text:
-                raise ValueError("Failed to fetch results.")
-        except ValueError as e:
-            print(e)
+            response = self.fetcher.fetch_results(query_models, data, 100)
+        except Exception as e:
+            raise Exception(f"Failed to fetch results: {e}")
 
         # Extract answer from results
         try:
-            final_answer = self.summarise_results(question, response_text)
-            if not final_answer:
-                raise ValueError("Failed to extract answer from results.")
-        except ValueError as e:
-            print(e)
+            final_answer = self.interpreter.summarise_results(
+                question=question,
+                conversation_factory=self.conversation_factory,
+                response=response,
+            )
+        except Exception as e:
+            raise Exception(f"Failed to extract answer from results: {e}")
 
         self.final_answer = final_answer
         return final_answer
