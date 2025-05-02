@@ -137,7 +137,7 @@ class BaseInterpreter(ABC):
 class BaseAPIModel(BaseModel):
     """A base class for all API models.
 
-    Includes default fields `uuid` and `method_name`.
+    Includes default fields `uuid` and `api_name`.
     """
 
     uuid: str | None = Field(

@@ -1,0 +1,95 @@
+{
+    "directed": true,
+    "multigraph": false,
+    "graph": {},
+    "data_names": ["adata", "data"],
+    "nodes": [
+        {
+            "api": "sc.pp.neighbors",
+            "prep": "",
+            "args": {
+                "adata": "adata"
+            },
+            "arg_types": {
+                "adata": "object"
+            },
+            "produce": [
+                "adata.obsm[\"X_pca\"]",
+                "adata.varm[\"PCs\"]",
+                "adata.uns[\"pca\"]",
+                "adata.uns[\"neighbors\"]",
+                "adata.obsp[\"distances\"]",
+                "adata.obsp[\"connectivities\"]"
+            ],
+            "id": "sc.pp.neighbors"
+        },
+        {
+            "api": "sc.tl.umap",
+            "prep": "",
+            "args": {
+                "adata": "adata"
+            },
+            "arg_types": {
+                "adata": "object"
+            },
+            "produce": [
+                "adata.obsm[\"X_umap\"]",
+                "adata.uns[\"umap\"]"
+            ],
+            "id": "sc.tl.umap"
+        },
+        
+        {
+            "api": "sc.pl.umap",
+            "prep": "",
+            "args": {
+                "adata": "adata",
+                "color": "leiden"
+            },
+            "arg_types": {
+                "adata": "object",
+                "color": "str"
+            },
+            "id": "sc.pl.umap"
+        },
+        {
+            "id": "root"
+        }
+    ],
+    "edges": [
+        {
+            "depend_on": [
+                "adata.uns[\"neighbors\"]",
+                "adata.obsp[\"connectivities\"]"
+            ],
+            "source": "sc.pp.neighbors",
+            "target": "sc.tl.umap",
+            "arg": {"adata": "adata"}
+        },
+        {
+            "depend_on": [
+                "adata.uns[\"neighbors\"]",
+                "adata.obsp[\"connectivities\"]"
+            ],
+            "source": "sc.pp.neighbors",
+            "target": "sc.tl.leiden",
+            "arg": {"adata": "adata"}
+        },
+        {
+            "depend_on": [
+                "adata.obsm[\"X_umap\"]"
+            ],
+            "source": "sc.tl.umap",
+            "target": "sc.pl.umap",
+            "arg": {"adata": "adata"}
+        },
+        {
+            "depend_on": [
+                "adata.obs[\"leiden\"]"
+            ],
+            "source": "sc.tl.leiden",
+            "target": "sc.pl.umap",
+            "arg": {"color": "leiden"}
+        }
+    ]
+}

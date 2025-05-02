@@ -1,0 +1,133 @@
+<body>
+    <label for="data_input">Choose a json file:</label>
+    <input type="file" id="data_input" name="data_input" accept="application/json" />
+    <div id="container" style="width: 100%; height: 100%; align-items: center;"></div>
+</body>
+
+<script src="https://unpkg.com/@antv/g6@5/dist/g6.min.js"></script>
+<script>
+    
+    const { Graph } = G6;
+    const data_input = document.getElementById("data_input");
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const data = event.target.result;
+        const parsedData = JSON.parse(data);
+        const dataNames = parsedData.data_names;
+        
+        for (let i = 0; i < parsedData.nodes.length; i++) {
+            parsedData.nodes[i].style = {
+                size: 10,
+                icon: true,
+                iconText: parsedData.nodes[i].id,
+                iconFontSize: 5,
+                iconFill: '#000',
+            }
+        };
+        for (let i = 0; i < parsedData.edges.length; i++) {
+            const edgeArg = parsedData.edges[i].arg;
+            const argName = edgeArg.split('=')[0];
+            if (!dataNames.includes(argName)) {
+                parsedData.edges[i].style = {
+                    lineDash: 1
+                }
+            }
+            
+        };
+        console.log(parsedData);
+        showGraph(parsedData);
+    };
+    reader.onerror = (event) => {
+        console.error("Error reading file:", event);
+    };
+    data_input.onchange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            reader.readAsText(file);
+        }
+    };
+
+    var showGraph = data => {
+        const graph = new Graph({
+            container: 'container',
+            autoFit: 'view',
+            autoResize: true,
+            data,
+            node: {
+                palette: {
+                    field: 'group',
+                    color: 'tableau',
+                },
+            },
+            edge: {
+                style: {
+                    haloLineWidth: 8,
+                    endArrow: true,
+                    endArrowSize: 2,
+                },
+            },
+            layout: {
+                type: 'dendrogram',
+                direction: 'LR',
+                nodeSep: 20,
+                rankSep: 50,
+                radial: false,
+            },
+            behaviors: [
+                'zoom-canvas', 'drag-element',
+                'hover-activate',
+                {
+                    type: 'click-select',
+                    key: 'click-select-1',
+                    multiple: true,
+                },
+                {
+                    type: 'drag-canvas',
+                    key: 'drag-canvas-1',   
+                },
+            ],
+            plugins: [
+                {
+                    type: 'tooltip',
+                    trigger: 'hover',
+                    getContent: (e, _item) => {
+                        const { targetType, target } = e;
+                        const item = _item[0];
+                        if (targetType == 'node') {
+                            let content = `
+                                <div style="word-wrap:break-word;">
+                                    <p>API: ${item.api}<p>
+                                    <p>args: ${JSON.stringify(item.args)}<p>
+                                    <p>produce: ${item.produce}<p>
+                                </div>
+                            `;
+                            return content;
+                        } else if (targetType == 'edge') {
+                            let content = `
+                                <div style="word-wrap:break-word;">
+                                    <p>depend_on: ${item.depend_on}<p>
+                                    <p>arg: ${item.arg}<p>
+                                </div>
+                            `;
+                            return content;
+                        }
+                        return null;
+                    }
+                },
+                {
+                    key: 'minimap',
+                    type: 'minimap',
+                    size: [240, 160],
+                    position: 'right-bottom'
+                },
+            ]
+        });
+        
+        graph.render();
+    };
+    
+</script>
+    
+    
+    
+  

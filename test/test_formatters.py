@@ -13,9 +13,9 @@ class TestParams(BaseModel):
 
 
 class TestMethodParams(BaseModel):
-    """Test parameter model for Python method_name calls."""
+    """Test parameter model for Python api_name calls."""
 
-    method_name: str
+    api_name: str
     param1: str | None = None
     param2: int | None = None
     question_uuid: str | None = None
@@ -53,7 +53,7 @@ def test_format_as_rest_call_no_params():
 
 def test_format_as_python_call_with_module():
     params = TestMethodParams(
-        method_name="sqrt",
+        api_name="sqrt",
         param1="16",
         param2=42,
     )
@@ -63,7 +63,7 @@ def test_format_as_python_call_with_module():
 
 def test_format_as_python_call_without_module():
     params = TestMethodParams(
-        method_name="calculate",
+        api_name="calculate",
         param1="test",
         param2=123,
     )
@@ -73,7 +73,7 @@ def test_format_as_python_call_without_module():
 
 def test_format_as_python_call_no_params():
     params = TestMethodParams(
-        method_name="empty_function",
+        api_name="empty_function",
     )
     expected = "empty_function()"
     assert format_as_python_call(params) == expected
@@ -81,7 +81,7 @@ def test_format_as_python_call_no_params():
 
 def test_format_as_python_call_ignores_question_uuid():
     params = TestMethodParams(
-        method_name="test",
+        api_name="test",
         param1="value",
         question_uuid="123-456",
     )

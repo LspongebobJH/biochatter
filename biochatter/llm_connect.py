@@ -1474,14 +1474,9 @@ class GptConversation(Conversation):
             bool: True if the API key is valid, False otherwise.
 
         """
-        client = openai.OpenAI(
-            api_key=api_key,
-            base_url=self.base_url,
-        )
         self.user = user
 
         try:
-            client.models.list()
             self.chat = ChatOpenAI(
                 model_name=self.model_name,
                 temperature=0,

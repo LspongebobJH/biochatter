@@ -1,1 +1,1 @@
-from .scanpy_agent import ScanpyQueryBuilder, ScanpyFetcher, ScanpyInterpreter
+from .agent import ScanpyQueryBuilder, ScanpyFetcher, ScanpyInterpreter

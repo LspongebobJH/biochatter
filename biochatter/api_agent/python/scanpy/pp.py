@@ -1,10 +1,19 @@
 from collections.abc import Collection
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, PrivateAttr, Field
+
+# Jiahang: unfinished
+class Neighbors(BaseModel):
+    """Compute the nearest neighbors distance matrix and a neighborhood graph of observations."""
+    _api_name: str = PrivateAttr(default='sc.pp.neighbors')
+    adata: str = Field(..., description="Annotated data matrix")
+    n_neighbors: int = Field(15, description="The size of local neighborhood (in terms of number of neighboring data points) used for manifold approximation.")
+    n_pcs: int | None = Field(None, description="Number of principal components to use.")
+    knn: bool = Field(True, description="If True, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to neighbors more distant than the n_neighbors nearest neighbor.")
 
 
-class CalculateQCMetricsParams(BaseModel):
+class CalculateQCMetrics(BaseModel):
     adata: str = Field(..., description="Annotated data matrix")
     expr_type: str = Field("counts", description="Name of kind of values in X")
     var_type: str = Field("genes", description="The kind of thing the variables are")
@@ -16,11 +25,9 @@ class CalculateQCMetricsParams(BaseModel):
     log1p: bool = Field(True, description="Compute log1p transformed annotations")
     parallel: bool | None = Field(None, description="Parallel computation flag")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class FilterCellsParams(BaseModel):
+class FilterCells(BaseModel):
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -36,11 +43,9 @@ class FilterCellsParams(BaseModel):
     inplace: bool = Field(True, description="Perform computation inplace or return result.")
     copy: bool = Field(False, description="Whether to copy the data or modify it inplace.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class FilterGenesParams(BaseModel):
+class FilterGenes(BaseModel):
     data: str = Field(
         ...,
         description="An annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -58,11 +63,9 @@ class FilterGenesParams(BaseModel):
     inplace: bool = Field(True, description="Perform computation inplace or return result.")
     copy: bool = Field(False, description="Whether to return a copy of the data (not modifying the original).")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class HighlyVariableGenesParams(BaseModel):
+class HighlyVariableGenes(BaseModel):
     adata: str = Field(
         ..., description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes."
     )
@@ -103,11 +106,9 @@ class HighlyVariableGenesParams(BaseModel):
         True, description="Whether to check if counts in selected layer are integers (relevant for flavor='seurat_v3')."
     )
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class Log1pParams(BaseModel):
+class Log1p(BaseModel):
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -123,11 +124,9 @@ class Log1pParams(BaseModel):
     layer: str | None = Field(None, description="Entry of layers to transform.")
     obsm: str | None = Field(None, description="Entry of obsm to transform.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class PCAParams(BaseModel):
+class PCA(BaseModel):
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -167,11 +166,9 @@ class PCAParams(BaseModel):
         description="If True, a copy of the data is returned when AnnData is passed. Otherwise, the operation is done inplace.",
     )
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class NormalizeTotalParams(BaseModel):
+class NormalizeTotal(BaseModel):
     adata: str = Field(
         ...,
         description="The annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -198,11 +195,9 @@ class NormalizeTotalParams(BaseModel):
         False, description="Whether to modify the copied input object. Not compatible with inplace=False."
     )
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class RegressOutParams(BaseModel):
+class RegressOut(BaseModel):
     adata: str = Field(..., description="The annotated data matrix.")
     keys: str | Collection[str] = Field(
         ...,
@@ -214,11 +209,9 @@ class RegressOutParams(BaseModel):
     )
     copy: bool = Field(False, description="If True, a copy of the data will be returned. Otherwise, modifies in-place.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class ScaleParams(BaseModel):
+class Scale(BaseModel):
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -237,11 +230,9 @@ class ScaleParams(BaseModel):
         description="Restrict the scaling to a certain set of observations. The mask is specified as a boolean array or a string referring to an array in obs.",
     )
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class SubsampleParams(BaseModel):
+class Subsample(BaseModel):
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -251,11 +242,9 @@ class SubsampleParams(BaseModel):
     random_state: int | None = Field(0, description="Random seed to change subsampling.")
     copy: bool = Field(False, description="If an AnnData is passed, determines whether a copy is returned.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class DownsampleCountsParams(BaseModel):
+class DownsampleCounts(BaseModel):
     adata: str = Field(..., description="Annotated data matrix.")
     counts_per_cell: int | None = Field(
         None,
@@ -269,22 +258,18 @@ class DownsampleCountsParams(BaseModel):
     replace: bool = Field(False, description="Whether to sample the counts with replacement.")
     copy: bool = Field(False, description="Determines whether a copy of adata is returned.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class RecipeZheng17Params(BaseModel):
+class RecipeZheng17(BaseModel):
     adata: str = Field(..., description="Annotated data matrix.")
     n_top_genes: int = Field(1000, description="Number of genes to keep.")
     log: bool = Field(True, description="Take logarithm. If True, log-transform data after filtering.")
     plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
     copy: bool = Field(False, description="Return a copy of adata instead of updating it.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class RecipeWeinreb17Params(BaseModel):
+class RecipeWeinreb17(BaseModel):
     adata: str = Field(..., description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     mean_threshold: float = Field(0.01, description="Threshold for mean expression of genes.")
@@ -294,21 +279,17 @@ class RecipeWeinreb17Params(BaseModel):
     random_state: int = Field(0, description="Random state for reproducibility of results.")
     copy: bool = Field(False, description="Return a copy if True, else modifies the original AnnData.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class RecipeSeuratParams(BaseModel):
+class RecipeSeurat(BaseModel):
     adata: str = Field(..., description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
     copy: bool = Field(False, description="Return a copy if True, else modifies the original AnnData.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class CombatParams(BaseModel):
+class Combat(BaseModel):
     adata: str = Field(..., description="Annotated data matrix.")
     key: str = Field(
         "batch", description="Key to a categorical annotation from obs that will be used for batch effect removal."
@@ -318,11 +299,9 @@ class CombatParams(BaseModel):
     )
     inplace: bool = Field(True, description="Whether to replace adata.X or to return the corrected data.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class ScrubletParams(BaseModel):
+class Scrublet(BaseModel):
     adata: str = Field(..., description="Annotated data matrix (n_obs × n_vars).")
     adata_sim: str | None = Field(
         None, description="Optional AnnData object from scrublet_simulate_doublets() with same number of vars as adata."
@@ -356,11 +335,9 @@ class ScrubletParams(BaseModel):
     copy: bool = Field(False, description="If True, return a copy of adata with Scrublet results added.")
     random_state: int = Field(0, description="Initial state for doublet simulation and nearest neighbors.")
 
-    class Config:
-        arbitrary_types_allowed = True
 
 
-class ScrubletSimulateDoubletsParams(BaseModel):
+class ScrubletSimulateDoublets(BaseModel):
     adata: str = Field(
         ..., description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells, columns to genes."
     )
@@ -376,5 +353,24 @@ class ScrubletSimulateDoubletsParams(BaseModel):
     )
     random_seed: int = Field(0, description="Random seed for reproducibility.")
 
-    class Config:
-        arbitrary_types_allowed = True
+
+TOOLS_DICT = {
+    "neighbors": Neigbors,
+    "calculate_qc_metrics": CalculateQCMetrics,
+    "filter_cells": FilterCells,
+    "filter_genes": FilterGenes,
+    "highly_variable_genes": HighlyVariableGenes,
+    "log1p": Log1p,
+    "pca": PCA,
+    "normalize_total": NormalizeTotal,
+    "regress_out": RegressOut,
+    "scale": Scale,
+    "subsample": Subsample,
+    "downsample_counts": DownsampleCounts,
+    "recipe_zheng17": RecipeZheng17,
+    "recipe_weinreb17": RecipeWeinreb17,
+    "recipe_seurat": RecipeSeurat,
+    "combat": Combat,
+    "scrublet": Scrublet,
+    "scrublet_simulate_doublets": ScrubletSimulateDoublets
+}

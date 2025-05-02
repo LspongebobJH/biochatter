@@ -15,13 +15,13 @@ conversation = GptConversation(model_name="gpt-4", prompts={})
 conversation.set_api_key(os.environ.get("API_KEY"))
 scanpy_agent = APIAgent(
     conversation=conversation,
-    query_builder=ScanpyQueryBuilder(),
+    query_builder=ScanpyQueryBuilder('biochatter/api_agent/python/scanpy/graph_test.json'),
     fetcher=ScanpyFetcher(),
     interpreter=ScanpyInterpreter()
 )
 
 # Execute a query
-question = "Visualize umap embedding of cells' gene counts data."
+question = "Visualize umap embedding of cells' gene counts data where cells are colored by leiden clustering."
 data = pbmc3k()
 result = scanpy_agent.execute(question, data=data)
 

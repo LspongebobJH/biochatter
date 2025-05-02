@@ -22,3 +22,4 @@ serve.sh
 scaling_test.py
 coverage.xml
 data/
+node_modules/

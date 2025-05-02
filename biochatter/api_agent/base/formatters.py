@@ -40,11 +40,11 @@ def format_as_python_call(model: BaseAPIModel) -> str:
 
     """
     params = model.dict(exclude_none=True)
-    method_name = params.pop("method_name", None)
+    api_name = params.pop("api_name", None)
     params.pop("question_uuid", None)
     if isinstance(model, MapAnnData):
         param_str = params.pop("dics", {})
     else:
         param_str = ", ".join(f"{k}={v!r}" for k, v in params.items())
 
-    return f"{method_name}({param_str})"
+    return f"{api_name}({param_str})"
