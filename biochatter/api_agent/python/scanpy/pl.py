@@ -1,26 +1,14 @@
 """Module for interacting with the `scanpy` API for plotting (`pl`)."""
 
 import uuid
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
-
-from langchain_core.output_parsers import PydanticToolsParser
+from typing import Any
 from pydantic import BaseModel, Field, PrivateAttr
 
-if TYPE_CHECKING:
-    from biochatter.llm_connect import Conversation
-
-from biochatter.api_agent.base.agent_abc import BaseAPIModel, BaseQueryBuilder
-
-class ScanpyPlScatter(BaseModel):
+class ScPlScatter(BaseModel):
     """Parameters for querying the scanpy `pl.scatter` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.scatter",
-    )
-    question_uuid: str = Field(
-        default_factory=lambda: str(uuid.uuid4()),
-        description="Unique identifier for the question.",
     )
     adata: str = Field(description="Annotated data matrix.")
     x: str | None = Field(default=None, description="x coordinate.")
@@ -76,15 +64,11 @@ class ScanpyPlScatter(BaseModel):
 
 
 ### Embeddings
-class ScanpyPlPca(BaseModel):
+class ScPlPca(BaseModel):
     """Parameters for querying the scanpy `pl.pca` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.pca",
-    )
-    question_uuid: str | None = Field(
-        default=None,
-        description="Unique identifier for the question.",
     )
     adata: str = Field(
         ...,
@@ -156,15 +140,11 @@ class ScanpyPlPca(BaseModel):
     )
 
 
-class ScanpyPlTsne(BaseModel):
+class ScPlTsne(BaseModel):
     """Parameters for querying the Scanpy `pl.tsne` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.tsne",
-    )
-    question_uuid: str | None = Field(
-        default=None,
-        description="Unique identifier for the question.",
     )
     adata: str = Field(
         ...,
@@ -324,15 +304,11 @@ class ScanpyPlTsne(BaseModel):
     )
 
 
-class ScanpyPlUmap(BaseModel):
+class ScPlUmap(BaseModel):
     """Parameters for querying the Scanpy `pl.umap` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.umap",
-    )
-    question_uuid: str | None = Field(
-        default=None,
-        description="Unique identifier for the question.",
     )
     adata: str = Field(
         ...,
@@ -520,15 +496,11 @@ class ScanpyPlUmap(BaseModel):
     )
 
 
-class ScanpyPlDrawGraph(BaseModel):
+class ScPlDrawGraph(BaseModel):
     """Parameters for querying the Scanpy `pl.draw_graph` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.draw_graph",
-    )
-    question_uuid: str | None = Field(
-        default=None,
-        description="Unique identifier for the question.",
     )
     adata: str = Field(
         ...,
@@ -699,15 +671,11 @@ class ScanpyPlDrawGraph(BaseModel):
     )
 
 
-class ScanpyPlSpatial(BaseModel):
+class ScPlSpatial(BaseModel):
     """Parameters for querying the Scanpy `pl.spatial` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.spatial",
-    )
-    question_uuid: str | None = Field(
-        default=None,
-        description="Unique identifier for the question.",
     )
     adata: str = Field(
         ...,
@@ -888,13 +856,13 @@ class ScanpyPlSpatial(BaseModel):
         description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
     )
 
-TOOLS_DICT = [
-    ScanpyPlScatter,
-    ScanpyPlPca,
-    ScanpyPlTsne,
-    ScanpyPlUmap,
-    ScanpyPlDrawGraph,
-    ScanpyPlSpatial,
+TOOLS = [
+    ScPlScatter,
+    ScPlPca,
+    ScPlTsne,
+    ScPlUmap,
+    ScPlDrawGraph,
+    ScPlSpatial,
 ]
 
-TOOLS_DICT = {tool.__fields__['_api_name'].default: tool for tool in TOOLS_DICT}
+TOOLS_DICT = {tool.__fields__['_api_name'].default: tool for tool in TOOLS}
