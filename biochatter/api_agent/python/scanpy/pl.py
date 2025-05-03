@@ -10,7 +10,7 @@ class ScPlScatter(BaseModel):
     _api_name: str = PrivateAttr(
         default="sc.pl.scatter",
     )
-    adata: str = Field(description="Annotated data matrix.")
+    adata: str = Field(default="adata", description="Annotated data matrix.")
     x: str | None = Field(default=None, description="x coordinate.")
     y: str | None = Field(default=None, description="y coordinate.")
     color: str | tuple[float, ...] | list[str | tuple[float, ...]] | None = Field(
@@ -71,7 +71,7 @@ class ScPlPca(BaseModel):
         default="sc.pl.pca",
     )
     adata: str = Field(
-        ...,
+        "adata",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -147,7 +147,7 @@ class ScPlTsne(BaseModel):
         default="sc.pl.tsne",
     )
     adata: str = Field(
-        ...,
+        "adata",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -311,7 +311,7 @@ class ScPlUmap(BaseModel):
         default="sc.pl.umap",
     )
     adata: str = Field(
-        ...,
+        "adata",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -503,7 +503,7 @@ class ScPlDrawGraph(BaseModel):
         default="sc.pl.draw_graph",
     )
     adata: str = Field(
-        ...,
+        "adata",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -678,7 +678,7 @@ class ScPlSpatial(BaseModel):
         default="sc.pl.spatial",
     )
     adata: str = Field(
-        ...,
+        "adata",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -865,4 +865,4 @@ TOOLS = [
     ScPlSpatial,
 ]
 
-TOOLS_DICT = {tool.__fields__['_api_name'].default: tool for tool in TOOLS}
+TOOLS_DICT = {tool._api_name.default: tool for tool in TOOLS}

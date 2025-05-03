@@ -22,10 +22,13 @@ from .agent_abc import BaseFetcher, BaseInterpreter, BaseQueryBuilder
 
 
 ## Agent class
+
+# Jiahang: if only the conversation.chat, the LLM, is used, then it's a bad practice to pass the
+# whole conversation object. Instead, we should pass the LLM only.
+# This problem applies to other API agents, query_buider, fecther, interpreter classes as well.
 class APIAgent:
     def __init__(
         self,
-        conversation: Conversation,
         query_builder: BaseQueryBuilder,
         fetcher: BaseFetcher,
         interpreter: BaseInterpreter,
@@ -38,8 +41,6 @@ class APIAgent:
 
         Attributes
         ----------
-            conversation (Conversation): BioChatter conversation
-
             query_builder (BaseQueryBuilder): An instance of a child of the
                 BaseQueryBuilder class.
 
@@ -50,7 +51,6 @@ class APIAgent:
                 BaseInterpreter class.
 
         """
-        self.conversation = conversation
         self.query_builder = query_builder
         self.fetcher = fetcher
         self.interpreter = interpreter
@@ -67,27 +67,18 @@ class APIAgent:
             question (str): The question to be answered.
 
         """
-        # Generate query
-        try:
-            query_models = self.query_builder.parameterise_query(question, self.conversation)
-        except Exception as e:
-            raise Exception(f"Failed to generate query: {e}")
+        # Generate query        
+        query_models = self.query_builder.build_api_query(question)
 
         # Fetch results
-        try:
-            response = self.fetcher.fetch_results(query_models, data, 100)
-        except Exception as e:
-            raise Exception(f"Failed to fetch results: {e}")
-
+        response = self.fetcher.fetch_results(query_models, data, 100)
+        
         # Extract answer from results
-        try:
-            final_answer = self.interpreter.summarise_results(
-                question=question,
-                conversation=self.conversation,
-                response=response,
-            )
-        except Exception as e:
-            raise Exception(f"Failed to extract answer from results: {e}")
+        final_answer = self.interpreter.summarise_results(
+            question=question,
+            conversation=self.conversation,
+            response=response,
+        )
 
         self.final_answer = final_answer
         return final_answer

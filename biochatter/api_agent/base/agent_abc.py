@@ -4,6 +4,8 @@ Provides base classes for query builders, fetchers, and interpreters used in
 API interactions and result processing.
 """
 
+import os
+from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -11,9 +13,16 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from biochatter.llm_connect import Conversation
 
-
 class BaseQueryBuilder(ABC):
     """An abstract base class for query builders."""
+    def __init__(self, conversation: Conversation):
+        """Initialise the query builder with a conversation object."""
+        self.conversation = conversation
+
+        load_dotenv()
+        self.conversation.set_api_key(
+            os.environ.get("API_KEY")
+        )
 
     @property
     def structured_output_prompt(self) -> ChatPromptTemplate:
@@ -39,10 +48,9 @@ class BaseQueryBuilder(ABC):
 
     
     @abstractmethod
-    def parameterise_query(
+    def build_api_query(
         self,
         question: str,
-        conversation: Conversation,
     ) -> list[BaseModel]:
         """Parameterise a query object.
 
@@ -53,9 +61,6 @@ class BaseQueryBuilder(ABC):
         Args:
         ----
             question (str): The question to be answered.
-
-            conversation: The BioChatter conversation object containing the LLM
-                that should parameterise the query.
 
         Returns:
         -------
@@ -102,12 +107,19 @@ class BaseInterpreter(ABC):
     The interpreter is aware of the nature and structure of the results and can
     extract and summarise information from them.
     """
+    def __init__(self, conversation: Conversation):
+        """Initialise the interpreter with a conversation object."""
+        self.conversation = conversation
+
+        load_dotenv()
+        self.conversation.set_api_key(
+            os.environ.get("API_KEY")
+        )
 
     @abstractmethod
     def summarise_results(
         self,
         question: str,
-        conversation: Conversation,
         response: object,
     ) -> str:
         """Summarise an answer based on the given parameters.

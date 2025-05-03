@@ -231,7 +231,7 @@ class OncoKBQueryBuilder(BaseQueryBuilder):
             prompt=self.structured_output_prompt,
         )
 
-    def parameterise_query(
+    def build_api_query(
         self,
         question: str,
         conversation: "Conversation",

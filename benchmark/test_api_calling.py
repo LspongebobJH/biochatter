@@ -50,7 +50,7 @@ def test_web_api_calling(
             builder = OncoKBQueryBuilder()
         elif "biotools" in yaml_data["case"]:
             builder = BioToolsQueryBuilder()
-        parameters = builder.parameterise_query(
+        parameters = builder.build_api_query(
             question=yaml_data["input"]["prompt"],
             conversation=conversation,
         )
@@ -107,7 +107,7 @@ def test_python_api_calling(
             builder = ScanpyPlQueryBuilder()
         elif "anndata" in yaml_data["case"]:
             builder = AnnDataIOQueryBuilder()
-        parameters = builder.parameterise_query(
+        parameters = builder.build_api_query(
             question=yaml_data["input"]["prompt"],
             conversation=conversation,
         )
@@ -161,7 +161,7 @@ def test_python_api_calling_reduced(
     def run_test():
         conversation.reset()  # needs to be reset for each test
         builder = ScanpyPlQueryBuilderReduced()
-        parameters = builder.parameterise_query(
+        parameters = builder.build_api_query(
             question=yaml_data["input"]["prompt"],
             conversation=conversation,
         )

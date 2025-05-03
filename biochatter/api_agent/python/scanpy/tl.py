@@ -49,3 +49,10 @@ class ScTlLeiden(BaseModel):
         True,
         description="Whether to use edge weights in the clustering.",
     )
+
+TOOLS = [
+    ScTlUmap,
+    ScTlLeiden,
+]
+
+TOOLS_DICT = {tool._api_name.default: tool for tool in TOOLS}

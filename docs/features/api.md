@@ -75,7 +75,7 @@ Key Methods:
 - `execute(question: str) -> Optional[str]`: Executes the full API interaction
 pipeline.
 
-- `parameterise_query(question: str) -> Optional[BaseModel]`: Generates a
+- `build_api_query(question: str) -> Optional[BaseModel]`: Generates a
 structured query based on the input question.
 
 - `fetch_results(query_model: "BaseModel") -> Optional[str]`: Retrieves results
@@ -118,7 +118,7 @@ Key Methods:
 - `create_runnable(query_parameters: BaseModel, conversation: Conversation) ->
 Callable`: Creates runnable object for executing queries.
 
-- `parameterise_query(question: str, conversation: Conversation) -> BaseModel`:
+- `build_api_query(question: str, conversation: Conversation) -> BaseModel`:
 Generates a parameterized query object based on the input question.
 
 #### BaseFetcher
@@ -215,7 +215,7 @@ class NewAPIQueryBuilder(BaseQueryBuilder):
             llm=conversation.chat,
             prompt=self.structured_output_prompt,
         )
-    def parameterise_query(self,
+    def build_api_query(self,
         question: str,
         conversation: Conversation
         ) -> NewAPIQueryParameters:

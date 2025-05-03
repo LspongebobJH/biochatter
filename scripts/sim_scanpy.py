@@ -5,19 +5,21 @@ from biochatter.api_agent.python.scanpy import ScanpyQueryBuilder, ScanpyFetcher
 import os
 import scanpy
 from scanpy.datasets import pbmc3k
-from dotenv import load_dotenv
-load_dotenv()
 
 scanpy.settings.datasetdir = os.environ.get("DATA")
 
 # Create an API agent for OncoKB
-conversation = GptConversation(model_name="gpt-4", prompts={})
-conversation.set_api_key(os.environ.get("API_KEY"))
+query_builder_conv = GptConversation(model_name="gpt-4", prompts={})
+interpreter_conv = GptConversation(model_name="gpt-4", prompts={})
+
 scanpy_agent = APIAgent(
-    conversation=conversation,
-    query_builder=ScanpyQueryBuilder('biochatter/api_agent/python/scanpy/graph_test.json'),
+    query_builder=ScanpyQueryBuilder(
+        conversation=query_builder_conv,
+        dep_graph_path = 'biochatter/api_agent/python/scanpy/graph_test.json'),
     fetcher=ScanpyFetcher(),
-    interpreter=ScanpyInterpreter()
+    interpreter=ScanpyInterpreter(
+        conversation=interpreter_conv,
+    )
 )
 
 # Execute a query

@@ -1,4 +1,3 @@
-from collections.abc import Collection
 from typing import Literal
 
 from pydantic import BaseModel, PrivateAttr, Field
@@ -8,7 +7,7 @@ class ScPpNeighbors(BaseModel):
     """Compute the nearest neighbors distance matrix and a neighborhood graph of observations."""
 
     _api_name: str = PrivateAttr(default='sc.pp.neighbors')
-    adata: str = Field(..., description="Annotated data matrix")
+    adata: str = Field("adata", description="Annotated data matrix")
     n_neighbors: int = Field(15, description="The size of local neighborhood (in terms of number of neighboring data points) used for manifold approximation.")
     n_pcs: int | None = Field(None, description="Number of principal components to use.")
     knn: bool = Field(True, description="If True, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to neighbors more distant than the n_neighbors nearest neighbor.")
@@ -18,7 +17,7 @@ class ScPpCalculateQCMetrics(BaseModel):
     """Calculate quality control metrics for the data matrix."""
 
     _api_name: str = PrivateAttr(default='sc.pp.calculate_qc_metrics')
-    adata: str = Field(..., description="Annotated data matrix")
+    adata: str = Field("adata", description="Annotated data matrix")
     expr_type: str = Field("counts", description="Name of kind of values in X")
     var_type: str = Field("genes", description="The kind of thing the variables are")
     qc_vars: str = Field("", description="Keys for boolean columns of .var for control variables")
@@ -35,7 +34,7 @@ class ScPpFilterCells(BaseModel):
     """Filter cells based on number of gene counts."""
     _api_name: str = PrivateAttr(default='sc.pp.filter_cells')
     data: str = Field(
-        ...,
+        "adata",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     min_counts: int | None = Field(None, description="Minimum number of counts required for a cell to pass filtering.")
@@ -47,7 +46,6 @@ class ScPpFilterCells(BaseModel):
         None, description="Maximum number of genes expressed required for a cell to pass filtering."
     )
     inplace: bool = Field(True, description="Perform computation inplace or return result.")
-    copy: bool = Field(False, description="Whether to copy the data or modify it inplace.")
 
 
 
@@ -56,7 +54,7 @@ class ScPpFilterGenes(BaseModel):
 
     _api_name: str = PrivateAttr(default='sc.pp.filter_genes')
     data: str = Field(
-        ...,
+        "adata",
         description="An annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     min_counts: int | None = Field(None, description="Minimum number of counts required for a gene to pass filtering.")
@@ -70,7 +68,6 @@ class ScPpFilterGenes(BaseModel):
         description="Maximum number of cells in which the gene is expressed allowed for the gene to pass filtering.",
     )
     inplace: bool = Field(True, description="Perform computation inplace or return result.")
-    copy: bool = Field(False, description="Whether to return a copy of the data (not modifying the original).")
 
 
 
@@ -78,7 +75,7 @@ class ScPpHighlyVariableGenes(BaseModel):
     """Identify highly variable genes based on mean and variance of gene expressions."""
     _api_name: str = PrivateAttr(default='sc.pp.highly_variable_genes')
     adata: str = Field(
-        ..., description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes."
+        "adata", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes."
     )
     layer: str | None = Field(None, description="Use adata.layers[layer] for expression values instead of adata.X.")
     n_top_genes: int | None = Field(
@@ -123,13 +120,10 @@ class ScPpLog1p(BaseModel):
     """Logarithmize the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.log1p')
     data: str = Field(
-        ...,
+        "adata",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     base: float | None = Field(None, description="Base of the logarithm. Natural logarithm is used by default.")
-    copy: bool = Field(
-        False, description="If True, a copy of the data is returned. Otherwise, the operation is done inplace."
-    )
     chunked: bool | None = Field(
         None, description="Process the data matrix in chunks, which will save memory. Applies only to AnnData."
     )
@@ -143,7 +137,7 @@ class ScPpPCA(BaseModel):
     """Apply Principal Component Analysis (PCA) for dimensionality reduction to data matrix ."""
     _api_name: str = PrivateAttr(default='sc.pp.pca')
     data: str = Field(
-        ...,
+        "adata",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     n_comps: int | None = Field(
@@ -176,10 +170,6 @@ class ScPpPCA(BaseModel):
     chunk_size: int | None = Field(
         None, description="Number of observations to include in each chunk. Required if chunked=True."
     )
-    copy: bool = Field(
-        False,
-        description="If True, a copy of the data is returned when AnnData is passed. Otherwise, the operation is done inplace.",
-    )
 
 
 
@@ -187,7 +177,7 @@ class ScPpNormalizeTotal(BaseModel):
     """Normalize total counts per cell to a target sum."""
     _api_name: str = PrivateAttr(default='sc.pp.normalize_total')
     adata: str = Field(
-        ...,
+        "adata",
         description="The annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     target_sum: float | None = Field(
@@ -208,25 +198,21 @@ class ScPpNormalizeTotal(BaseModel):
     inplace: bool = Field(
         True, description="Whether to update adata or return normalized copies of adata.X and adata.layers."
     )
-    copy: bool = Field(
-        False, description="Whether to modify the copied input object. Not compatible with inplace=False."
-    )
 
 
 
 class ScPpRegressOut(BaseModel):
     """Regress out unwanted sources of variation from the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.regress_out')
-    adata: str = Field(..., description="The annotated data matrix.")
-    keys: str | Collection[str] = Field(
+    adata: str = Field("adata", description="The annotated data matrix.")
+    keys: str | list[str] = Field(
         ...,
-        description="Keys for observation annotation on which to regress on. Can be a single key or a collection of keys.",
+        description="Keys for observation annotation on which to regress on. Can be a single key or a list of keys.",
     )
     layer: str | None = Field(None, description="Layer to regress on, if provided.")
     n_jobs: int | None = Field(
         None, description="Number of jobs for parallel computation. None means using default n_jobs."
     )
-    copy: bool = Field(False, description="If True, a copy of the data will be returned. Otherwise, modifies in-place.")
 
 
 
@@ -234,7 +220,7 @@ class ScPpScale(BaseModel):
     """Scale the data matrix to unit variance and zero mean."""
     _api_name: str = PrivateAttr(default='sc.pp.scale')
     data: str = Field(
-        ...,
+        "adata",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     zero_center: bool = Field(
@@ -243,7 +229,6 @@ class ScPpScale(BaseModel):
     max_value: float | None = Field(
         None, description="Clip (truncate) to this value after scaling. If None, do not clip."
     )
-    copy: bool = Field(False, description="Whether this function should be performed inplace.")
     layer: str | None = Field(None, description="If provided, which element of layers to scale.")
     obsm: str | None = Field(None, description="If provided, which element of obsm to scale.")
     mask_obs: str | None = Field(
@@ -257,20 +242,19 @@ class ScPpSample(BaseModel):
     """Sample observations or variables with or without replacement."""
     _api_name: str = PrivateAttr(default='sc.pp.sample')
     data: str = Field(
-        ...,
+        "adata",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     fraction: float | None = Field(None, description="Sample to this fraction of the number of observations.")
     n_obs: int | None = Field(None, description="Sample to this number of observations.")
     random_state: int | None = Field(0, description="Random seed to change subsampling.")
-    copy: bool = Field(False, description="If an AnnData is passed, determines whether a copy is returned.")
 
 
 
 class ScPpDownsampleCounts(BaseModel):
     """Downsample counts in the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.downsample_counts')
-    adata: str = Field(..., description="Annotated data matrix.")
+    adata: str = Field("adata", description="Annotated data matrix.")
     counts_per_cell: int | None = Field(
         None,
         description="Target total counts per cell. If a cell has more than ‘counts_per_cell’, it will be downsampled to this number. Can be an integer or integer ndarray with same length as number of observations.",
@@ -281,49 +265,45 @@ class ScPpDownsampleCounts(BaseModel):
     )
     random_state: int | None = Field(0, description="Random seed for subsampling.")
     replace: bool = Field(False, description="Whether to sample the counts with replacement.")
-    copy: bool = Field(False, description="Determines whether a copy of adata is returned.")
 
 
 
 class ScPpRecipeZheng17(BaseModel):
     """Preprocess data according to the Zheng et al. (2017) recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_zeng17')
-    adata: str = Field(..., description="Annotated data matrix.")
+    adata: str = Field("adata", description="Annotated data matrix.")
     n_top_genes: int = Field(1000, description="Number of genes to keep.")
     log: bool = Field(True, description="Take logarithm. If True, log-transform data after filtering.")
     plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
-    copy: bool = Field(False, description="Return a copy of adata instead of updating it.")
 
 
 
 class ScPpRecipeWeinreb17(BaseModel):
     """Preprocess data according to the Weinreb et al. (2017) recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_weinreb17')
-    adata: str = Field(..., description="Annotated data matrix.")
+    adata: str = Field("adata", description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     mean_threshold: float = Field(0.01, description="Threshold for mean expression of genes.")
     cv_threshold: float = Field(2, description="Threshold for coefficient of variation (CV) for gene dispersion.")
     n_pcs: int = Field(50, description="Number of principal components to use.")
     svd_solver: str = Field("randomized", description="SVD solver to use.")
     random_state: int = Field(0, description="Random state for reproducibility of results.")
-    copy: bool = Field(False, description="Return a copy if True, else modifies the original AnnData.")
 
 
 
 class ScPpRecipeSeurat(BaseModel):
     """Preprocess data according to the Seurat recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_seurat')
-    adata: str = Field(..., description="Annotated data matrix.")
+    adata: str = Field("adata", description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
-    copy: bool = Field(False, description="Return a copy if True, else modifies the original AnnData.")
 
 
 
 class ScPpCombat(BaseModel):
     """Remove batch effects from the data matrix using ComBat."""
     _api_name: str = PrivateAttr(default='sc.pp.combat')
-    adata: str = Field(..., description="Annotated data matrix.")
+    adata: str = Field("adata", description="Annotated data matrix.")
     key: str = Field(
         "batch", description="Key to a categorical annotation from obs that will be used for batch effect removal."
     )
@@ -337,7 +317,7 @@ class ScPpCombat(BaseModel):
 class ScPpScrublet(BaseModel):
     """Detect doublets in single-cell RNA-seq data using Scrublet."""
     _api_name: str = PrivateAttr(default='sc.pp.scrublet')
-    adata: str = Field(..., description="Annotated data matrix (n_obs × n_vars).")
+    adata: str = Field("adata", description="Annotated data matrix (n_obs × n_vars).")
     adata_sim: str | None = Field(
         None, description="Optional AnnData object from scrublet_simulate_doublets() with same number of vars as adata."
     )
@@ -367,8 +347,6 @@ class ScPpScrublet(BaseModel):
     n_neighbors: int | None = Field(None, description="Number of neighbors used to construct the KNN graph.")
     threshold: float | None = Field(None, description="Doublet score threshold for calling a transcriptome a doublet.")
     verbose: bool = Field(True, description="If True, log progress updates.")
-    copy: bool = Field(False, description="If True, return a copy of adata with Scrublet results added.")
-    random_state: int = Field(0, description="Initial state for doublet simulation and nearest neighbors.")
 
 
 
@@ -376,7 +354,7 @@ class ScPpScrubletSimulateDoublets(BaseModel):
     """Simulate doublets by adding the counts of random observed transcriptome pairs."""
     _api_name: str = PrivateAttr(default='sc.pp.scrublet_simulate_doublets')
     adata: str = Field(
-        ..., description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells, columns to genes."
+        "adata", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells, columns to genes."
     )
     layer: str | None = Field(
         None, description="Layer of adata where raw values are stored, or 'X' if values are in .X."
@@ -411,4 +389,4 @@ TOOLS = [
     ScPpScrubletSimulateDoublets
 ]
 
-TOOLS_DICT = {tool.__fields__['_api_name'].default: tool for tool in TOOLS}
+TOOLS_DICT = {tool._api_name.default: tool for tool in TOOLS}

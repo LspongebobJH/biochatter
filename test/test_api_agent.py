@@ -110,7 +110,7 @@ class TestQueryBuilder(BaseQueryBuilder):
     ) -> Callable[..., Any]:
         return "mock_runnable"
 
-    def parameterise_query(
+    def build_api_query(
         self,
         question: str,
         conversation: Conversation,
@@ -171,7 +171,7 @@ def test_agent(query_builder, fetcher, interpreter):
 
 class TestAPIAgent:
     def test_parameterise_query(self, test_agent):
-        result = test_agent.parameterise_query("Mock question")
+        result = test_agent.build_api_query("Mock question")
         assert result == ["mock_result"]
 
     def test_fetch_results(self, test_agent):
@@ -226,7 +226,7 @@ class TestBlastQueryBuilder:
         builder = BlastQueryBuilder()
 
         # Act
-        result = builder.parameterise_query(
+        result = builder.build_api_query(
             question,
             mock_conversation_instance,
         )
@@ -402,7 +402,7 @@ class TestOncoKBQueryBuilder:
         builder = OncoKBQueryBuilder()
 
         # Act
-        result = builder.parameterise_query(
+        result = builder.build_api_query(
             question,
             mock_conversation_instance,
         )
@@ -517,7 +517,7 @@ class TestScanpyPlQueryBuilder:
         mock_create_runnable.invoke.return_value = mock_query_obj
 
         # Act
-        result = query_builder.parameterise_query(question, mock_conversation)
+        result = query_builder.build_api_query(question, mock_conversation)
 
         # Assert
         mock_create_runnable.invoke.assert_called_once_with(expected_input)
@@ -591,7 +591,7 @@ class TestAnndataIOQueryBuilder:
         mock_create_runnable.invoke.return_value = mock_query_obj
 
         # Act
-        result = query_builder.parameterise_query(question, mock_conversation)
+        result = query_builder.build_api_query(question, mock_conversation)
 
         # Assert
         mock_create_runnable.invoke.assert_called_once_with(expected_input)
@@ -621,7 +621,7 @@ class TestScanpyPpQueryBuilder:
         mock_create_runnable.invoke.return_value = mock_query_obj
 
         # Act
-        result = query_builder.parameterise_query(question, mock_conversation)
+        result = query_builder.build_api_query(question, mock_conversation)
 
         # Assert
         mock_create_runnable.invoke.assert_called_once_with(expected_input)
@@ -688,7 +688,7 @@ class TestGenericQueryBuilder:
         module = MagicMock()
 
         # Act
-        result = query_builder.parameterise_query(
+        result = query_builder.build_api_query(
             question=question,
             prompt=SCANPY_TL_QUERY_PROMPT,
             conversation=mock_conversation,

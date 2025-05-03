@@ -57,6 +57,8 @@ TOKEN_LIMITS = {
 }
 
 
+# Jiahang: it's a bad practice to put LLM initialization in `set_api_key` method,
+# since the method name is not related to LLM initialization.
 class Conversation(ABC):
     """Use this class to set up a connection to an LLM API.
 
