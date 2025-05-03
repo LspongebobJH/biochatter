@@ -6,6 +6,7 @@ from pydantic import BaseModel, PrivateAttr, Field
 # Jiahang: unfinished
 class Neighbors(BaseModel):
     """Compute the nearest neighbors distance matrix and a neighborhood graph of observations."""
+
     _api_name: str = PrivateAttr(default='sc.pp.neighbors')
     adata: str = Field(..., description="Annotated data matrix")
     n_neighbors: int = Field(15, description="The size of local neighborhood (in terms of number of neighboring data points) used for manifold approximation.")
@@ -14,6 +15,9 @@ class Neighbors(BaseModel):
 
 
 class CalculateQCMetrics(BaseModel):
+    """Calculate quality control metrics for the data matrix."""
+
+    _api_name: str = PrivateAttr(default='sc.pp.calculate_qc_metrics')
     adata: str = Field(..., description="Annotated data matrix")
     expr_type: str = Field("counts", description="Name of kind of values in X")
     var_type: str = Field("genes", description="The kind of thing the variables are")
@@ -28,6 +32,8 @@ class CalculateQCMetrics(BaseModel):
 
 
 class FilterCells(BaseModel):
+    """Filter cells based on number of gene counts."""
+    _api_name: str = PrivateAttr(default='sc.pp.filter_cells')
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -46,6 +52,9 @@ class FilterCells(BaseModel):
 
 
 class FilterGenes(BaseModel):
+    """Filter genes based on number of cell counts."""
+
+    _api_name: str = PrivateAttr(default='sc.pp.filter_genes')
     data: str = Field(
         ...,
         description="An annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -66,6 +75,8 @@ class FilterGenes(BaseModel):
 
 
 class HighlyVariableGenes(BaseModel):
+    """Identify highly variable genes based on mean and variance of gene expressions."""
+    _api_name: str = PrivateAttr(default='sc.pp.highly_variable_genes')
     adata: str = Field(
         ..., description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes."
     )
@@ -109,6 +120,8 @@ class HighlyVariableGenes(BaseModel):
 
 
 class Log1p(BaseModel):
+    """Logarithmize the data matrix."""
+    _api_name: str = PrivateAttr(default='sc.pp.log1p')
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -127,6 +140,8 @@ class Log1p(BaseModel):
 
 
 class PCA(BaseModel):
+    """Apply Principal Component Analysis (PCA) for dimensionality reduction to data matrix ."""
+    _api_name: str = PrivateAttr(default='sc.pp.pca')
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -169,6 +184,8 @@ class PCA(BaseModel):
 
 
 class NormalizeTotal(BaseModel):
+    """Normalize total counts per cell to a target sum."""
+    _api_name: str = PrivateAttr(default='sc.pp.normalize_total')
     adata: str = Field(
         ...,
         description="The annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -198,6 +215,8 @@ class NormalizeTotal(BaseModel):
 
 
 class RegressOut(BaseModel):
+    """Regress out unwanted sources of variation from the data matrix."""
+    _api_name: str = PrivateAttr(default='sc.pp.regress_out')
     adata: str = Field(..., description="The annotated data matrix.")
     keys: str | Collection[str] = Field(
         ...,
@@ -212,6 +231,8 @@ class RegressOut(BaseModel):
 
 
 class Scale(BaseModel):
+    """Scale the data matrix to unit variance and zero mean."""
+    _api_name: str = PrivateAttr(default='sc.pp.scale')
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
@@ -232,19 +253,23 @@ class Scale(BaseModel):
 
 
 
-class Subsample(BaseModel):
+class Sample(BaseModel):
+    """Sample observations or variables with or without replacement."""
+    _api_name: str = PrivateAttr(default='sc.pp.sample')
     data: str = Field(
         ...,
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
-    fraction: float | None = Field(None, description="Subsample to this fraction of the number of observations.")
-    n_obs: int | None = Field(None, description="Subsample to this number of observations.")
+    fraction: float | None = Field(None, description="Sample to this fraction of the number of observations.")
+    n_obs: int | None = Field(None, description="Sample to this number of observations.")
     random_state: int | None = Field(0, description="Random seed to change subsampling.")
     copy: bool = Field(False, description="If an AnnData is passed, determines whether a copy is returned.")
 
 
 
 class DownsampleCounts(BaseModel):
+    """Downsample counts in the data matrix."""
+    _api_name: str = PrivateAttr(default='sc.pp.downsample_counts')
     adata: str = Field(..., description="Annotated data matrix.")
     counts_per_cell: int | None = Field(
         None,
@@ -261,6 +286,8 @@ class DownsampleCounts(BaseModel):
 
 
 class RecipeZheng17(BaseModel):
+    """Preprocess data according to the Zheng et al. (2017) recipe."""
+    _api_name: str = PrivateAttr(default='sc.pp.recipe_zeng17')
     adata: str = Field(..., description="Annotated data matrix.")
     n_top_genes: int = Field(1000, description="Number of genes to keep.")
     log: bool = Field(True, description="Take logarithm. If True, log-transform data after filtering.")
@@ -270,6 +297,8 @@ class RecipeZheng17(BaseModel):
 
 
 class RecipeWeinreb17(BaseModel):
+    """Preprocess data according to the Weinreb et al. (2017) recipe."""
+    _api_name: str = PrivateAttr(default='sc.pp.recipe_weinreb17')
     adata: str = Field(..., description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     mean_threshold: float = Field(0.01, description="Threshold for mean expression of genes.")
@@ -282,6 +311,8 @@ class RecipeWeinreb17(BaseModel):
 
 
 class RecipeSeurat(BaseModel):
+    """Preprocess data according to the Seurat recipe."""
+    _api_name: str = PrivateAttr(default='sc.pp.recipe_seurat')
     adata: str = Field(..., description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
@@ -290,6 +321,8 @@ class RecipeSeurat(BaseModel):
 
 
 class Combat(BaseModel):
+    """Remove batch effects from the data matrix using ComBat."""
+    _api_name: str = PrivateAttr(default='sc.pp.combat')
     adata: str = Field(..., description="Annotated data matrix.")
     key: str = Field(
         "batch", description="Key to a categorical annotation from obs that will be used for batch effect removal."
@@ -302,6 +335,8 @@ class Combat(BaseModel):
 
 
 class Scrublet(BaseModel):
+    """Detect doublets in single-cell RNA-seq data using Scrublet."""
+    _api_name: str = PrivateAttr(default='sc.pp.scrublet')
     adata: str = Field(..., description="Annotated data matrix (n_obs × n_vars).")
     adata_sim: str | None = Field(
         None, description="Optional AnnData object from scrublet_simulate_doublets() with same number of vars as adata."
@@ -338,6 +373,8 @@ class Scrublet(BaseModel):
 
 
 class ScrubletSimulateDoublets(BaseModel):
+    """Simulate doublets by adding the counts of random observed transcriptome pairs."""
+    _api_name: str = PrivateAttr(default='sc.pp.scrublet_simulate_doublets')
     adata: str = Field(
         ..., description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells, columns to genes."
     )
@@ -354,23 +391,24 @@ class ScrubletSimulateDoublets(BaseModel):
     random_seed: int = Field(0, description="Random seed for reproducibility.")
 
 
-TOOLS_DICT = {
-    "neighbors": Neigbors,
-    "calculate_qc_metrics": CalculateQCMetrics,
-    "filter_cells": FilterCells,
-    "filter_genes": FilterGenes,
-    "highly_variable_genes": HighlyVariableGenes,
-    "log1p": Log1p,
-    "pca": PCA,
-    "normalize_total": NormalizeTotal,
-    "regress_out": RegressOut,
-    "scale": Scale,
-    "subsample": Subsample,
-    "downsample_counts": DownsampleCounts,
-    "recipe_zheng17": RecipeZheng17,
-    "recipe_weinreb17": RecipeWeinreb17,
-    "recipe_seurat": RecipeSeurat,
-    "combat": Combat,
-    "scrublet": Scrublet,
-    "scrublet_simulate_doublets": ScrubletSimulateDoublets
-}
+TOOLS = [
+    Neighbors,
+    CalculateQCMetrics,
+    FilterCells,
+    FilterGenes,
+    HighlyVariableGenes,
+    Log1p,
+    PCA,
+    NormalizeTotal,
+    RegressOut,
+    Scale,
+    Sample,
+    RecipeZheng17,
+    RecipeWeinreb17,
+    RecipeSeurat,
+    Combat,
+    Scrublet,
+    ScrubletSimulateDoublets
+]
+
+TOOLS_DICT = {tool._api_name: tool for tool in TOOLS}

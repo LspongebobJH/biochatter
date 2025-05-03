@@ -2,17 +2,9 @@
     "directed": true,
     "multigraph": false,
     "graph": {},
-    "data_names": ["adata", "data"],
     "nodes": [
         {
             "api": "sc.pp.neighbors",
-            "prep": "",
-            "args": {
-                "adata": "adata"
-            },
-            "arg_types": {
-                "adata": "object"
-            },
             "produce": [
                 "adata.obsm[\"X_pca\"]",
                 "adata.varm[\"PCs\"]",
@@ -25,31 +17,23 @@
         },
         {
             "api": "sc.tl.umap",
-            "prep": "",
-            "args": {
-                "adata": "adata"
-            },
-            "arg_types": {
-                "adata": "object"
-            },
             "produce": [
                 "adata.obsm[\"X_umap\"]",
                 "adata.uns[\"umap\"]"
             ],
             "id": "sc.tl.umap"
         },
-        
+        {
+            "api": "sc.tl.leiden",
+            "produce": [
+                "adata.obs[\"leiden\"]",
+                "adata.uns[\"leiden\"]"
+            ],
+            "id": "sc.tl.leiden"
+        },
         {
             "api": "sc.pl.umap",
-            "prep": "",
-            "args": {
-                "adata": "adata",
-                "color": "leiden"
-            },
-            "arg_types": {
-                "adata": "object",
-                "color": "str"
-            },
+            "produce": [],
             "id": "sc.pl.umap"
         },
         {
@@ -58,13 +42,28 @@
     ],
     "edges": [
         {
+            "depend_on": [],
+            "source": "root",
+            "target": "sc.pp.neighbors",
+            "args": {
+                "adata": "adata"
+            },
+            "arg_types": {
+                "adata": "object"
+            }
+        },
+        {
             "depend_on": [
-                "adata.uns[\"neighbors\"]",
-                "adata.obsp[\"connectivities\"]"
+                "adata.obsp[\"distances\"]"
             ],
             "source": "sc.pp.neighbors",
-            "target": "sc.tl.umap",
-            "arg": {"adata": "adata"}
+            "target": "sc.tl.leiden",
+            "args": {
+                "adata": "adata"
+            },
+            "arg_types": {
+                "adata": "object"
+            }
         },
         {
             "depend_on": [
@@ -72,8 +71,13 @@
                 "adata.obsp[\"connectivities\"]"
             ],
             "source": "sc.pp.neighbors",
-            "target": "sc.tl.leiden",
-            "arg": {"adata": "adata"}
+            "target": "sc.tl.umap",
+            "args": {
+                "adata": "adata"
+            },
+            "arg_types": {
+                "adata": "object"
+            }
         },
         {
             "depend_on": [
@@ -81,7 +85,12 @@
             ],
             "source": "sc.tl.umap",
             "target": "sc.pl.umap",
-            "arg": {"adata": "adata"}
+            "args": {
+                "adata": "adata"
+            },
+            "arg_types": {
+                "adata": "object"
+            }
         },
         {
             "depend_on": [
@@ -89,7 +98,12 @@
             ],
             "source": "sc.tl.leiden",
             "target": "sc.pl.umap",
-            "arg": {"color": "leiden"}
+            "args": {
+                "color": "leiden"
+            },
+            "arg_types": {
+                "color": "str"
+            }
         }
     ]
 }
