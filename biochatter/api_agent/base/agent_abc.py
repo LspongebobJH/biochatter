@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr
+from typing import Any
 
 from biochatter.llm_connect import Conversation
 
@@ -168,3 +169,106 @@ class BaseTools:
         for func_name, tool_params in self.tools_params.items():
             tools.append(create_model(func_name, **tool_params, __base__=BaseAPIModel))
         return tools
+
+class BaseObject(BaseModel):
+    """A class representing an object, such as an API, dependency, data, keys_info, etc."""
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
+    def __hash__(self):
+        members = self._hash_members()
+        members = tuple(f"{k}:{v}" for k, v in members.items())
+        return hash(members)
+    
+    def _hash_members(self) -> dict:
+        """A dict of members to be hased = {member_name: member_value}"""
+        return self.model_dump()
+
+class BaseKeysInfo(BaseObject):
+    """A class representing a keys info object."""
+    membership: str = Field(
+        default="item", 
+        choices=["item", "attr", "self"],
+        description="The membership method to get the data of the key"
+    )
+    keys: dict[str, "BaseKeysInfo"] | None = Field(
+        default=None,
+        description="A dictionary of keys and their keys info"
+    )
+
+class BaseData(BaseObject):
+    """A class representing a data object.
+
+    Data example: # dict form of keys_info
+    keys_info: {
+        "membership": "self",
+        "keys": {
+            "layer1": {
+                "membership": "item",
+                "keys": {
+                    "key1": {"membership": "item", "keys": None},
+                    "key2": {"membership": "attr", "keys": None}
+                }
+            },
+            "layer2": {
+                "membership": "item", 
+                "keys": {
+                    "key3": {"membership": "item", "keys": None},
+                    "key4": {"membership": "attr", "keys": None}
+                }
+            }
+        }
+    }
+    layer1, layer2, keys1, keys2, ... are keys of data object
+    membership is the membership method to get the data of the key
+    
+    for instance, given the keys_info as above:
+    Then to access object of "key1", we use data[layer1][key1] or data.__getitem__(layer1).__getitem__(key1);
+    To access object of "key2", we use data[layer1].key2 or data.__getitem__(layer1).__getattribute__("key2").
+    For flexibility, we use membership to specify the membership method to get the data of the key rather than using 
+    [] and . to access the data.
+    """
+    data: Any = None
+    keys_info: BaseKeysInfo = Field(default=BaseKeysInfo(), description="The keys of the data object")
+
+    def _hash_members(self) -> dict:
+        members = self.model_dump()
+        members.pop('data') # data can be complex structure not hashable
+        return members
+
+
+class BaseAPI(BaseObject):
+    """Base class for all API models.
+    
+    We use PrivateAttr to store api_name and products to avoid them being
+    included in the argument prediction of LLM through langchain.
+    """
+
+    _api_name: str = PrivateAttr(default="")
+    _products: BaseData = PrivateAttr(default=BaseData())
+
+    def _hash_members(self):
+        members = self.model_dump()
+        members['_api_name'] = self._api_name
+        members['_products'] = self._products._hash_members()
+        return members
+    
+    def execute(self):
+        """Execute the API call with the given arguments."""
+        pass
+
+
+class BaseDependency(BaseObject):
+    """A class representing an edge in the dependency graph.
+
+    This class is used to represent the dependencies between API calls in the
+    dependency graph.
+    """
+    u_api_name: str
+    v_api_name: str
+    args: dict
+    arg_typs: dict
+    deps: BaseData
+
+    def _hash_members(self):
+        members = self.model_dump()
+        members['deps'] = self.deps._hash_members()
+        return members

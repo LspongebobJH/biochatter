@@ -1,10 +1,9 @@
-from collections.abc import Collection
-from typing import Literal
+from pydantic import PrivateAttr, Field
 
-from pydantic import BaseModel, PrivateAttr, Field
+from biochatter.api_agent.base.agent_abc import BaseAPI
 
 # Jiahang: unfinished
-class ScTlUmap(BaseModel):
+class ScTlUmap(BaseAPI):
     """Embed the neighborhood graph using UMAP."""
 
     _api_name: str = PrivateAttr(default="sc.tl.umap")
@@ -26,7 +25,7 @@ class ScTlUmap(BaseModel):
     )
 
 # Jiahang: unfinished
-class ScTlLeiden(BaseModel):
+class ScTlLeiden(BaseAPI):
     """Cluster the neighborhood graph using the Leiden algorithm."""
 
     _api_name: str = PrivateAttr(default="sc.tl.leiden")

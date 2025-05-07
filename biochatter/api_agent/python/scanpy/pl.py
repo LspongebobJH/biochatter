@@ -4,7 +4,9 @@ import uuid
 from typing import Any
 from pydantic import BaseModel, Field, PrivateAttr
 
-class ScPlScatter(BaseModel):
+from biochatter.api_agent.base.agent_abc import BaseAPI
+
+class ScPlScatter(BaseAPI):
     """Parameters for querying the scanpy `pl.scatter` API."""
 
     _api_name: str = PrivateAttr(
@@ -64,7 +66,7 @@ class ScPlScatter(BaseModel):
 
 
 ### Embeddings
-class ScPlPca(BaseModel):
+class ScPlPca(BaseAPI):
     """Parameters for querying the scanpy `pl.pca` API."""
 
     _api_name: str = PrivateAttr(
@@ -140,7 +142,7 @@ class ScPlPca(BaseModel):
     )
 
 
-class ScPlTsne(BaseModel):
+class ScPlTsne(BaseAPI):
     """Parameters for querying the Scanpy `pl.tsne` API."""
 
     _api_name: str = PrivateAttr(
@@ -304,7 +306,7 @@ class ScPlTsne(BaseModel):
     )
 
 
-class ScPlUmap(BaseModel):
+class ScPlUmap(BaseAPI):
     """Parameters for querying the Scanpy `pl.umap` API."""
 
     _api_name: str = PrivateAttr(
@@ -496,7 +498,7 @@ class ScPlUmap(BaseModel):
     )
 
 
-class ScPlDrawGraph(BaseModel):
+class ScPlDrawGraph(BaseAPI):
     """Parameters for querying the Scanpy `pl.draw_graph` API."""
 
     _api_name: str = PrivateAttr(
@@ -671,7 +673,7 @@ class ScPlDrawGraph(BaseModel):
     )
 
 
-class ScPlSpatial(BaseModel):
+class ScPlSpatial(BaseAPI):
     """Parameters for querying the Scanpy `pl.spatial` API."""
 
     _api_name: str = PrivateAttr(

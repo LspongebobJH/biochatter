@@ -1,9 +1,10 @@
 from typing import Literal
-
 from pydantic import BaseModel, PrivateAttr, Field
 
+from biochatter.api_agent.base.agent_abc import BaseAPI
+
 # Jiahang: unfinished
-class ScPpNeighbors(BaseModel):
+class ScPpNeighbors(BaseAPI):
     """Compute the nearest neighbors distance matrix and a neighborhood graph of observations."""
 
     _api_name: str = PrivateAttr(default='sc.pp.neighbors')
@@ -13,7 +14,7 @@ class ScPpNeighbors(BaseModel):
     knn: bool = Field(True, description="If True, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to neighbors more distant than the n_neighbors nearest neighbor.")
 
 
-class ScPpCalculateQCMetrics(BaseModel):
+class ScPpCalculateQCMetrics(BaseAPI):
     """Calculate quality control metrics for the data matrix."""
 
     _api_name: str = PrivateAttr(default='sc.pp.calculate_qc_metrics')
@@ -30,7 +31,7 @@ class ScPpCalculateQCMetrics(BaseModel):
 
 
 
-class ScPpFilterCells(BaseModel):
+class ScPpFilterCells(BaseAPI):
     """Filter cells based on number of gene counts."""
     _api_name: str = PrivateAttr(default='sc.pp.filter_cells')
     data: str = Field(
@@ -49,7 +50,7 @@ class ScPpFilterCells(BaseModel):
 
 
 
-class ScPpFilterGenes(BaseModel):
+class ScPpFilterGenes(BaseAPI):
     """Filter genes based on number of cell counts."""
 
     _api_name: str = PrivateAttr(default='sc.pp.filter_genes')
@@ -71,7 +72,7 @@ class ScPpFilterGenes(BaseModel):
 
 
 
-class ScPpHighlyVariableGenes(BaseModel):
+class ScPpHighlyVariableGenes(BaseAPI):
     """Identify highly variable genes based on mean and variance of gene expressions."""
     _api_name: str = PrivateAttr(default='sc.pp.highly_variable_genes')
     adata: str = Field(
@@ -116,7 +117,7 @@ class ScPpHighlyVariableGenes(BaseModel):
 
 
 
-class ScPpLog1p(BaseModel):
+class ScPpLog1p(BaseAPI):
     """Logarithmize the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.log1p')
     data: str = Field(
@@ -133,7 +134,7 @@ class ScPpLog1p(BaseModel):
 
 
 
-class ScPpPCA(BaseModel):
+class ScPpPCA(BaseAPI):
     """Apply Principal Component Analysis (PCA) for dimensionality reduction to data matrix ."""
     _api_name: str = PrivateAttr(default='sc.pp.pca')
     data: str = Field(
@@ -173,7 +174,7 @@ class ScPpPCA(BaseModel):
 
 
 
-class ScPpNormalizeTotal(BaseModel):
+class ScPpNormalizeTotal(BaseAPI):
     """Normalize total counts per cell to a target sum."""
     _api_name: str = PrivateAttr(default='sc.pp.normalize_total')
     adata: str = Field(
@@ -201,7 +202,7 @@ class ScPpNormalizeTotal(BaseModel):
 
 
 
-class ScPpRegressOut(BaseModel):
+class ScPpRegressOut(BaseAPI):
     """Regress out unwanted sources of variation from the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.regress_out')
     adata: str = Field("adata", description="The annotated data matrix.")
@@ -216,7 +217,7 @@ class ScPpRegressOut(BaseModel):
 
 
 
-class ScPpScale(BaseModel):
+class ScPpScale(BaseAPI):
     """Scale the data matrix to unit variance and zero mean."""
     _api_name: str = PrivateAttr(default='sc.pp.scale')
     data: str = Field(
@@ -238,7 +239,7 @@ class ScPpScale(BaseModel):
 
 
 
-class ScPpSample(BaseModel):
+class ScPpSample(BaseAPI):
     """Sample observations or variables with or without replacement."""
     _api_name: str = PrivateAttr(default='sc.pp.sample')
     data: str = Field(
@@ -251,7 +252,7 @@ class ScPpSample(BaseModel):
 
 
 
-class ScPpDownsampleCounts(BaseModel):
+class ScPpDownsampleCounts(BaseAPI):
     """Downsample counts in the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.downsample_counts')
     adata: str = Field("adata", description="Annotated data matrix.")
@@ -268,7 +269,7 @@ class ScPpDownsampleCounts(BaseModel):
 
 
 
-class ScPpRecipeZheng17(BaseModel):
+class ScPpRecipeZheng17(BaseAPI):
     """Preprocess data according to the Zheng et al. (2017) recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_zeng17')
     adata: str = Field("adata", description="Annotated data matrix.")
@@ -278,7 +279,7 @@ class ScPpRecipeZheng17(BaseModel):
 
 
 
-class ScPpRecipeWeinreb17(BaseModel):
+class ScPpRecipeWeinreb17(BaseAPI):
     """Preprocess data according to the Weinreb et al. (2017) recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_weinreb17')
     adata: str = Field("adata", description="Annotated data matrix.")
@@ -291,7 +292,7 @@ class ScPpRecipeWeinreb17(BaseModel):
 
 
 
-class ScPpRecipeSeurat(BaseModel):
+class ScPpRecipeSeurat(BaseAPI):
     """Preprocess data according to the Seurat recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_seurat')
     adata: str = Field("adata", description="Annotated data matrix.")
@@ -300,7 +301,7 @@ class ScPpRecipeSeurat(BaseModel):
 
 
 
-class ScPpCombat(BaseModel):
+class ScPpCombat(BaseAPI):
     """Remove batch effects from the data matrix using ComBat."""
     _api_name: str = PrivateAttr(default='sc.pp.combat')
     adata: str = Field("adata", description="Annotated data matrix.")
@@ -314,7 +315,7 @@ class ScPpCombat(BaseModel):
 
 
 
-class ScPpScrublet(BaseModel):
+class ScPpScrublet(BaseAPI):
     """Detect doublets in single-cell RNA-seq data using Scrublet."""
     _api_name: str = PrivateAttr(default='sc.pp.scrublet')
     adata: str = Field("adata", description="Annotated data matrix (n_obs × n_vars).")
@@ -350,7 +351,7 @@ class ScPpScrublet(BaseModel):
 
 
 
-class ScPpScrubletSimulateDoublets(BaseModel):
+class ScPpScrubletSimulateDoublets(BaseAPI):
     """Simulate doublets by adding the counts of random observed transcriptome pairs."""
     _api_name: str = PrivateAttr(default='sc.pp.scrublet_simulate_doublets')
     adata: str = Field(

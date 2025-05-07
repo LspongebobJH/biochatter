@@ -5,30 +5,28 @@
     "nodes": [
         {
             "api": "sc.pp.neighbors",
-            "produce": [
-                "adata.obsm[\"X_pca\"]",
-                "adata.varm[\"PCs\"]",
-                "adata.uns[\"pca\"]",
-                "adata.uns[\"neighbors\"]",
-                "adata.obsp[\"distances\"]",
-                "adata.obsp[\"connectivities\"]"
-            ],
+            "produce": {
+                "obsm": ["X_pca"],
+                "varm": ["PCs"],
+                "uns": ["pca", "neighbors"],
+                "obsp": ["distances", "connectivities"]
+            },
             "id": "sc.pp.neighbors"
         },
         {
             "api": "sc.tl.umap",
-            "produce": [
-                "adata.obsm[\"X_umap\"]",
-                "adata.uns[\"umap\"]"
-            ],
+            "produce":{
+                "obsm": ["X_umap"],
+                "uns": ["umap"]
+            },
             "id": "sc.tl.umap"
         },
         {
             "api": "sc.tl.leiden",
-            "produce": [
-                "adata.obs[\"leiden\"]",
-                "adata.uns[\"leiden\"]"
-            ],
+            "produce": {
+                "obs": ["leiden"],
+                "uns": ["leiden"]
+            },
             "id": "sc.tl.leiden"
         },
         {
@@ -53,9 +51,9 @@
             }
         },
         {
-            "depend_on": [
-                "adata.obsp[\"distances\"]"
-            ],
+            "depend_on": {
+                "obsp": ["distances"]
+            },
             "source": "sc.pp.neighbors",
             "target": "sc.tl.leiden",
             "args": {
@@ -66,10 +64,10 @@
             }
         },
         {
-            "depend_on": [
-                "adata.uns[\"neighbors\"]",
-                "adata.obsp[\"connectivities\"]"
-            ],
+            "depend_on": {
+                "uns": ["neighbors"],
+                "obsp": ["connectivities"]
+            },
             "source": "sc.pp.neighbors",
             "target": "sc.tl.umap",
             "args": {
@@ -80,9 +78,9 @@
             }
         },
         {
-            "depend_on": [
-                "adata.obsm[\"X_umap\"]"
-            ],
+            "depend_on": {
+                "obsm": ["X_umap"]
+            },
             "source": "sc.tl.umap",
             "target": "sc.pl.umap",
             "args": {
@@ -93,9 +91,9 @@
             }
         },
         {
-            "depend_on": [
-                "adata.obs[\"leiden\"]"
-            ],
+            "depend_on": {
+                "obs": ["leiden"]
+            },
             "source": "sc.tl.leiden",
             "target": "sc.pl.umap",
             "args": {

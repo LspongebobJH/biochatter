@@ -9,8 +9,8 @@ from scanpy.datasets import pbmc3k
 scanpy.settings.datasetdir = os.environ.get("DATA")
 
 # Create an API agent for OncoKB
-query_builder_conv = GptConversation(model_name="gpt-4", prompts={})
-interpreter_conv = GptConversation(model_name="gpt-4", prompts={})
+query_builder_conv = GptConversation(model_name="gpt-3.5-turbo", prompts={})
+interpreter_conv = GptConversation(model_name="gpt-3.5-turbo", prompts={})
 
 scanpy_agent = APIAgent(
     query_builder=ScanpyQueryBuilder(
