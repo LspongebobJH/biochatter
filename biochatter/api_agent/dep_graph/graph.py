@@ -6,7 +6,7 @@ from typing import Any
 from queue import Queue
 
 from biochatter.api_agent.base.agent_abc import BaseAPI, BaseDependency
-
+from biochatter.api_agent.base.utils import read_apis_from_graph_dict, read_deps_from_graph_dict
 
 
 class DependencyGraph(DiGraph):
@@ -17,63 +17,67 @@ class DependencyGraph(DiGraph):
 
     Not all DiGraph methods have corresponding methods in this class. Only methods used
     by other codes are implemented. The rest are inherited from DiGraph.
+
+    It may look weird that BaseAPI and BaseDendency are used as query keys for removal,
+    and some query methods, especially when only api_names serve as primary keys of graphs.
+    This is because Base.. are fundamental blocks leveraged through the whole biochatter.
+    We intend to reduce the confusion of converting between str primary keys and Base..
+    objects. In other words, only api_names are used to retrieve and delete nodes and edges though
+    the whole Base.. objects are inputted into these methods.
     """
 
-    def __init__(self, dep_graph_path: str | None = None, api_class_dict: dict | None = None):
-        super.__init__()
+    def __init__(self, dep_graph: str | dict | None = None, api_class_dict: dict | None = None):
+        super().__init__()
 
-        self.api_dict = {}
-        self.dep_dict = {}
+        self.apis_dict = {}
+        self.deps_dict = {}
 
-        if dep_graph_path:
+        if dep_graph:
             assert api_class_dict is not None, "API class dictionary must be provided if dep_graph_path is given."
-            with open(dep_graph_path, "r") as f:
-                dep_graph = json.load(f)
-            dep_graph = nx.node_link_graph(dep_graph, edges='edges')
+            if isinstance(dep_graph, str):
+                with open(dep_graph, "r") as f:
+                    dep_graph_dict = json.load(f)
+            else:
+                dep_graph_dict = dep_graph
 
-            api_names = dep_graph.nodes()
-            self.add_apis_from([api_class_dict[api_name]() for api_name in api_names])
-            for u_api_name, v_api_name, e_data in dep_graph.edges(data=True):
-                dep = BaseDependency(
-                    u_api_name=u_api_name,
-                    v_api_name=v_api_name,
-                    args=e_data.get("args", {}),
-                    arg_typs=e_data.get("arg_typs", {})
-                )
-                self.add_dep(dep)
+            apis_dict = read_apis_from_graph_dict(dep_graph_dict, api_class_dict)
+            deps_dict = read_deps_from_graph_dict(dep_graph_dict)
 
+            self.add_apis_from(list(apis_dict.values()))
+            self.add_deps_from(list(deps_dict.values()))
     
     def add_api(self, api: BaseAPI):
         super().add_node(api._api_name)
-        self.api_dict[api._api_name] = api
+        self.apis_dict[api._api_name] = api
 
     def add_apis_from(self, api_list: list[BaseModel]):
         for api in api_list:
-            self.add_node(api)
+            self.add_api(api)
 
     def remove_api(self, api: BaseAPI):
         super().remove_node(api._api_name)
-        del self.api_dict[api._api_name]
+        del self.apis_dict[api._api_name]
 
     def remove_apis_from(self, api_list: list[BaseModel]):
         for api in api_list:
-            self.remove_node(api)
+            self.remove_api(api)
 
     def add_dep(self, dep: BaseDependency):
-        u_api_name, v_api_name = dep.u_api._api_name, dep.v_api._api_name
+        u_api_name, v_api_name = dep.u_api_name, dep.v_api_name
         super().add_edge(u_api_name, v_api_name)
-        self.dep_dict[(u_api_name, v_api_name)] = dep
+        self.deps_dict[(u_api_name, v_api_name)] = dep
 
     def add_deps_from(self, dep_list: list[BaseDependency]):
         for dep in dep_list:
-            self.add_edge(dep)
+            self.add_dep(dep)
         
     def remove_dep(self, u_api: BaseAPI, v_api: BaseAPI):
         super().remove_edge(u_api._api_name, v_api._api_name)
+        del self.deps_dict[(u_api._api_name, v_api._api_name)]
     
     def remove_deps_from(self, u_v_api_list: list[(BaseModel, BaseModel)]):
-        u_v_names = [(u_api._api_name, v_api._api_name) for u_api, v_api in u_v_api_list]
-        super().remove_edges_from(u_v_names)
+        for u_api, v_api in u_v_api_list:
+            self.remove_dep(u_api, v_api)
 
     def in_apis(self, api: BaseAPI) -> list[BaseModel]:
         """Get the dependent APIs of the given API."""
@@ -87,34 +91,34 @@ class DependencyGraph(DiGraph):
     
     def in_deps(self, api: BaseAPI) -> list[BaseDependency]:
         """Get the dependencies of the given API."""
-        in_edges = super().in_edges(api._api_name, data=True)
+        in_edges = super().in_edges(api._api_name)
         return self.get_deps(list(in_edges))
     
     def out_deps(self, api: BaseAPI) -> list[BaseDependency]:
         """Get the dependencies that depend on the given API."""
-        out_edges = super().out_edges(api._api_name, data=True)
+        out_edges = super().out_edges(api._api_name)
         return self.get_deps(list(out_edges))
     
     def clear(self):
         super().clear()
-        self.api_dict.clear()
-        self.dep_dict.clear()
+        self.apis_dict.clear()
+        self.deps_dict.clear()
 
     def clear_deps(self):
         super().clear_edges()
-        self.dep_dict.clear()
+        self.deps_dict.clear()
 
-    def get_api(self, api_name: str) -> BaseModel:
+    def get_api(self, api_name: str) -> BaseAPI:
         """Get the API object associated with the given API name."""
-        return self.api_dict.get(api_name)
+        return self.apis_dict.get(api_name)
     
-    def get_apis(self, api_names: list[str]) -> list[BaseModel]:
+    def get_apis(self, api_names: list[str]) -> list[BaseAPI]:
         """Get the API objects associated with the given API names."""
         return [self.get_api(api_name) for api_name in api_names]
     
     def get_dep(self, u_api_name: str, v_api_name: str) -> BaseDependency:
         """Get the dependency object associated with the given API names."""
-        return self.dep_dict.get((u_api_name, v_api_name))
+        return self.deps_dict.get((u_api_name, v_api_name))
     
     def get_deps(self, u_v_api_names: list[(str, str)]) -> list[BaseDependency]:
         """Get the dependency objects associated with the given API names."""

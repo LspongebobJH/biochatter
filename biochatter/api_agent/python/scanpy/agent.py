@@ -2,9 +2,10 @@ from biochatter.api_agent.base.agent_abc import BaseAPIModel, BaseQueryBuilder, 
 from biochatter.llm_connect import Conversation
 from biochatter.utils import get_zero_outdeg_nodes, get_zero_outdeg_nodes_if_remove_nodes
 from biochatter.api_agent.dep_graph import DependencyGraph
-from biochatter.api_agent.dep_graph.utils import get_topo_sort_layers, get_active_in_apis
+from biochatter.api_agent.dep_graph.utils import get_topo_sort_layers
 from biochatter.api_agent.dep_graph.helplers import TopoSortLayers
 from biochatter.api_agent.base.agent_abc import BaseDependency
+from biochatter.api_agent.base.utils import get_active_in_apis
 from .meta_api import TARGET_TOOLS_DICT, TOOLS_DICT
 
 from langchain_core.output_parsers import PydanticToolsParser

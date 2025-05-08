@@ -20,19 +20,3 @@ def get_topo_sort_layers(G: DependencyGraph, reverse=False) -> list[list[BaseMod
         all_layers.reverse()
     return TopoSortLayers(all_layers)
 
-def get_active_in_apis(deps: list[BaseDependency], api: BaseModel) -> list[BaseDependency]:
-        """Get the active dependencies of the given API."""
-        active_deps = []
-        for dep in deps:
-            if check_active_dep_args(dep.args, api):
-                active_deps.append(dep)
-        return [dep.u_api for dep in active_deps]
-
-def check_active_dep_args(dep_args: dict, api: BaseModel) -> bool:
-    """Check if the edge required argument is activated by the target api."""
-    e_arg_name = list(dep_args.keys())[0] # Jiahang: only one edge required arg being considered for now
-    e_arg_val = dep_args[e_arg_name]
-    if e_arg_name in api.model_fields.keys() and getattr(api, e_arg_name) == e_arg_val:
-        return True
-    return False
-

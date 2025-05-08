@@ -7,9 +7,10 @@ API interactions and result processing.
 import os
 from dotenv import load_dotenv
 from abc import ABC, abstractmethod
+import ast
 
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr
+from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr, field_validator
 from typing import Any
 
 from biochatter.llm_connect import Conversation
@@ -185,12 +186,12 @@ class BaseObject(BaseModel):
 class BaseKeysInfo(BaseObject):
     """A class representing a keys info object."""
     membership: str = Field(
-        default="item", 
+        default="self", 
         choices=["item", "attr", "self"],
         description="The membership method to get the data of the key"
     )
-    keys: dict[str, "BaseKeysInfo"] | None = Field(
-        default=None,
+    keys: dict[str, "BaseKeysInfo"] = Field(
+        default={},
         description="A dictionary of keys and their keys info"
     )
 
@@ -262,13 +263,57 @@ class BaseDependency(BaseObject):
     This class is used to represent the dependencies between API calls in the
     dependency graph.
     """
-    u_api_name: str
-    v_api_name: str
-    args: dict
-    arg_typs: dict
-    deps: BaseData
+    u_api_name: str = Field(default="", description="The name of the source API")
+    v_api_name: str = Field(default="", description="The name of the target API")
+    args: dict = Field(default={}, description="The arguments of the dependency")
+    arg_typs: dict = Field(default={}, description="The argument types of the dependency")
+    deps: BaseData = Field(default=BaseData(), description="The data of the dependency")
 
     def _hash_members(self):
         members = self.model_dump()
         members['deps'] = self.deps._hash_members()
         return members
+    
+
+class InputAPI(BaseObject):
+    """A class representing an input API.
+    
+    InputAPI is input from dependency graph JSON structure,
+    and will be converted to BaseAPI for internal use.
+
+    This class is created to ease users' efforts to manually create dependency graph.
+    But this class is not internally friendly, so will be converted to BaseAPI.
+    """
+    api: str
+    products: list[str]
+    id: str
+
+    @field_validator("products", mode="after")
+    @classmethod
+    def _check_product(cls, products: list[str]):
+        for product in products:
+            product = ast.parse(product)
+            assert len(product.body) == 1, "Each product should be a single data object."
+
+            # Jiahang: this assert needs to be carefully considered
+            assert isinstance(product.body[0], ast.Expr) and \
+                not isinstance(product.body[0].value, ast.Constant), \
+                "Each product should be an variable. " \
+                "Functions, classes, assignment, constants, etc. are not supported."
+        return products
+
+class InputDependency(BaseObject):
+    """A class representing an input dependency.
+    
+    InputDependency is input from dependency graph JSON structure,
+    and will be converted to BaseDependency for internal use.
+
+    This class is created to ease users' efforts to manually create dependency graph.
+    But this class is not internally friendly, so will be converted to BaseDependency.
+    """
+    dependencies: list[str]
+    source: str
+    target: str
+    args: dict
+    arg_types: dict
+    
