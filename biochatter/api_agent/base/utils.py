@@ -288,7 +288,7 @@ def read_deps_from_graph_dict(graph_dict: dict) -> dict[str, BaseDependency]:
             u_api_name = input_dep.source,
             v_api_name = input_dep.target,
             args = input_dep.args,
-            arg_typs = input_dep.arg_types
+            arg_types = input_dep.arg_types
         )
 
         dependencies = BaseData()

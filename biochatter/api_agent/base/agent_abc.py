@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 import ast
 
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr, field_validator, model_validator
 from typing import Any
 
 from biochatter.llm_connect import Conversation
@@ -265,8 +265,8 @@ class BaseDependency(BaseObject):
     """
     u_api_name: str = Field(default="", description="The name of the source API")
     v_api_name: str = Field(default="", description="The name of the target API")
-    args: dict = Field(default={}, description="The arguments of the dependency")
-    arg_typs: dict = Field(default={}, description="The argument types of the dependency")
+    args: dict[str, str] = Field(default={}, description="The arguments of the dependency")
+    arg_types: dict[str, str] = Field(default={}, description="The argument types of the dependency")
     deps: BaseData = Field(default=BaseData(), description="The data of the dependency")
 
     def _hash_members(self):
@@ -284,13 +284,13 @@ class InputAPI(BaseObject):
     This class is created to ease users' efforts to manually create dependency graph.
     But this class is not internally friendly, so will be converted to BaseAPI.
     """
-    api: str
-    products: list[str]
-    id: str
+    api: str = Field(default="", description="The name of the API")
+    products: list[str] = Field(default=[], description="The products of the API")
+    id: str = Field(default="", description="The id of the API")
 
     @field_validator("products", mode="after")
     @classmethod
-    def _check_product(cls, products: list[str]):
+    def _check_product(cls, products: list[str]) -> list[str]:
         for product in products:
             product = ast.parse(product)
             assert len(product.body) == 1, "Each product should be a single data object."
@@ -301,6 +301,11 @@ class InputAPI(BaseObject):
                 "Each product should be an variable. " \
                 "Functions, classes, assignment, constants, etc. are not supported."
         return products
+    
+    @model_validator(mode="after")
+    def _check_id(self) -> "InputAPI":
+        assert self.id == self.api, "The id of the API should be the same as the api name."
+        return self
 
 class InputDependency(BaseObject):
     """A class representing an input dependency.
