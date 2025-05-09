@@ -17,13 +17,6 @@ class DependencyGraph(DiGraph):
 
     Not all DiGraph methods have corresponding methods in this class. Only methods used
     by other codes are implemented. The rest are inherited from DiGraph.
-
-    It may look weird that BaseAPI and BaseDendency are used as query keys for removal,
-    and some query methods, especially when only api_names serve as primary keys of graphs.
-    This is because Base.. are fundamental blocks leveraged through the whole biochatter.
-    We intend to reduce the confusion of converting between str primary keys and Base..
-    objects. In other words, only api_names are used to retrieve and delete nodes and edges though
-    the whole Base.. objects are inputted into these methods.
     """
 
     def __init__(self, dep_graph: str | dict | None = None, api_class_dict: dict | None = None):
@@ -71,32 +64,32 @@ class DependencyGraph(DiGraph):
         for dep in dep_list:
             self.add_dep(dep)
         
-    def remove_dep(self, u_api: BaseAPI, v_api: BaseAPI):
-        super().remove_edge(u_api._api_name, v_api._api_name)
-        del self.deps_dict[(u_api._api_name, v_api._api_name)]
+    def remove_dep(self, u_api_name: str, v_api_name: str):
+        super().remove_edge(u_api_name, v_api_name)
+        del self.deps_dict[(u_api_name, v_api_name)]
     
-    def remove_deps_from(self, u_v_api_list: list[(BaseModel, BaseModel)]):
-        for u_api, v_api in u_v_api_list:
-            self.remove_dep(u_api, v_api)
+    def remove_deps_from(self, u_v_api_names: list[(str, str)]):
+        for u_api_name, v_api_name in u_v_api_names:
+            self.remove_dep(u_api_name, v_api_name)
 
-    def in_apis(self, api: BaseAPI) -> list[BaseModel]:
+    def in_apis(self, api_name: str) -> list[BaseModel]:
         """Get the dependent APIs of the given API."""
-        in_nodes = super().predecessors(api._api_name)
+        in_nodes = super().predecessors(api_name)
         return self.get_apis(list(in_nodes))
     
-    def out_apis(self, api: BaseAPI) -> list[BaseModel]:
+    def out_apis(self, api_name: str) -> list[BaseModel]:
         """Get the APIs that depend on the given API."""
-        out_nodes = super().successors(api._api_name)
+        out_nodes = super().successors(api_name)
         return self.get_apis(list(out_nodes))
     
-    def in_deps(self, api: BaseAPI) -> list[BaseDependency]:
+    def in_deps(self, api_name: str) -> list[BaseDependency]:
         """Get the dependencies of the given API."""
-        in_edges = super().in_edges(api._api_name)
+        in_edges = super().in_edges(api_name)
         return self.get_deps(list(in_edges))
     
-    def out_deps(self, api: BaseAPI) -> list[BaseDependency]:
+    def out_deps(self, api_name: str) -> list[BaseDependency]:
         """Get the dependencies that depend on the given API."""
-        out_edges = super().out_edges(api._api_name)
+        out_edges = super().out_edges(api_name)
         return self.get_deps(list(out_edges))
     
     def clear(self):
