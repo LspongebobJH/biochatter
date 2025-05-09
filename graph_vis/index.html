@@ -134,14 +134,14 @@
                             let content = `
                                 <div style="word-wrap:break-word;">
                                     <p>API: ${item.api}<p>
-                                    <p>produce: ${item.produce}<p>
+                                    <p>products: ${item.products}<p>
                                 </div>
                             `;
                             return content;
                         } else if (targetType == 'edge') {
                             let content = `
                                 <div style="word-wrap:break-word;">
-                                    <p>depend_on: ${item.depend_on}<p>
+                                    <p>dependencies: ${item.dependencies}<p>
                                     <p>args: ${JSON.stringify(item.args)}<p>
                                     <p>arg_types: ${JSON.stringify(item.arg_types)}<p>
                                 </div>
