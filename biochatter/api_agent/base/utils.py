@@ -79,7 +79,7 @@ def check_active_dep_args(dep_args: dict, api: BaseAPI) -> bool:
         return True
     return False
 
-def _input_product_to_internal_keys_info(
+def _ast_to_keys_info(
             product: ast.AST, 
             child_name: str | None,
             child_keys_info: BaseKeysInfo | None) -> BaseData:
@@ -140,7 +140,7 @@ def _input_product_to_internal_keys_info(
             
             parent_product = product.value
             full_keys_info: BaseKeysInfo = \
-                _input_product_to_internal_keys_info(
+                _ast_to_keys_info(
                     parent_product,
                     name,
                     keys_info
@@ -246,7 +246,7 @@ def _str_list_to_keys_info(str_list: list[str]) -> BaseKeysInfo:
     for p in str_list:
         p = ast.parse(p).body[0].value
         keys_info: BaseKeysInfo = \
-            _input_product_to_internal_keys_info(p, None, None)
+            _ast_to_keys_info(p, None, None)
         keys_info_list.append(keys_info)
 
     if len(keys_info_list) == 0:
