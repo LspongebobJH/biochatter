@@ -10,11 +10,31 @@ from abc import ABC, abstractmethod
 import ast
 import json
 from typing import Any
-
+from copy import deepcopy
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr, field_validator, model_validator
-
+from pydantic.fields import FieldInfo
 from biochatter.llm_connect import Conversation
+from ._python_interpreter import evaluate_python_code
+
+def run_codes(code: str, state: dict[str, object]):
+    """
+    Run codes
+
+    Parameters
+    -----------
+    code : str
+        A single valid code snippet as a string.
+    state: dict[str, object]
+        A dictionary of variables to be used in the code snippet. E.g. {'sc': sc, 'adata': adata}
+    """
+    
+    try:
+        result = str(evaluate_python_code(code, state=state)[0])
+    except Exception as e:
+        return f"ERROR: {str(e)}", e
+    return result, None
+
 
 class BaseQueryBuilder(ABC):
     """An abstract base class for query builders."""
@@ -246,11 +266,30 @@ class BaseAPI(BaseObject):
     
     We use PrivateAttr to store api_name and products to avoid them being
     included in the argument prediction of LLM through langchain.
+
+    Jiahang: in these classes, some data members should not be set in initialization.
+    Instead, they should only be set dynamically during forward pass over execution graph,
+    which is conducted internally. Please implement relevant validator to ensure this.
+
+    Jiahang: we predefine the data name to be "data" for all APIs. This is because we assume
+    all input data should be stored in one data object. Even if there are multiple data objects, they
+    can all be stored in the same data object through ways like dict or list. This also means that 
+    the variable name "data" should not be overlapped. This is one of the standards.
     """
 
     _api_name: str = PrivateAttr(default="")
     _products: BaseData = PrivateAttr(default=BaseData())
+    # The dependencies of the API.
+    # This object should NOT be set in initialization.
+    # It should only be set dynamically during forward pass over execution graph,
+    # which is conducted internally.
     _deps: BaseData = PrivateAttr(default=BaseData())
+
+    # state should only be things like imported packages, environment variables, etc., which
+    # will not be used in actual computation and not be modified. all computed things should be
+    # stored in _deps.data and _products.data.
+    # Jiahang: we need to some how check this.
+    # Jiahang: these notes should be written in the docstring of the class.
 
     def _hash_members(self):
         members = self.model_dump()
@@ -259,9 +298,29 @@ class BaseAPI(BaseObject):
         members['_deps'] = self._deps._hash_members()
         return members
     
-    def execute(self):
+    def _var_repr(self, var) -> str:
+        if type(var) == str and var != "data":
+            return f"'{var}'"
+        return var
+    
+    def to_api_calling(self) -> str:
+        """Convert a BaseAPI object to a string of api calling."""
+        params = []
+        for name in self.model_fields.keys():
+            params.append(f"{name}={self._var_repr(self.__getattribute__(name))}")
+        return f"{self._api_name}({', '.join(params)})"
+
+    # Jiahang: be abstractmethod in the future
+    def execute(self, state: dict[str, object]):
         """Execute the API call with the given arguments."""
-        pass
+        api_calling = self.to_api_calling()
+        state["data"] = deepcopy(self._deps.data)
+        results, error = run_codes(api_calling, state)
+        if error:# Jiahang: error handling and multiple retry are not implemented yet.
+            raise ValueError(error)
+        else:
+            self._products.data = state["data"]
+            return results
 
 
 class BaseDependency(BaseObject):
@@ -328,4 +387,10 @@ class InputDependency(BaseObject):
     target: str = Field(default="", description="The target of the dependency")
     args: dict = Field(default={}, description="The arguments of the dependency")
     arg_types: dict = Field(default={}, description="The argument types of the dependency")
+
+    @model_validator(mode="after")
+    def _check_args(self) -> "InputDependency":
+        assert len(self.args) == 1 and len(self.arg_types) == 1, "Only one activation arg is permitted for the dependency."
+        return self
+    
     

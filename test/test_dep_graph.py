@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from copy import deepcopy
 
 from biochatter.api_agent.base.agent_abc import BaseAPI, BaseDependency, BaseData, BaseKeysInfo
-from biochatter.api_agent.base.utils import (
+from biochatter.api_agent.dep_graph.utils import (
     retrieve_products, 
     read_apis_from_graph_dict, 
     read_deps_from_graph_dict, 

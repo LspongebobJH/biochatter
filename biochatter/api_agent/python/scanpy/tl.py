@@ -1,14 +1,15 @@
 from pydantic import PrivateAttr, Field
 
 from biochatter.api_agent.base.agent_abc import BaseAPI
+from .base import ScanpyAPI
 
 # Jiahang: unfinished
-class ScTlUmap(BaseAPI):
+class ScTlUmap(ScanpyAPI):
     """Embed the neighborhood graph using UMAP."""
 
     _api_name: str = PrivateAttr(default="sc.tl.umap")
     adata: str = Field(
-        "adata",
+        "data",
         description="Annotated data matrix",
     )
     min_dist: float = Field(
@@ -24,13 +25,16 @@ class ScTlUmap(BaseAPI):
         description="The number of dimensions of the embedding.",
     )
 
+     # Jiahang: there should be a super class of scanpy to import this package into state
+    
+
 # Jiahang: unfinished
-class ScTlLeiden(BaseAPI):
+class ScTlLeiden(ScanpyAPI):
     """Cluster the neighborhood graph using the Leiden algorithm."""
 
     _api_name: str = PrivateAttr(default="sc.tl.leiden")
     adata: str = Field(
-        "adata",
+        "data",
         description="Annotated data matrix",
     )
     resolution: float = Field(
@@ -48,6 +52,8 @@ class ScTlLeiden(BaseAPI):
         True,
         description="Whether to use edge weights in the clustering.",
     )
+
+    
 
 TOOLS = [
     ScTlUmap,

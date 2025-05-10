@@ -1,24 +1,25 @@
 from typing import Literal
-from pydantic import BaseModel, PrivateAttr, Field
+from pydantic import BaseModel, PrivateAttr, Field, model_validator
 
 from biochatter.api_agent.base.agent_abc import BaseAPI
+from .base import ScanpyAPI
 
 # Jiahang: unfinished
-class ScPpNeighbors(BaseAPI):
+class ScPpNeighbors(ScanpyAPI):
     """Compute the nearest neighbors distance matrix and a neighborhood graph of observations."""
 
     _api_name: str = PrivateAttr(default='sc.pp.neighbors')
-    adata: str = Field("adata", description="Annotated data matrix")
+    adata: str = Field("data", description="Annotated data matrix")
     n_neighbors: int = Field(15, description="The size of local neighborhood (in terms of number of neighboring data points) used for manifold approximation.")
     n_pcs: int | None = Field(None, description="Number of principal components to use.")
     knn: bool = Field(True, description="If True, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to neighbors more distant than the n_neighbors nearest neighbor.")
 
 
-class ScPpCalculateQCMetrics(BaseAPI):
+class ScPpCalculateQCMetrics(ScanpyAPI):
     """Calculate quality control metrics for the data matrix."""
 
     _api_name: str = PrivateAttr(default='sc.pp.calculate_qc_metrics')
-    adata: str = Field("adata", description="Annotated data matrix")
+    adata: str = Field("data", description="Annotated data matrix")
     expr_type: str = Field("counts", description="Name of kind of values in X")
     var_type: str = Field("genes", description="The kind of thing the variables are")
     qc_vars: str = Field("", description="Keys for boolean columns of .var for control variables")
@@ -31,11 +32,11 @@ class ScPpCalculateQCMetrics(BaseAPI):
 
 
 
-class ScPpFilterCells(BaseAPI):
+class ScPpFilterCells(ScanpyAPI):
     """Filter cells based on number of gene counts."""
     _api_name: str = PrivateAttr(default='sc.pp.filter_cells')
     data: str = Field(
-        "adata",
+        "data",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     min_counts: int | None = Field(None, description="Minimum number of counts required for a cell to pass filtering.")
@@ -50,12 +51,12 @@ class ScPpFilterCells(BaseAPI):
 
 
 
-class ScPpFilterGenes(BaseAPI):
+class ScPpFilterGenes(ScanpyAPI):
     """Filter genes based on number of cell counts."""
 
     _api_name: str = PrivateAttr(default='sc.pp.filter_genes')
     data: str = Field(
-        "adata",
+        "data",
         description="An annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     min_counts: int | None = Field(None, description="Minimum number of counts required for a gene to pass filtering.")
@@ -72,11 +73,11 @@ class ScPpFilterGenes(BaseAPI):
 
 
 
-class ScPpHighlyVariableGenes(BaseAPI):
+class ScPpHighlyVariableGenes(ScanpyAPI):
     """Identify highly variable genes based on mean and variance of gene expressions."""
     _api_name: str = PrivateAttr(default='sc.pp.highly_variable_genes')
     adata: str = Field(
-        "adata", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes."
+        "data", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes."
     )
     layer: str | None = Field(None, description="Use adata.layers[layer] for expression values instead of adata.X.")
     n_top_genes: int | None = Field(
@@ -117,11 +118,11 @@ class ScPpHighlyVariableGenes(BaseAPI):
 
 
 
-class ScPpLog1p(BaseAPI):
+class ScPpLog1p(ScanpyAPI):
     """Logarithmize the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.log1p')
     data: str = Field(
-        "adata",
+        "data",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     base: float | None = Field(None, description="Base of the logarithm. Natural logarithm is used by default.")
@@ -134,11 +135,11 @@ class ScPpLog1p(BaseAPI):
 
 
 
-class ScPpPCA(BaseAPI):
+class ScPpPCA(ScanpyAPI):
     """Apply Principal Component Analysis (PCA) for dimensionality reduction to data matrix ."""
     _api_name: str = PrivateAttr(default='sc.pp.pca')
     data: str = Field(
-        "adata",
+        "data",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     n_comps: int | None = Field(
@@ -174,11 +175,11 @@ class ScPpPCA(BaseAPI):
 
 
 
-class ScPpNormalizeTotal(BaseAPI):
+class ScPpNormalizeTotal(ScanpyAPI):
     """Normalize total counts per cell to a target sum."""
     _api_name: str = PrivateAttr(default='sc.pp.normalize_total')
     adata: str = Field(
-        "adata",
+        "data",
         description="The annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     target_sum: float | None = Field(
@@ -202,10 +203,10 @@ class ScPpNormalizeTotal(BaseAPI):
 
 
 
-class ScPpRegressOut(BaseAPI):
+class ScPpRegressOut(ScanpyAPI):
     """Regress out unwanted sources of variation from the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.regress_out')
-    adata: str = Field("adata", description="The annotated data matrix.")
+    adata: str = Field("data", description="The annotated data matrix.")
     keys: str | list[str] = Field(
         ...,
         description="Keys for observation annotation on which to regress on. Can be a single key or a list of keys.",
@@ -217,11 +218,11 @@ class ScPpRegressOut(BaseAPI):
 
 
 
-class ScPpScale(BaseAPI):
+class ScPpScale(ScanpyAPI):
     """Scale the data matrix to unit variance and zero mean."""
     _api_name: str = PrivateAttr(default='sc.pp.scale')
     data: str = Field(
-        "adata",
+        "data",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     zero_center: bool = Field(
@@ -239,11 +240,11 @@ class ScPpScale(BaseAPI):
 
 
 
-class ScPpSample(BaseAPI):
+class ScPpSample(ScanpyAPI):
     """Sample observations or variables with or without replacement."""
     _api_name: str = PrivateAttr(default='sc.pp.sample')
     data: str = Field(
-        "adata",
+        "data",
         description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
     )
     fraction: float | None = Field(None, description="Sample to this fraction of the number of observations.")
@@ -252,10 +253,10 @@ class ScPpSample(BaseAPI):
 
 
 
-class ScPpDownsampleCounts(BaseAPI):
+class ScPpDownsampleCounts(ScanpyAPI):
     """Downsample counts in the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.downsample_counts')
-    adata: str = Field("adata", description="Annotated data matrix.")
+    adata: str = Field("data", description="Annotated data matrix.")
     counts_per_cell: int | None = Field(
         None,
         description="Target total counts per cell. If a cell has more than ‘counts_per_cell’, it will be downsampled to this number. Can be an integer or integer ndarray with same length as number of observations.",
@@ -269,20 +270,20 @@ class ScPpDownsampleCounts(BaseAPI):
 
 
 
-class ScPpRecipeZheng17(BaseAPI):
+class ScPpRecipeZheng17(ScanpyAPI):
     """Preprocess data according to the Zheng et al. (2017) recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_zeng17')
-    adata: str = Field("adata", description="Annotated data matrix.")
+    adata: str = Field("data", description="Annotated data matrix.")
     n_top_genes: int = Field(1000, description="Number of genes to keep.")
     log: bool = Field(True, description="Take logarithm. If True, log-transform data after filtering.")
     plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
 
 
 
-class ScPpRecipeWeinreb17(BaseAPI):
+class ScPpRecipeWeinreb17(ScanpyAPI):
     """Preprocess data according to the Weinreb et al. (2017) recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_weinreb17')
-    adata: str = Field("adata", description="Annotated data matrix.")
+    adata: str = Field("data", description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     mean_threshold: float = Field(0.01, description="Threshold for mean expression of genes.")
     cv_threshold: float = Field(2, description="Threshold for coefficient of variation (CV) for gene dispersion.")
@@ -292,19 +293,19 @@ class ScPpRecipeWeinreb17(BaseAPI):
 
 
 
-class ScPpRecipeSeurat(BaseAPI):
+class ScPpRecipeSeurat(ScanpyAPI):
     """Preprocess data according to the Seurat recipe."""
     _api_name: str = PrivateAttr(default='sc.pp.recipe_seurat')
-    adata: str = Field("adata", description="Annotated data matrix.")
+    adata: str = Field("data", description="Annotated data matrix.")
     log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
     plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
 
 
 
-class ScPpCombat(BaseAPI):
+class ScPpCombat(ScanpyAPI):
     """Remove batch effects from the data matrix using ComBat."""
     _api_name: str = PrivateAttr(default='sc.pp.combat')
-    adata: str = Field("adata", description="Annotated data matrix.")
+    adata: str = Field("data", description="Annotated data matrix.")
     key: str = Field(
         "batch", description="Key to a categorical annotation from obs that will be used for batch effect removal."
     )
@@ -315,10 +316,10 @@ class ScPpCombat(BaseAPI):
 
 
 
-class ScPpScrublet(BaseAPI):
+class ScPpScrublet(ScanpyAPI):
     """Detect doublets in single-cell RNA-seq data using Scrublet."""
     _api_name: str = PrivateAttr(default='sc.pp.scrublet')
-    adata: str = Field("adata", description="Annotated data matrix (n_obs × n_vars).")
+    adata: str = Field("data", description="Annotated data matrix (n_obs × n_vars).")
     adata_sim: str | None = Field(
         None, description="Optional AnnData object from scrublet_simulate_doublets() with same number of vars as adata."
     )
@@ -351,11 +352,11 @@ class ScPpScrublet(BaseAPI):
 
 
 
-class ScPpScrubletSimulateDoublets(BaseAPI):
+class ScPpScrubletSimulateDoublets(ScanpyAPI):
     """Simulate doublets by adding the counts of random observed transcriptome pairs."""
     _api_name: str = PrivateAttr(default='sc.pp.scrublet_simulate_doublets')
     adata: str = Field(
-        "adata", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells, columns to genes."
+        "data", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells, columns to genes."
     )
     layer: str | None = Field(
         None, description="Layer of adata where raw values are stored, or 'X' if values are in .X."

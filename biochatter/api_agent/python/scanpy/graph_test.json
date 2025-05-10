@@ -2,6 +2,13 @@
     "directed": true,
     "multigraph": false,
     "graph": {},
+    "node_index": {
+        "sc.pp.neighbors": 0,
+        "sc.tl.umap": 1,
+        "sc.tl.leiden": 2,
+        "sc.pl.umap": 3,
+        "root": 4
+    },
     "nodes": [
         {
             "api": "sc.pp.neighbors",
@@ -51,23 +58,24 @@
             "source": "root",
             "target": "sc.pp.neighbors",
             "args": {
-                "data": "data"
+                "adata": "data"
             },
             "arg_types": {
-                "data": "object"
+                "adata": "object"
             }
         },
         {
             "dependencies": [
-                "data.obsp['distances']"
+                "data.uns['neighbors']",
+                "data.obsp['connectivities']"
             ],
             "source": "sc.pp.neighbors",
             "target": "sc.tl.leiden",
             "args": {
-                "data": "data"
+                "adata": "data"
             },
             "arg_types": {
-                "data": "object"
+                "adata": "object"
             }
         },
         {
@@ -78,10 +86,10 @@
             "source": "sc.pp.neighbors",
             "target": "sc.tl.umap",
             "args": {
-                "data": "data"
+                "adata": "data"
             },
             "arg_types": {
-                "data": "object"
+                "adata": "object"
             }
         },
         {
@@ -91,10 +99,10 @@
             "source": "sc.tl.umap",
             "target": "sc.pl.umap",
             "args": {
-                "data": "data"
+                "adata": "data"
             },
             "arg_types": {
-                "data": "object"
+                "adata": "object"
             }
         },
         {

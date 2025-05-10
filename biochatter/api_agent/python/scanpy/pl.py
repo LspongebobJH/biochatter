@@ -5,14 +5,15 @@ from typing import Any
 from pydantic import BaseModel, Field, PrivateAttr
 
 from biochatter.api_agent.base.agent_abc import BaseAPI
+from .base import ScanpyAPI
 
-class ScPlScatter(BaseAPI):
+class ScPlScatter(ScanpyAPI):
     """Parameters for querying the scanpy `pl.scatter` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.scatter",
     )
-    adata: str = Field(default="adata", description="Annotated data matrix.")
+    adata: str = Field(default="data", description="Annotated data matrix.")
     x: str | None = Field(default=None, description="x coordinate.")
     y: str | None = Field(default=None, description="y coordinate.")
     color: str | tuple[float, ...] | list[str | tuple[float, ...]] | None = Field(
@@ -66,14 +67,14 @@ class ScPlScatter(BaseAPI):
 
 
 ### Embeddings
-class ScPlPca(BaseAPI):
+class ScPlPca(ScanpyAPI):
     """Parameters for querying the scanpy `pl.pca` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.pca",
     )
     adata: str = Field(
-        "adata",
+        "data",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -142,14 +143,14 @@ class ScPlPca(BaseAPI):
     )
 
 
-class ScPlTsne(BaseAPI):
+class ScPlTsne(ScanpyAPI):
     """Parameters for querying the Scanpy `pl.tsne` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.tsne",
     )
     adata: str = Field(
-        "adata",
+        "data",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -300,20 +301,22 @@ class ScPlTsne(BaseAPI):
         default=None,
         description="A matplotlib axes object.",
     )
-    kwargs: dict[str, Any] | None = Field(
-        default=None,
-        description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
-    )
+    # kwargs: dict[str, Any] | None = Field(
+    #     default=None,
+    #     description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
+    # )
+    # Jiahang: kwargs that being sent to internal API are not supported now since it needs
+    # to be carefully handled and the handling way should be a standard.
 
 
-class ScPlUmap(BaseAPI):
+class ScPlUmap(ScanpyAPI):
     """Parameters for querying the Scanpy `pl.umap` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.umap",
     )
     adata: str = Field(
-        "adata",
+        "data",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -492,20 +495,22 @@ class ScPlUmap(BaseAPI):
         default=".",
         description="Marker symbol.",
     )
-    kwargs: dict[str, Any] | None = Field(
-        default=None,
-        description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
-    )
+    # kwargs: dict[str, Any] | None = Field(
+    #     default=None,
+    #     description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
+    # )
+
+    
 
 
-class ScPlDrawGraph(BaseAPI):
+class ScPlDrawGraph(ScanpyAPI):
     """Parameters for querying the Scanpy `pl.draw_graph` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.draw_graph",
     )
     adata: str = Field(
-        "adata",
+        "data",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -667,20 +672,20 @@ class ScPlDrawGraph(BaseAPI):
         default=None,
         description="One of the `draw_graph()` layouts.",
     )
-    kwargs: dict[str, Any] | None = Field(
-        default=None,
-        description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
-    )
+    # kwargs: dict[str, Any] | None = Field(
+    #     default=None,
+    #     description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
+    # )
 
 
-class ScPlSpatial(BaseAPI):
+class ScPlSpatial(ScanpyAPI):
     """Parameters for querying the Scanpy `pl.spatial` API."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.spatial",
     )
     adata: str = Field(
-        "adata",
+        "data",
         description="Annotated data matrix.",
     )
     color: str | list[str] | None = Field(
@@ -853,10 +858,10 @@ class ScPlSpatial(BaseAPI):
         default=None,
         description="A matplotlib axes object.",
     )
-    kwargs: dict[str, Any] | None = Field(
-        default=None,
-        description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
-    )
+    # kwargs: dict[str, Any] | None = Field(
+    #     default=None,
+    #     description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
+    # )
 
 TOOLS = [
     ScPlScatter,

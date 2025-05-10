@@ -6,7 +6,7 @@ from typing import Any
 from queue import Queue
 
 from biochatter.api_agent.base.agent_abc import BaseAPI, BaseDependency
-from biochatter.api_agent.base.utils import read_apis_from_graph_dict, read_deps_from_graph_dict
+from biochatter.api_agent.dep_graph.utils import read_apis_from_graph_dict, read_deps_from_graph_dict
 
 
 class DependencyGraph(DiGraph):
@@ -26,13 +26,13 @@ class DependencyGraph(DiGraph):
         self.deps_dict = {}
 
         if dep_graph:
-            assert api_class_dict is not None, "API class dictionary must be provided if dep_graph_path is given."
+            assert api_class_dict is not None, "API class dictionary must be provided if dep_graph is given."
             if isinstance(dep_graph, str):
                 with open(dep_graph, "r") as f:
                     dep_graph_dict = json.load(f)
             else:
                 dep_graph_dict = dep_graph
-
+            # Jiahang (easy): this line could be duplicated with api initialization. check it.
             apis_dict = read_apis_from_graph_dict(dep_graph_dict, api_class_dict)
             deps_dict = read_deps_from_graph_dict(dep_graph_dict)
 
@@ -92,6 +92,18 @@ class DependencyGraph(DiGraph):
         out_edges = super().out_edges(api_name)
         return self.get_deps(list(out_edges))
     
+    def update_api(self, api: BaseAPI):
+        if api._api_name in self.apis_dict:
+            self.apis_dict[api._api_name] = api
+        else:
+            raise ValueError(f"API {api._api_name} not found in the dependency graph.")
+        
+    def update_dep(self, dep: BaseDependency):
+        if (dep.u_api_name, dep.v_api_name) in self.deps_dict:
+            self.deps_dict[(dep.u_api_name, dep.v_api_name)] = dep
+        else:
+            raise ValueError(f"Dependency {dep.u_api_name} -> {dep.v_api_name} not found in the dependency graph.")
+        
     def clear(self):
         super().clear()
         self.apis_dict.clear()
@@ -103,7 +115,11 @@ class DependencyGraph(DiGraph):
 
     def get_api(self, api_name: str) -> BaseAPI:
         """Get the API object associated with the given API name."""
-        return self.apis_dict.get(api_name)
+        api: BaseAPI | None = self.apis_dict.get(api_name)
+        if api is not None:
+            return api.model_copy(deep=True)
+        else:
+            raise ValueError(f"API {api_name} not found in the dependency graph.")
     
     def get_apis(self, api_names: list[str]) -> list[BaseAPI]:
         """Get the API objects associated with the given API names."""
@@ -111,13 +127,17 @@ class DependencyGraph(DiGraph):
     
     def get_dep(self, u_api_name: str, v_api_name: str) -> BaseDependency:
         """Get the dependency object associated with the given API names."""
-        return self.deps_dict.get((u_api_name, v_api_name))
+        dep: BaseDependency | None = self.deps_dict.get((u_api_name, v_api_name))
+        if dep is not None:
+            return dep.model_copy(deep=True)
+        else:
+            raise ValueError(f"Dependency {u_api_name} -> {v_api_name} not found in the dependency graph.")
     
     def get_deps(self, u_v_api_names: list[(str, str)]) -> list[BaseDependency]:
         """Get the dependency objects associated with the given API names."""
-        return [self.get_dep((u_api_name, v_api_name)) for u_api_name, v_api_name in u_v_api_names]
+        return [self.get_dep(u_api_name, v_api_name) for u_api_name, v_api_name in u_v_api_names]
     
-    def retrieve_sub_g(self, sub_g: DiGraph) -> DiGraph:
+    def retrieve_sub_g(self, sub_g: DiGraph) -> "DependencyGraph":
         """Reteieve the sub DependencyGraph given the sub latent DiGraph
         The latent DiGraph only needs the node set and egde set, where node names are indexed by API names.
         There is no need for any node or edge attributes for latent DiGraph.
@@ -140,11 +160,3 @@ class DependencyGraph(DiGraph):
         """Get apis with zero outdegree in the dependency graph."""
         nodes = [node for node in self.nodes() if self.out_degree(node) == 0]
         return self.get_apis(nodes)
-    
-    def get_actual_deps(self, api: BaseAPI) -> list[BaseDependency]:
-        """Get actual dependencies of the given API."""
-        deps = self.in_deps(api)
-        for dep in deps:
-            deps_info, deps = dep.deps_info, dep.deps
-            u_api = self.get_api(dep.u_api_name)
-            products = u_api._products

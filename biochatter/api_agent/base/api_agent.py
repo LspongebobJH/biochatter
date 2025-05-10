@@ -1,6 +1,7 @@
 """Base API agent module."""
 
 from typing import Any
+from pydantic import BaseModel
 
 from biochatter.llm_connect import Conversation
 
@@ -68,15 +69,14 @@ class APIAgent:
 
         """
         # Generate query        
-        query_models = self.query_builder.build_api_query(question)
+        query_models: list[BaseModel] = self.query_builder.build_api_query(question)
 
         # Fetch results
-        response = self.fetcher.fetch_results(query_models, data, 100)
+        response: object = self.fetcher.fetch_results(query_models, data, 100)
         
         # Extract answer from results
         final_answer = self.interpreter.summarise_results(
             question=question,
-            conversation=self.conversation,
             response=response,
         )
 
@@ -85,3 +85,4 @@ class APIAgent:
 
     def get_description(self, tool_name: str, tool_desc: str):
         return f"This API agent interacts with {tool_name}'s API for querying and fetching results. {tool_desc}"
+
