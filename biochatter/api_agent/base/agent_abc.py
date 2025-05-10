@@ -8,10 +8,11 @@ import os
 from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 import ast
+import json
+from typing import Any
 
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr, field_validator, model_validator
-from typing import Any
 
 from biochatter.llm_connect import Conversation
 
@@ -176,12 +177,16 @@ class BaseObject(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
     def __hash__(self):
         members = self._hash_members()
-        members = tuple(f"{k}:{v}" for k, v in members.items())
+        # members = tuple(f"{k}:{v}" for k, v in members.items())
+        members = json.dumps(members, sort_keys=True, ensure_ascii=True)
         return hash(members)
     
     def _hash_members(self) -> dict:
         """A dict of members to be hased = {member_name: member_value}"""
         return self.model_dump()
+    
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
 
 class BaseKeysInfo(BaseObject):
     """A class representing a keys info object."""
@@ -232,7 +237,7 @@ class BaseData(BaseObject):
 
     def _hash_members(self) -> dict:
         members = self.model_dump()
-        members.pop('data') # data can be complex structure not hashable
+        members.pop('data') # Jiahang: data can be complex structure not hashable, so we don't consider it for now.
         return members
 
 
@@ -245,11 +250,13 @@ class BaseAPI(BaseObject):
 
     _api_name: str = PrivateAttr(default="")
     _products: BaseData = PrivateAttr(default=BaseData())
+    _deps: BaseData = PrivateAttr(default=BaseData())
 
     def _hash_members(self):
         members = self.model_dump()
         members['_api_name'] = self._api_name
         members['_products'] = self._products._hash_members()
+        members['_deps'] = self._deps._hash_members()
         return members
     
     def execute(self):
@@ -316,9 +323,9 @@ class InputDependency(BaseObject):
     This class is created to ease users' efforts to manually create dependency graph.
     But this class is not internally friendly, so will be converted to BaseDependency.
     """
-    dependencies: list[str]
-    source: str
-    target: str
-    args: dict
-    arg_types: dict
+    dependencies: list[str] = Field(default=[], description="The dependencies of the dependency")
+    source: str = Field(default="", description="The source of the dependency")
+    target: str = Field(default="", description="The target of the dependency")
+    args: dict = Field(default={}, description="The arguments of the dependency")
+    arg_types: dict = Field(default={}, description="The argument types of the dependency")
     

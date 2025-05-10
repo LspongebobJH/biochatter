@@ -1,10 +1,288 @@
 import unittest
 from unittest.mock import MagicMock
+from copy import deepcopy
 
 from biochatter.api_agent.base.agent_abc import BaseAPI, BaseDependency, BaseData, BaseKeysInfo
-from biochatter.api_agent.base.utils import retrieve_products, read_apis_from_graph_dict, read_deps_from_graph_dict
+from biochatter.api_agent.base.utils import (
+    retrieve_products, 
+    read_apis_from_graph_dict, 
+    read_deps_from_graph_dict, 
+    aggregate_deps
+)
 from biochatter.api_agent.python.scanpy import SCANPY_TOOLS_DICT
 from biochatter.api_agent.dep_graph.graph import DependencyGraph
+
+class BaseTestData:
+    def __init__(self):
+        pass
+
+    def __getitem__(self, name):
+        return self.data_dict[name]
+    
+    def __setitem__(self, name, value):
+        self.data_dict[name] = value
+        
+class TestData(BaseTestData):
+    def __init__(self):
+        super().__init__()
+        self.obj1 = "obj1"
+        self.obj2 = {
+            "key1": "obj2_key1",
+            "key2": "obj2_key2",
+        }
+
+        self.key_3_obj = MagicMock()
+        self.key_3_obj.obj4 = "key3_obj4"
+        self.data_dict = {
+            "key3": self.key_3_obj,
+        }
+
+        self.keys_info = BaseKeysInfo.model_validate(
+            {
+                    "membership": "self",
+                    "keys": {
+                    "obj1": {
+                        "membership": "attr",
+                    },
+                    "obj2": {
+                        "membership": "attr",
+                        "keys": {
+                            "key1": {
+                                "membership": "item",
+                            },
+                            "key2": {
+                                "membership": "item",
+                            },
+                        },
+                    },
+                    "key3": {
+                        "membership": "item",
+                        "keys": {
+                            "obj4": {
+                                "membership": "attr",
+                            },
+                        },
+                    },
+                }
+            }
+        )
+
+class TestDataSrc1(BaseTestData):
+    def __init__(self):
+        super().__init__()
+        self.obj1 = "obj1"
+        self.obj2 = {
+            "key1": "obj2_key1",
+            "key2": "obj2_key2",
+            "key3": "obj2_key3",
+            "key4": "obj2_key4",
+        }
+        self.obj4 = {
+            "key2": "obj4_key2",
+        }
+        self.key_3_obj = MagicMock()
+        self.key_3_obj.obj6 = "key3_obj6"
+        self.data_dict = {
+            "key3": self.key_3_obj,
+        }
+
+        self.keys_info = BaseKeysInfo.model_validate(
+            {
+                "membership": "self",
+                "keys": {
+                    "obj1": {
+                        "membership": "attr",
+                    },
+                    "obj2": {
+                        "membership": "attr",
+                        "keys": {
+                            "key1": {
+                                "membership": "item",
+                            },
+                            "key2": {
+                                "membership": "item",
+                            },
+                            "key3": {
+                                "membership": "item",
+                            },
+                            "key4": {
+                                "membership": "item",
+                            },
+                        },
+                    },
+                    "obj4": {
+                        "membership": "attr",
+                        "keys": {
+                            "key2": {
+                                "membership": "item",
+                            },
+                        },
+                    },
+                    "key3": {
+                        "membership": "item",
+                        "keys": {
+                            "obj6": {
+                                "membership": "attr",
+                            },
+                        },
+                    },
+                },
+            },
+        )
+
+class TestDataSrc2(BaseTestData):
+    def __init__(self):
+        super().__init__()
+        self.obj1 = "obj1"
+        self.obj2 = {
+            "key1": "obj2_key1",
+        }
+        self.obj3 = "obj3"
+        self.obj4 = {
+            "key1": "obj4_key1",
+            "key2": "obj4_key2",
+        }
+        self.key_3_obj = MagicMock()
+        self.key_3_obj.obj4 = "key3_obj4"
+        self.key_3_obj.obj5 = "key3_obj5"
+        self.data_dict = {
+            "key3": self.key_3_obj,
+        }
+
+        self.keys_info = BaseKeysInfo.model_validate(
+            {
+                "membership": "self",
+                "keys": {
+                    "obj1": {
+                        "membership": "attr",
+                    },
+                    "obj2": {
+                        "membership": "attr",
+                        "keys": {
+                            "key1": {
+                                "membership": "item",
+                            },
+                        },
+                    },
+                    "obj3": {
+                        "membership": "attr",
+                    },
+                    "obj4": {
+                        "membership": "attr",
+                        "keys": {
+                            "key1": {
+                                "membership": "item",
+                            },
+                            "key2": {
+                                "membership": "item",
+                            },
+                        },
+                    },
+                    "key3": {
+                        "membership": "item",
+                        "keys": {
+                            "obj4": {
+                                "membership": "attr",
+                            },
+                            "obj5": {
+                                "membership": "attr",
+                            },
+                        },
+                    },
+                },
+            }
+        )
+
+class TestDataGT(BaseTestData):
+    def __init__(self):
+        super().__init__()
+        self.obj1 = "obj1"
+        self.obj2 = {
+            "key1": "obj2_key1",
+            "key2": "obj2_key2",
+            "key3": "obj2_key3",
+            "key4": "obj2_key4",
+        }
+        self.obj3 = "obj3"
+        self.obj4 = {
+            "key1": "obj4_key1",
+            "key2": "obj4_key2",
+        }
+
+        self.key_3_obj = MagicMock()
+        self.key_3_obj.obj4 = "key3_obj4"
+        self.key_3_obj.obj5 = "key3_obj5"
+        self.key_3_obj.obj6 = "key3_obj6"
+        self.data_dict = {
+            "key3": self.key_3_obj,
+        }
+
+        self.keys_info = BaseKeysInfo.model_validate(
+                {
+                    "membership": "self",
+                    "keys": {
+                        "obj1": {
+                            "membership": "attr",
+                        },
+                        "obj2": {
+                            "membership": "attr",
+                            "keys": {
+                                "key1": {
+                                    "membership": "item",
+                                },
+                                "key2": {
+                                    "membership": "item",
+                                },
+                                "key3": {
+                                    "membership": "item",
+                                },
+                                "key4": {
+                                    "membership": "item",
+                                },
+                            },
+                        },
+                        "obj3": {
+                            "membership": "attr",
+                        },
+                        "obj4": {
+                            "membership": "attr",
+                            "keys": {
+                                "key1": {
+                                    "membership": "item",
+                                },
+                                "key2": {
+                                    "membership": "item",
+                                },
+                            },
+                        },
+                        "key3": {
+                            "membership": "item",
+                            "keys": {
+                                "obj4": {
+                                    "membership": "attr",
+                                },
+                                "obj5": {
+                                    "membership": "attr",
+                                },
+                                "obj6": {
+                                    "membership": "attr",
+                                },
+                            },
+                        },
+                    },
+                },
+            )
+
+    def __eq__(self, other):
+        assert self.obj1 == other.obj1
+        assert self.obj2 == other.obj2
+        assert self.obj3 == other.obj3
+        assert self.obj4 == other.obj4
+        assert self.data_dict['key3'].obj4 == other.data_dict['key3'].obj4
+        assert self.data_dict['key3'].obj5 == other.data_dict['key3'].obj5
+        assert self.data_dict['key3'].obj6 == other.data_dict['key3'].obj6
+        return True
+
 
 class TestDepGraph(unittest.TestCase):
     def test_construct_dep_graph(self):
@@ -612,60 +890,10 @@ class TestDepGraph(unittest.TestCase):
         pass
 
     def test_retrieve_products(self):
-        class TestData:
-            def __init__(self, initialize = True):
-                if initialize:
-                    self.obj1 = MagicMock()
-                    self.obj2 = {
-                        "key1": MagicMock(),
-                        "key2": MagicMock(),
-                    }
-
-                    test_obj = MagicMock()
-                    test_obj.key4 = MagicMock()
-                    self.data_dict = {
-                        "key3": test_obj,
-                    }
-
-            def __getitem__(self, name):
-                return self.data_dict[name]
-            
-            def __setitem__(self, name, value):
-                self.data_dict[name] = value
-
-        keys_info = {
-            "membership": "self",
-            "keys": {
-                "obj1": {
-                    "membership": "attr",
-                },
-                "obj2": {
-                    "membership": "attr",
-                    "keys": {
-                        "key1": {
-                            "membership": "item",
-                        },
-                        "key2": {
-                            "membership": "item",
-                        },
-                    },
-                },
-                "key3": {
-                    "membership": "item",
-                    "keys": {
-                        "key4": {
-                            "membership": "attr",
-                        },
-                    },
-                },
-            }
-        }
-
-        keys_info = BaseKeysInfo.model_validate(keys_info)
-
+        test_data = TestData()
         data = BaseData(
-            data=TestData(),
-            keys_info=keys_info
+            data=test_data,
+            keys_info=test_data.keys_info
         )
 
         src_api = BaseAPI()
@@ -704,10 +932,9 @@ class TestDepGraph(unittest.TestCase):
         dep_keys_info = BaseKeysInfo.model_validate(dep_keys_info, strict=True)
 
         dep_data = BaseData(
-            data=TestData(initialize=False),
+            data=BaseTestData(),
             keys_info=dep_keys_info
         )
-
 
         dependency = BaseDependency(
             u_api_name="src",
@@ -719,11 +946,56 @@ class TestDepGraph(unittest.TestCase):
 
         result = retrieve_products(src_api, dependency)
 
-        assert result.obj1 == src_api._products.data.obj1
-        assert result.obj2["key1"] == src_api._products.data.obj2["key1"]
-        assert "key2" not in result.obj2.keys()
-        assert result["key3"].key4 == src_api._products.data["key3"].key4
+        assert result.deps.data.obj1 == src_api._products.data.obj1
+        assert result.deps.data.obj2["key1"] == src_api._products.data.obj2["key1"]
+        assert "key2" not in result.deps.data.obj2.keys()
+        assert result.deps.data["key3"].key4 == src_api._products.data["key3"].key4
 
+    def test_aggregate_deps(self):
+        test_data = TestData()
+        test_data_src1 = TestDataSrc1()
+        test_data_src2 = TestDataSrc2()
+        test_data_gt = TestDataGT()
+        dep1 = BaseDependency(
+            u_api_name="src1",
+            v_api_name="dst",
+            args={},
+            arg_types={},
+            deps=BaseData(
+                data=test_data_src1,
+                keys_info=test_data_src1.keys_info
+            ),
+        )
+
+        dep2 = BaseDependency(
+            u_api_name="src2",
+            v_api_name="dst",
+            args={},
+            arg_types={},
+            deps=BaseData(
+                data=test_data_src2,
+                keys_info=test_data_src2.keys_info
+            ),
+        )
+
+        
+        data = BaseData(
+            data=test_data,
+            keys_info=test_data.keys_info
+        )
+
+        dst_api = BaseAPI()
+        dst_api._deps = data
+
+        dst_api = aggregate_deps([dep1, dep2], dst_api)
+
+        gt_data = BaseData(
+            data=test_data_gt,
+            keys_info=test_data_gt.keys_info
+        )
+
+        assert dst_api._deps.data == gt_data.data
+        assert dst_api._deps.keys_info == gt_data.keys_info
 
 if __name__ == "__main__":
     """__main__ is created for easy debugging without running the whole test suite."""
@@ -732,5 +1004,6 @@ if __name__ == "__main__":
     test_case.test_read_apis_from_graph_dict_1()
     test_case.test_retrieve_products()
     test_case.test_construct_dep_graph()
+    test_case.test_aggregate_deps()
     unittest.main()
     # pass
