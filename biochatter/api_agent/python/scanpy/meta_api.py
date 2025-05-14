@@ -6,6 +6,7 @@ from pydantic import PrivateAttr, Field
 from copy import deepcopy
 
 class ROOT(BaseAPI):
+    """This is a dunder API which will do nothing with no arguments."""
     _api_name: str = PrivateAttr(default="root")
 
     def execute(self, *args, **kwargs):
