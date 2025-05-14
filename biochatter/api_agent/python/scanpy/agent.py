@@ -88,6 +88,7 @@ class ScanpyFetcher(BaseFetcher):
         data: object,
         retries: int | None = 3,
     ) -> object:
+        code_lines = []
         execution_graph: DependencyGraph = execution_graph[0]
         root = execution_graph.get_api("root")
         root._deps.data = data
@@ -100,12 +101,14 @@ class ScanpyFetcher(BaseFetcher):
             in_deps = execution_graph.in_deps(api._api_name)
             if len(in_deps) > 0:
                 api = aggregate_deps(in_deps, api)
-            api.execute(state={'sc': scanpy})
+            results, api_calling = api.execute(state={'sc': scanpy})
+            code_lines.append(api_calling)
             execution_graph.update_api(api)
             out_deps = execution_graph.out_deps(api._api_name)
             for out_dep in out_deps:
                 out_dep = retrieve_products(api, out_dep)
                 execution_graph.update_dep(out_dep)
+        print('\n'.join(code_lines)) # Jiahang: using logger to do the printing.
         return api._products.data
     
 class ScanpyInterpreter(BaseInterpreter):

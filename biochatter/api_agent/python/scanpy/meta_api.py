@@ -6,11 +6,12 @@ from pydantic import PrivateAttr, Field
 from copy import deepcopy
 
 class ROOT(BaseAPI):
-    """This is a dunder API which will do nothing with no arguments."""
+    """This API does nothing but just returning the input. This API has no arguments and dependencies."""
     _api_name: str = PrivateAttr(default="root")
 
     def execute(self, *args, **kwargs):
         self._products.data = deepcopy(self._deps.data)
+        return None, "ROOT()"
 
 TOOLS_DICT = {}
 TOOLS_DICT.update(PL_TOOLS_DICT)

@@ -320,7 +320,7 @@ class BaseAPI(BaseObject):
             raise ValueError(error)
         else:
             self._products.data = state["data"]
-            return results
+            return results, api_calling
 
 
 class BaseDependency(BaseObject):
