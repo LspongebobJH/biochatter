@@ -299,7 +299,7 @@ class BaseAPI(BaseObject):
         return members
     
     def _var_repr(self, var) -> str:
-        if type(var) == str and var != "data":
+        if type(var) == str and var != "data": # Jiahang: a better way is to check arg_types. This is a bit tricky.
             return f"'{var}'"
         return var
     

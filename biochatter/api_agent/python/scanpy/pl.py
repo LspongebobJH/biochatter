@@ -8,7 +8,7 @@ from biochatter.api_agent.base.agent_abc import BaseAPI
 from .base import ScanpyAPI
 
 class ScPlScatter(ScanpyAPI):
-    """Parameters for querying the scanpy `pl.scatter` API."""
+    """Scatter plot along observations or variables axes."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.scatter",
@@ -68,7 +68,7 @@ class ScPlScatter(ScanpyAPI):
 
 ### Embeddings
 class ScPlPca(ScanpyAPI):
-    """Parameters for querying the scanpy `pl.pca` API."""
+    """Scatter plot of cells in PCA coordinates."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.pca",
@@ -144,7 +144,7 @@ class ScPlPca(ScanpyAPI):
 
 
 class ScPlTsne(ScanpyAPI):
-    """Parameters for querying the Scanpy `pl.tsne` API."""
+    """Scatter plot of cells in tSNE basis."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.tsne",
@@ -310,7 +310,7 @@ class ScPlTsne(ScanpyAPI):
 
 
 class ScPlUmap(ScanpyAPI):
-    """Parameters for querying the Scanpy `pl.umap` API."""
+    """Scatter plot of cells in UMAP basis."""
 
     _api_name: str = PrivateAttr(
         default="sc.pl.umap",
@@ -499,9 +499,6 @@ class ScPlUmap(ScanpyAPI):
     #     default=None,
     #     description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
     # )
-
-    
-
 
 class ScPlDrawGraph(ScanpyAPI):
     """Parameters for querying the Scanpy `pl.draw_graph` API."""
@@ -862,7 +859,168 @@ class ScPlSpatial(ScanpyAPI):
     #     default=None,
     #     description="Additional arguments passed to `matplotlib.pyplot.scatter()`.",
     # )
+class ScPlHeatmap(ScanpyAPI):
+    """Heatmap of the expression values of genes."""
 
+    _api_name: str = PrivateAttr(
+        default="sc.pl.heatmap",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    var_names: str | list[str] = Field(
+        ...,
+        description="List of var_names to use for the heatmap.",
+    )
+    groupby: str = Field(
+        ...,
+        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+    )
+
+class ScPlDotplot(ScanpyAPI):
+    """Dot plot of the expression values of genes."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.dotplot",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    var_names: str | list[str] = Field(
+        ...,
+        description="List of var_names to use for the dot plot.",
+    )
+    groupby: str = Field(
+        ...,
+        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+    )
+
+class ScPlTrackplot(ScanpyAPI):
+    """Track plot of the expression values of genes."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.trackplot",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    var_names: str | list[str] = Field(
+        ...,
+        description="List of var_names to use for the track plot.",
+    )
+    groupby: str = Field(
+        ...,
+        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+    )
+
+class ScPlViolin(ScanpyAPI):
+    """Violin plot of the expression values of genes."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.violin",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    keys: str | list[str] = Field(
+        ...,
+        description="Keys for accessing variables of .var_names or fields of .obs.",
+    )
+    groupby: str | None = Field(
+        None,
+        description="The key of the observation grouping to consider.",
+    )
+
+class ScPlDendrogram(ScanpyAPI):
+    """Dendrogram of the expression values of genes."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.dendrogram",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    groupby: str = Field(
+        ...,
+        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+    )
+
+class ScPlDiffmap(ScanpyAPI):
+    """Diffusion map of the expression values of genes."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.diffmap",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    color: str | list[str] | None = Field(
+        None,
+        description="Keys for annotations of observations/cells or variables/genes",
+    )
+
+class ScPlHighlyVariableGenes(ScanpyAPI):
+    """Plot dispersions or normalized variance versus means for genes."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.highly_variable_genes",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+
+class ScPlEmbeddingDensity(ScanpyAPI):
+    """Plot the density of cells in an embedding (per condition)"""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.embedding_density",
+    )
+    adata: str = Field( 
+        "data",
+        description="Annotated data matrix",
+    )
+    basis: str = Field(
+        ...,
+        description="The embedding over which the density was calculated.",
+    )
+    groupby: str = Field(
+        ...,
+        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+    )
+
+class ScPlRankGenesGroupsDotplot(ScanpyAPI):
+    """Dot plot of the expression values of genes for characterising groups."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.rank_genes_groups_dotplot",
+    )
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    groups: str | list[str | None] = Field(
+        None,
+        description="The groups for which to show the gene ranking.",
+    )
+    n_genes: int | None = Field(
+        None,
+        description="Number of genes to show in the dot plot.",
+    )
+    var_names: list[str] | None = Field(
+        None,
+        description="Genes to plot.",
+    )
+    groupby: str | None = Field(
+        None,
+        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+    )
 TOOLS = [
     ScPlScatter,
     ScPlPca,
@@ -870,6 +1028,15 @@ TOOLS = [
     ScPlUmap,
     ScPlDrawGraph,
     ScPlSpatial,
+    ScPlHeatmap,
+    ScPlDotplot,
+    ScPlTrackplot,
+    ScPlViolin,
+    ScPlDendrogram,
+    ScPlDiffmap,
+    ScPlHighlyVariableGenes,
+    ScPlEmbeddingDensity,
+    ScPlRankGenesGroupsDotplot,
 ]
 
 TOOLS_DICT = {tool._api_name.default: tool for tool in TOOLS}

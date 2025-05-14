@@ -6,8 +6,7 @@ from typing import Any
 from queue import Queue
 
 from biochatter.api_agent.base.agent_abc import BaseAPI, BaseDependency
-from biochatter.api_agent.dep_graph.utils import read_apis_from_graph_dict, read_deps_from_graph_dict
-
+from biochatter.api_agent.dep_graph.utils import read_apis_from_graph_dict, read_deps_from_graph_dict    
 
 class DependencyGraph(DiGraph):
     """A class representing a dependency graph for API calls.
@@ -19,39 +18,35 @@ class DependencyGraph(DiGraph):
     by other codes are implemented. The rest are inherited from DiGraph.
     """
 
-    def __init__(self, dep_graph: str | dict | None = None, api_class_dict: dict | None = None):
+    def __init__(self, api_names: list[str] | None = None, dependencies: list[(str, str)] | None = None, api_class_dict: dict | None = None):
         super().__init__()
 
         self.apis_dict = {}
         self.deps_dict = {}
+    
+        if api_names or dependencies:
+            assert api_names and dependencies, "Nodes and edges must be provided at the same time."
+            assert api_class_dict is not None, "API class dictionary must be provided."
 
-        if dep_graph:
-            assert api_class_dict is not None, "API class dictionary must be provided if dep_graph is given."
-            if isinstance(dep_graph, str):
-                with open(dep_graph, "r") as f:
-                    dep_graph_dict = json.load(f)
-            else:
-                dep_graph_dict = dep_graph
-            # Jiahang (easy): this line could be duplicated with api initialization. check it.
-            apis_dict = read_apis_from_graph_dict(dep_graph_dict, api_class_dict)
-            deps_dict = read_deps_from_graph_dict(dep_graph_dict)
+            apis_dict = read_apis_from_graph_dict(api_names, api_class_dict)
+            deps_dict = read_deps_from_graph_dict(dependencies)
 
             self.add_apis_from(list(apis_dict.values()))
             self.add_deps_from(list(deps_dict.values()))
     
     def add_api(self, api: BaseAPI):
-        super().add_node(api._api_name)
-        self.apis_dict[api._api_name] = api
+        super().add_node(api._api_name.default)
+        self.apis_dict[api._api_name.default] = api
 
     def add_apis_from(self, api_list: list[BaseModel]):
         for api in api_list:
             self.add_api(api)
 
-    def remove_api(self, api: BaseAPI):
-        super().remove_node(api._api_name)
-        del self.apis_dict[api._api_name]
+    def remove_api(self, api: str):
+        super().remove_node(api)
+        del self.apis_dict[api]
 
-    def remove_apis_from(self, api_list: list[BaseModel]):
+    def remove_apis_from(self, api_list: list[str]):
         for api in api_list:
             self.remove_api(api)
 
@@ -93,10 +88,10 @@ class DependencyGraph(DiGraph):
         return self.get_deps(list(out_edges))
     
     def update_api(self, api: BaseAPI):
-        if api._api_name in self.apis_dict:
-            self.apis_dict[api._api_name] = api
+        if api._api_name.default in self.apis_dict:
+            self.apis_dict[api._api_name.default] = api
         else:
-            raise ValueError(f"API {api._api_name} not found in the dependency graph.")
+            raise ValueError(f"API {api._api_name.default} not found in the dependency graph.")
         
     def update_dep(self, dep: BaseDependency):
         if (dep.u_api_name, dep.v_api_name) in self.deps_dict:
@@ -117,7 +112,7 @@ class DependencyGraph(DiGraph):
         """Get the API object associated with the given API name."""
         api: BaseAPI | None = self.apis_dict.get(api_name)
         if api is not None:
-            return api.model_copy(deep=True)
+            return api
         else:
             raise ValueError(f"API {api_name} not found in the dependency graph.")
     
@@ -160,3 +155,33 @@ class DependencyGraph(DiGraph):
         """Get apis with zero outdegree in the dependency graph."""
         nodes = [node for node in self.nodes() if self.out_degree(node) == 0]
         return self.get_apis(nodes)
+    
+class ExecutionGraph(DependencyGraph):
+    """A class representing an execution graph for API calls.
+    
+    Jiahang: It's needs explanation in its and DependencyGraph's docstring why execution graph is a subclass of dependency graph,
+    and why the only difference is api._api_name.default -> api._api_name and api.model_copy.
+
+    Jiahang: also note that api type in DependencyGraph is incorrect since api is a ScanpyAPI class not an instance.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def add_api(self, api: BaseAPI):
+        super().add_node(api._api_name)
+        self.apis_dict[api._api_name] = api
+
+    def update_api(self, api: BaseAPI):
+        if api._api_name in self.apis_dict:
+            self.apis_dict[api._api_name] = api
+        else:
+            raise ValueError(f"API {api._api_name} not found in the dependency graph.")
+        
+    def get_api(self, api_name: str) -> BaseAPI:
+        """Get the API object associated with the given API name."""
+        api: BaseAPI | None = self.apis_dict.get(api_name)
+        if api is not None:
+            return api.model_copy(deep=True)
+        else:
+            raise ValueError(f"API {api_name} not found in the dependency graph.")

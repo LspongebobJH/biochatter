@@ -23,7 +23,7 @@ interpreter_conv = GptConversation(model_name="gpt-3.5-turbo", prompts={
 scanpy_agent = APIAgent(
     query_builder=ScanpyQueryBuilder(
         conversation=query_builder_conv,
-        dep_graph_path = 'biochatter/api_agent/python/scanpy/graph_test.json'),
+    ),
     fetcher=ScanpyFetcher(),
     interpreter=ScanpyInterpreter( # Jiahang: explain codes, args, etc. see biomania.
         conversation=interpreter_conv,

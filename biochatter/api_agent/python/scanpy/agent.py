@@ -1,10 +1,11 @@
 from biochatter.api_agent.base.agent_abc import BaseQueryBuilder, BaseFetcher, BaseInterpreter
 from biochatter.llm_connect import Conversation
-from biochatter.api_agent.dep_graph import DependencyGraph
+from biochatter.api_agent.dep_graph import DependencyGraph, ExecutionGraph
 from biochatter.api_agent.dep_graph.utils import is_active_dep, retrieve_products, aggregate_deps
 from biochatter.api_agent.base.agent_abc import BaseAPI
 from .meta_api import TARGET_TOOLS_DICT, TOOLS_DICT
-
+from .meta_info import dep_graph_data
+from .base import ScanpyAPI
 from langchain_core.output_parsers import PydanticToolsParser
 from langchain_core.language_models.chat_models import BaseChatModel
 from pydantic import BaseModel
@@ -18,18 +19,18 @@ from typing import Any
 class ScanpyQueryBuilder(BaseQueryBuilder):
     def __init__(self, 
                  conversation: Conversation,
-                 dep_graph_path: str = 'biochatter/api_agent/python/scanpy/graph.json'
                  ):
         super().__init__(conversation=conversation)
-
-        with open(dep_graph_path, 'r') as f:
-            dep_graph = json.load(f)
-        self.dep_graph = DependencyGraph(dep_graph=dep_graph, api_class_dict=TOOLS_DICT)
+        api_names = [node["api"] for node in dep_graph_data["nodes"]]
+        dependencies = [(edge["source"], edge["target"]) for edge in dep_graph_data["edges"]]
+        self.dep_graph = DependencyGraph(api_names=api_names, 
+                                         dependencies=dependencies, 
+                                         api_class_dict=TOOLS_DICT)
 
     def build_api_query(
         self,
         question: str,
-    ) -> list[BaseModel]:
+    ) -> list[ExecutionGraph]:
 
         tools = list(TARGET_TOOLS_DICT.values())
 
@@ -59,8 +60,8 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
             self, 
             question: str,
             api: BaseAPI
-        ) -> list[BaseAPI]:
-        execution_graph = DependencyGraph()
+        ) -> ExecutionGraph:
+        execution_graph = ExecutionGraph()
         execution_graph.add_api(api)
         next_api_queue = Queue()
         next_api_queue.put(api)
@@ -84,7 +85,7 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
 class ScanpyFetcher(BaseFetcher):
     def fetch_results(
         self,
-        execution_graph: list[DependencyGraph], # Jiahang: we pass a list to follow the interface. Bad practice.
+        execution_graph: list[ExecutionGraph], # Jiahang: we pass a list to follow the interface. Bad practice.
         data: object,
         retries: int | None = 3,
     ) -> object:

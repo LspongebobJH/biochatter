@@ -347,42 +347,29 @@ def is_active_dep(dep: BaseDependency, api: BaseAPI) -> bool:
     """Check if the dependency is active by the target api."""
     return check_active_dep_args(dep.args, api)
 
-def read_apis_from_graph_dict(graph_dict: dict, tools_dict: dict) -> dict[str, BaseAPI]:
+def read_apis_from_graph_dict(api_names: list[str], tools_dict: dict) -> dict[str, BaseAPI]:
     """Jiahang: this function is pretty complicated. Documents need to be carefully revised with
     sufficient examples."""
 
     apis = {}
-    for node in graph_dict["nodes"]:
-        input_api = InputAPI.model_validate(node)
-        internal_api: BaseAPI = tools_dict[input_api.api]()
-        internal_api._api_name = input_api.api
-
-        _products = BaseData()
-        _products.keys_info = _str_list_to_keys_info(input_api.products)
-        internal_api._products = _products
-        apis[internal_api._api_name] = internal_api
+    for api_name in api_names:
+        internal_api: BaseAPI = tools_dict[api_name]
+        apis[api_name] = internal_api
 
     return apis
 
-def read_deps_from_graph_dict(graph_dict: dict) -> dict[str, BaseDependency]:
+def read_deps_from_graph_dict(dependencies: list[(str, str)]) -> dict[str, BaseDependency]:
 
     """Jiahang: this function is pretty complicated. Documents need to be carefully revised with
     sufficient examples."""
 
     deps = {}
-    for edge in graph_dict["edges"]:
-        input_dep = InputDependency.model_validate(edge)
+    for u_api_name, v_api_name in dependencies:
         internal_dep: BaseDependency = BaseDependency(
-            u_api_name = input_dep.source,
-            v_api_name = input_dep.target,
-            args = input_dep.args,
-            arg_types = input_dep.arg_types
+            u_api_name = u_api_name,
+            v_api_name = v_api_name,
         )
-
-        dependencies = BaseData()
-        dependencies.keys_info = _str_list_to_keys_info(input_dep.dependencies)
-        internal_dep.deps = dependencies
-        deps[(internal_dep.u_api_name, internal_dep.v_api_name)] = internal_dep
+        deps[(u_api_name, v_api_name)] = internal_dep
 
     return deps
 
