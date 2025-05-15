@@ -2,30 +2,6 @@
     "directed": true,
     "multigraph": false,
     "graph": {},
-    "node_index": {
-        "sc.pp.neighbors": 0,
-        "sc.tl.umap": 1,
-        "sc.pl.scatter": 2,
-        "sc.tl.leiden": 3,
-        "sc.pl.umap": 4,
-        "sc.tl.louvain": 5,
-        "sc.pl.heatmap": 6,
-        "sc.pl.dotplot": 7,
-        "sc.pl.violin": 8,
-        "sc.pl.dendrogram": 9,
-        "sc.tl.diffmap": 10,
-        "sc.pl.diffmap": 11,
-        "sc.pp.log1p": 12,
-        "sc.pp.highly_variable_genes": 13,
-        "sc.pl.highly_variable_genes": 14,
-        "sc.pl.pca": 15,
-        "sc.tl.embedding_density": 16,
-        "sc.pl.embedding_density": 17,
-        "sc.tl.rank_genes_groups": 18,
-        "sc.pl.rank_genes_groups_dotplot": 19,
-        "sc.pl.correlation_matrix": 20,
-        "root": 21
-    },
     "nodes": [
         {
             "api": "sc.pp.neighbors",
@@ -317,35 +293,6 @@
             "id": "root"
         }
     ],
-    "edge_index": {
-        "sc.pp.neighbors:sc.tl.umap": 0,
-        "sc.pp.neighbors:sc.tl.leiden": 1,
-        "sc.pp.neighbors:sc.tl.louvain": 2,
-        "sc.pp.neighbors:sc.tl.diffmap": 3,
-        "sc.pp.neighbors:sc.pl.pca": 4,
-        "sc.tl.umap:sc.pl.scatter": 5,
-        "sc.tl.umap:sc.pl.umap": 6,
-        "sc.tl.umap:sc.tl.embedding_density": 7,
-        "sc.tl.umap:sc.pl.embedding_density": 8,
-        "sc.tl.leiden:sc.pl.umap": 9,
-        "sc.tl.leiden:sc.pl.diffmap": 10,
-        "sc.tl.leiden:sc.tl.rank_genes_groups": 11,
-        "sc.tl.leiden:sc.pl.rank_genes_groups_dotplot": 12,
-        "sc.tl.leiden:sc.pl.correlation_matrix": 13,
-        "sc.tl.louvain:sc.pl.heatmap": 14,
-        "sc.tl.louvain:sc.pl.dotplot": 15,
-        "sc.tl.louvain:sc.pl.violin": 16,
-        "sc.tl.louvain:sc.pl.dendrogram": 17,
-        "sc.tl.louvain:sc.pl.pca": 18,
-        "sc.tl.diffmap:sc.pl.diffmap": 19,
-        "sc.pp.log1p:sc.pp.highly_variable_genes": 20,
-        "sc.pp.log1p:sc.pl.highly_variable_genes": 21,
-        "sc.pp.highly_variable_genes:sc.pl.highly_variable_genes": 22,
-        "sc.tl.embedding_density:sc.pl.embedding_density": 23,
-        "sc.tl.rank_genes_groups:sc.pl.rank_genes_groups_dotplot": 24,
-        "root:sc.pp.neighbors": 25,
-        "root:sc.pp.log1p": 26
-    },
     "edges": [
         {
             "dependencies": [
@@ -366,7 +313,10 @@
             ],
             "source": "sc.pp.neighbors",
             "target": "sc.tl.leiden",
-            "args": {"adata": "data"}
+            "args": {"adata": "data"},
+            "arg_types": {
+                "data": "object"
+            }
         },
         {
             "dependencies": [
@@ -630,6 +580,9 @@
             }
         },
         {
+            "dependencies": [
+                "data.X"
+            ],
             "source": "root",
             "target": "sc.pp.neighbors",
             "args": {"adata": "data"},
@@ -638,6 +591,9 @@
             }
         },
         {
+            "dependencies": [
+                "data.X"
+            ],
             "source": "root",
             "target": "sc.pp.log1p",
             "args": {"data": "data"},

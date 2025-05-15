@@ -16,9 +16,26 @@ class DependencyGraph(DiGraph):
 
     Not all DiGraph methods have corresponding methods in this class. Only methods used
     by other codes are implemented. The rest are inherited from DiGraph.
+
+    Arguments:
+    ----------
+    api_names : list[str] | None = None
+        The names of the APIs to be added to the graph. These api_names serve as index 
+        to nodes in dependency graph dict. Please finding this dict in meta_info.py.
+    dependencies : list[(str, str)] | None = None
+        The dependencies in tuple format to be added to the graph. These dependencies serve as
+        index to edges in dependency graph dict. Please finding this dict in meta_info.py.
+    api_class_dict : dict | None = None
+        The dictionary of API classes.
+    dep_class : BaseDependency | None = None
+        The class of the dependencies.
     """
 
-    def __init__(self, api_names: list[str] | None = None, dependencies: list[(str, str)] | None = None, api_class_dict: dict | None = None):
+    def __init__(self, 
+                 api_names: list[str] | None = None, 
+                 dependencies: list[(str, str)] | None = None, 
+                 api_class_dict: dict | None = None,
+                 dep_class: BaseDependency | None = None):
         super().__init__()
 
         self.apis_dict = {}
@@ -27,9 +44,10 @@ class DependencyGraph(DiGraph):
         if api_names or dependencies:
             assert api_names and dependencies, "Nodes and edges must be provided at the same time."
             assert api_class_dict is not None, "API class dictionary must be provided."
+            assert dep_class is not None, "Dependency class must be provided."
 
             apis_dict = read_apis_from_graph_dict(api_names, api_class_dict)
-            deps_dict = read_deps_from_graph_dict(dependencies)
+            deps_dict = read_deps_from_graph_dict(dependencies, dep_class)
 
             self.add_apis_from(list(apis_dict.values()))
             self.add_deps_from(list(deps_dict.values()))

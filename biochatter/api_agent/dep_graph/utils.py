@@ -4,187 +4,6 @@ from typing import Any
 
 from biochatter.api_agent.base.agent_abc import BaseDependency, BaseAPI, BaseData, BaseKeysInfo, InputAPI, InputDependency   
 
-def _ast_to_keys_info(
-            product: ast.AST, 
-            child_name: str | None,
-            child_keys_info: BaseKeysInfo | None) -> BaseKeysInfo:
-    """
-    The core logic is to convert the products keys info of InputAPI 
-    to _products keys info of BaseAPI,
-    where the data representations is converted from:
-    product = ast.parse("data['d'].e")
-    to
-    keys_info = BaseKeysInfo(
-        membership = "self",
-        keys = {
-                "d": BaseKeysInfo(
-                    membership = "item",
-                    keys = {
-                        "e": BaseKeysInfo(
-                            membership = "attr",
-                        )
-                    }
-                )
-            }
-        )
-    
-    Jiahang: this function is pretty complicated. Documents need to be carefully revised with
-    sufficient examples.
-    """
-    if child_name is None or child_keys_info is None:
-        keys = {}
-    else:
-        keys = {child_name: child_keys_info}
-
-    if isinstance(product, ast.Name):
-        # Base case: just a variable name
-        return BaseKeysInfo(
-            membership="self",
-            keys = keys
-        )
-    else:
-        if isinstance(product, ast.Attribute):
-            # Handle attribute access (e.g., .attribute)
-            name = product.attr
-            keys_info: BaseKeysInfo = BaseKeysInfo(
-                membership="attr",
-                keys = keys
-            )
-            
-        elif isinstance(product, ast.Subscript):
-            # Handle subscript access (e.g., ['key'])
-            # Jiahang: this assert should be put in field validator of InputAPI
-            assert isinstance(product.slice, ast.Constant), "Only constant subscript is supported for now."
-            name = product.slice.value
-            keys_info: BaseKeysInfo = BaseKeysInfo(
-                membership="item",
-                keys = keys
-            )
-        else:
-            raise Exception(f"Invalid product access: {product}. Only [] and . access are supported.")
-        
-        parent_product = product.value
-        full_keys_info: BaseKeysInfo = \
-            _ast_to_keys_info(
-                parent_product,
-                name,
-                keys_info
-                )
-        return full_keys_info
-    
-def _combine_keys_info(src: BaseKeysInfo, dst: BaseKeysInfo) -> BaseKeysInfo:
-    """Combine a list of keys info into a single keys info.
-    
-    An example of keys_info_list:
-    keys_info_list[0] = BaseKeysInfo(
-        membership = "self",
-        keys = {
-                "d": BaseKeysInfo(
-                    membership = "item",
-                    keys = {
-                        "e": BaseKeysInfo(
-                            membership = "attr",
-                        )
-                    }
-                )
-            }
-        )
-    
-    keys_info_list[1] = BaseKeysInfo(
-        membership = "self",
-        keys = {
-                "d": BaseKeysInfo(
-                    membership = "item",
-                    keys = {
-                        "c": BaseKeysInfo(
-                            membership = "attr",
-                        )
-                    }
-                )
-            }
-        )
-
-    After combining two keys_info, we obtain:
-    keys_info = BaseKeysInfo(
-        membership = "self",
-        keys = {
-            "d": BaseKeysInfo(
-                membership = "item",
-                keys = {
-                    "c": BaseKeysInfo(
-                        membership = "attr",
-                    ),
-                    "e": BaseKeysInfo(
-                        membership = "attr",
-                    )
-                }
-            }
-        )
-
-    Jiahang: this function is pretty complicated. Documents need to be carefully revised with
-    sufficient examples.
-    """ 
-    _dst = BaseKeysInfo(membership=dst.membership)
-    _dst.keys = deepcopy(dst.keys)
-    
-    # Recursively merge any overlapping keys
-    for key, value in src.keys.items():
-        if key in _dst.keys.keys() and _dst.keys[key].membership == value.membership:
-            _dst.keys[key] = _combine_keys_info(value, _dst.keys[key])
-        else:
-            _dst.keys[key] = value
-    return _dst
-        
-def _str_list_to_keys_info(str_list: list[str]) -> BaseKeysInfo:
-    """Convert a string representation of a keys info to a keys info object.
-    
-    The string representation is a string of the form:
-    [
-        "data['d'].e",
-        "data['d'].f"
-    ]
-
-    The keys info is a keys info object of the form:
-
-    BaseKeysInfo(
-        membership = "self",
-        keys = {
-            "d": BaseKeysInfo(
-                membership = "item",
-                keys = {
-                    "e": BaseKeysInfo(
-                        membership = "attr",
-                    ),
-                    "f": BaseKeysInfo(
-                        membership = "attr",
-                    )
-                }
-            )
-        }
-    )
-
-    Jiahang: this function is pretty complicated. Documents need to be carefully revised with
-    sufficient examples.
-    """
-    keys_info_list = []
-
-    for p in str_list:
-        p = ast.parse(p).body[0].value
-        keys_info: BaseKeysInfo = \
-            _ast_to_keys_info(p, None, None)
-        keys_info_list.append(keys_info)
-
-    if len(keys_info_list) == 0:
-        result = BaseKeysInfo()
-    elif len(keys_info_list) == 1:
-        result = keys_info_list[0]
-    else:
-        result = keys_info_list[0]
-        for keys_info in keys_info_list[1:]:
-            result = _combine_keys_info(keys_info, result)
-    
-    return result
-
 def _retrieve_data(src_data: Any, src_keys_info: BaseKeysInfo, dst_keys_info: BaseKeysInfo):
     """retrieval: if a src key is not in dst keys, then its corresponding data is deleted"""
     for key, sub_src_keys_info in src_keys_info.keys.items():
@@ -358,14 +177,14 @@ def read_apis_from_graph_dict(api_names: list[str], tools_dict: dict) -> dict[st
 
     return apis
 
-def read_deps_from_graph_dict(dependencies: list[(str, str)]) -> dict[str, BaseDependency]:
+def read_deps_from_graph_dict(dependencies: list[(str, str)], dep_class: BaseDependency) -> dict[str, BaseDependency]:
 
     """Jiahang: this function is pretty complicated. Documents need to be carefully revised with
     sufficient examples."""
 
     deps = {}
     for u_api_name, v_api_name in dependencies:
-        internal_dep: BaseDependency = BaseDependency(
+        internal_dep: BaseDependency = dep_class.create(
             u_api_name = u_api_name,
             v_api_name = v_api_name,
         )

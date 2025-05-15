@@ -4,8 +4,8 @@ from biochatter.api_agent.dep_graph import DependencyGraph, ExecutionGraph
 from biochatter.api_agent.dep_graph.utils import is_active_dep, retrieve_products, aggregate_deps
 from biochatter.api_agent.base.agent_abc import BaseAPI
 from .meta_api import TARGET_TOOLS_DICT, TOOLS_DICT
-from .meta_info import dep_graph_data
-from .base import ScanpyAPI
+from .meta_info import api_names, dependencies
+from .base import ScanpyAPI, ScanpyDependency
 from langchain_core.output_parsers import PydanticToolsParser
 from langchain_core.language_models.chat_models import BaseChatModel
 from pydantic import BaseModel
@@ -21,11 +21,10 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
                  conversation: Conversation,
                  ):
         super().__init__(conversation=conversation)
-        api_names = [node["api"] for node in dep_graph_data["nodes"]]
-        dependencies = [(edge["source"], edge["target"]) for edge in dep_graph_data["edges"]]
         self.dep_graph = DependencyGraph(api_names=api_names, 
                                          dependencies=dependencies, 
-                                         api_class_dict=TOOLS_DICT)
+                                         api_class_dict=TOOLS_DICT,
+                                         dep_class=ScanpyDependency)
 
     def build_api_query(
         self,
@@ -36,8 +35,7 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
 
         # Jiahang: only one target API being considered for now
         # can we somehow restrict LLM to predict only one API?
-        api = self._parametrise_api(question, tools)
-        api: BaseModel = api[0]
+        api: BaseModel = self._parametrise_api(question, tools)[0]
         execution_graph = self._trace_back(question, api)
 
         return [execution_graph]
@@ -48,8 +46,6 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
         tools: list[BaseAPI | type],
     ):
         """Parametrise the API data model using LLM."""
-        if isinstance(tools[0], BaseAPI):
-            tools = [tool.__class__ for tool in tools]
         llm_with_tools: BaseChatModel = self.conversation.chat.bind_tools(tools, tool_choice="required")
         parser = PydanticToolsParser(tools=tools)
         runnable = llm_with_tools | parser
@@ -90,7 +86,7 @@ class ScanpyFetcher(BaseFetcher):
         retries: int | None = 3,
     ) -> object:
         code_lines = []
-        execution_graph: DependencyGraph = execution_graph[0]
+        execution_graph: ExecutionGraph = execution_graph[0]
         root = execution_graph.get_api("root")
         root._deps.data = data
         execution_graph.update_api(root)

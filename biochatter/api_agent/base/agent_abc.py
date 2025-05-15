@@ -35,7 +35,6 @@ def run_codes(code: str, state: dict[str, object]):
         return f"ERROR: {str(e)}", e
     return result, None
 
-
 class BaseQueryBuilder(ABC):
     """An abstract base class for query builders."""
     def __init__(self, conversation: Conversation):
@@ -194,10 +193,13 @@ class BaseTools:
 
 class BaseObject(BaseModel):
     """A class representing an object, such as an API, dependency, data, keys_info, etc."""
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, 
+        extra="forbid", 
+        validate_assignment=True
+    )
     def __hash__(self):
         members = self._hash_members()
-        # members = tuple(f"{k}:{v}" for k, v in members.items())
         members = json.dumps(members, sort_keys=True, ensure_ascii=True)
         return hash(members)
     
@@ -251,6 +253,12 @@ class BaseData(BaseObject):
     To access object of "key2", we use data[layer1].key2 or data.__getitem__(layer1).__getattribute__("key2").
     For flexibility, we use membership to specify the membership method to get the data of the key rather than using 
     [] and . to access the data.
+
+    Jiahang (severe and random note): directly change member of a data model instance may result in the change of
+    members of other data model instances, meaning that class variables being changed.
+    this is weird since it does not always happen. this note indicates that we should be careful with
+    data model initialization, avoiding inplace member change and try to replace member changes with 
+    new instance initialization.
     """
     data: Any = None
     keys_info: BaseKeysInfo = Field(default=BaseKeysInfo(), description="The keys of the data object")
@@ -261,6 +269,190 @@ class BaseData(BaseObject):
         return members
 
 
+def _ast_to_keys_info(
+            product: ast.AST, 
+            child_name: str | None,
+            child_keys_info: BaseKeysInfo | None) -> BaseKeysInfo:
+    """
+    The core logic is to convert the products keys info of InputAPI 
+    to _products keys info of BaseAPI,
+    where the data representations is converted from:
+    product = ast.parse("data['d'].e")
+    to
+    keys_info = BaseKeysInfo(
+        membership = "self",
+        keys = {
+                "d": BaseKeysInfo(
+                    membership = "item",
+                    keys = {
+                        "e": BaseKeysInfo(
+                            membership = "attr",
+                        )
+                    }
+                )
+            }
+        )
+    
+    Jiahang: this function is pretty complicated. Documents need to be carefully revised with
+    sufficient examples.
+    """
+    if child_name is None or child_keys_info is None:
+        keys = {}
+    else:
+        keys = {child_name: child_keys_info}
+
+    if isinstance(product, ast.Name):
+        # Base case: just a variable name
+        return BaseKeysInfo(
+            membership="self",
+            keys = keys
+        )
+    else:
+        if isinstance(product, ast.Attribute):
+            # Handle attribute access (e.g., .attribute)
+            name = product.attr
+            keys_info: BaseKeysInfo = BaseKeysInfo(
+                membership="attr",
+                keys = keys
+            )
+            
+        elif isinstance(product, ast.Subscript):
+            # Handle subscript access (e.g., ['key'])
+            # Jiahang: this assert should be put in field validator of InputAPI
+            assert isinstance(product.slice, ast.Constant), "Only constant subscript is supported for now."
+            name = product.slice.value
+            keys_info: BaseKeysInfo = BaseKeysInfo(
+                membership="item",
+                keys = keys
+            )
+        else:
+            raise Exception(f"Invalid product access: {product}. Only [] and . access are supported.")
+        
+        parent_product = product.value
+        full_keys_info: BaseKeysInfo = \
+            _ast_to_keys_info(
+                parent_product,
+                name,
+                keys_info
+                )
+        return full_keys_info
+
+def _combine_keys_info(src: BaseKeysInfo, dst: BaseKeysInfo) -> BaseKeysInfo:
+    """Combine a list of keys info into a single keys info.
+    
+    An example of keys_info_list:
+    keys_info_list[0] = BaseKeysInfo(
+        membership = "self",
+        keys = {
+                "d": BaseKeysInfo(
+                    membership = "item",
+                    keys = {
+                        "e": BaseKeysInfo(
+                            membership = "attr",
+                        )
+                    }
+                )
+            }
+        )
+    
+    keys_info_list[1] = BaseKeysInfo(
+        membership = "self",
+        keys = {
+                "d": BaseKeysInfo(
+                    membership = "item",
+                    keys = {
+                        "c": BaseKeysInfo(
+                            membership = "attr",
+                        )
+                    }
+                )
+            }
+        )
+
+    After combining two keys_info, we obtain:
+    keys_info = BaseKeysInfo(
+        membership = "self",
+        keys = {
+            "d": BaseKeysInfo(
+                membership = "item",
+                keys = {
+                    "c": BaseKeysInfo(
+                        membership = "attr",
+                    ),
+                    "e": BaseKeysInfo(
+                        membership = "attr",
+                    )
+                }
+            }
+        )
+
+    Jiahang: this function is pretty complicated. Documents need to be carefully revised with
+    sufficient examples.
+    """ 
+    dst_keys = deepcopy(dst.keys)
+    # Recursively merge any overlapping keys
+    for key, value in src.keys.items():
+        if key in dst_keys.keys() and dst_keys[key].membership == value.membership:
+            dst_keys[key] = _combine_keys_info(value, dst_keys[key])
+        else:
+            dst_keys[key] = value
+    _dst = BaseKeysInfo(
+        membership=dst.membership,
+        keys=dst_keys
+    )
+    return _dst
+
+def _str_list_to_keys_info(str_list: list[str]) -> BaseKeysInfo:
+    """Convert a string representation of a keys info to a keys info object.
+    
+    The string representation is a string of the form:
+    [
+        "data['d'].e",
+        "data['d'].f"
+    ]
+
+    The keys info is a keys info object of the form:
+
+    BaseKeysInfo(
+        membership = "self",
+        keys = {
+            "d": BaseKeysInfo(
+                membership = "item",
+                keys = {
+                    "e": BaseKeysInfo(
+                        membership = "attr",
+                    ),
+                    "f": BaseKeysInfo(
+                        membership = "attr",
+                    )
+                }
+            )
+        }
+    )
+
+    Jiahang: this function is pretty complicated. Documents need to be carefully revised with
+    sufficient examples.
+    """
+    keys_info_list = []
+
+    for p in str_list:
+        p = ast.parse(p).body[0].value
+        keys_info: BaseKeysInfo = \
+            _ast_to_keys_info(p, None, None)
+        keys_info_list.append(keys_info)
+
+    if len(keys_info_list) == 0:
+        result = BaseKeysInfo()
+    elif len(keys_info_list) == 1:
+        result = keys_info_list[0]
+    else:
+        result = keys_info_list[0]
+        for keys_info in keys_info_list[1:]:
+            result = _combine_keys_info(keys_info, result)
+    
+    return result
+
+# Jiahang: BaseAPI and BaseDependency should have all members as required.
 class BaseAPI(BaseObject):
     """Base class for all API models.
     
@@ -290,6 +482,7 @@ class BaseAPI(BaseObject):
     # stored in _deps.data and _products.data.
     # Jiahang: we need to some how check this.
     # Jiahang: these notes should be written in the docstring of the class.
+    _dep_graph_dict: dict = PrivateAttr(default={})
 
     def _hash_members(self):
         members = self.model_dump()
@@ -321,8 +514,25 @@ class BaseAPI(BaseObject):
         else:
             self._products.data = state["data"]
             return results, api_calling
+        
+    @classmethod
+    def create(cls, api_name: str):
+        if cls._dep_graph_dict.default:
+            dep_graph_dict = cls._dep_graph_dict.default
+            node_idx = dep_graph_dict['node_index'][api_name]
+            node = dep_graph_dict['nodes'][node_idx]
+            input_api = InputAPI.model_validate(node)
+            internal_api = cls(
+                _api_name=api_name,
+                _products=BaseData(
+                    keys_info=_str_list_to_keys_info(input_api.products)
+                )
+            )
+            return internal_api
+        else:
+            raise ValueError("Dependency graph dict is not set.")
 
-
+# Jiahang: we should elaborate in doc why BaseAPI use private attr but BaseDependency use field.
 class BaseDependency(BaseObject):
     """A class representing an edge in the dependency graph.
 
@@ -334,11 +544,32 @@ class BaseDependency(BaseObject):
     args: dict[str, str] = Field(default={}, description="The arguments of the dependency")
     arg_types: dict[str, str] = Field(default={}, description="The argument types of the dependency")
     deps: BaseData = Field(default=BaseData(), description="The data of the dependency")
+    _dep_graph_dict: dict = PrivateAttr(default={})
 
     def _hash_members(self):
         members = self.model_dump()
         members['deps'] = self.deps._hash_members()
         return members
+    
+    @classmethod
+    def create(cls, u_api_name: str, v_api_name: str):
+        if cls._dep_graph_dict.default:
+            dep_graph_dict = cls._dep_graph_dict.default
+            edge_idx = dep_graph_dict['edge_index'][f"{u_api_name}:{v_api_name}"]
+            edge = dep_graph_dict['edges'][edge_idx]
+            input_dep = InputDependency.model_validate(edge)
+            internal_dep = cls(
+                u_api_name=u_api_name, 
+                v_api_name=v_api_name, 
+                args=input_dep.args,
+                arg_types=input_dep.arg_types,
+                deps=BaseData(
+                    keys_info=_str_list_to_keys_info(input_dep.dependencies)
+                )
+            )
+            return internal_dep
+        else:
+            raise ValueError("Dependency graph dict is not set.")
     
 
 class InputAPI(BaseObject):
@@ -350,9 +581,9 @@ class InputAPI(BaseObject):
     This class is created to ease users' efforts to manually create dependency graph.
     But this class is not internally friendly, so will be converted to BaseAPI.
     """
-    api: str = Field(default="", description="The name of the API")
-    products: list[str] = Field(default=[], description="The products of the API")
-    id: str = Field(default="", description="The id of the API")
+    api: str = Field(..., description="The name of the API")
+    products: list[str] = Field(..., description="The products of the API")
+    id: str = Field(..., description="The id of the API")
 
     @field_validator("products", mode="after")
     @classmethod
@@ -382,11 +613,11 @@ class InputDependency(BaseObject):
     This class is created to ease users' efforts to manually create dependency graph.
     But this class is not internally friendly, so will be converted to BaseDependency.
     """
-    dependencies: list[str] = Field(default=[], description="The dependencies of the dependency")
-    source: str = Field(default="", description="The source of the dependency")
-    target: str = Field(default="", description="The target of the dependency")
-    args: dict = Field(default={}, description="The arguments of the dependency")
-    arg_types: dict = Field(default={}, description="The argument types of the dependency")
+    dependencies: list[str] = Field(..., description="The dependencies of the dependency")
+    source: str = Field(..., description="The source of the dependency")
+    target: str = Field(..., description="The target of the dependency")
+    args: dict = Field(..., description="The arguments of the dependency")
+    arg_types: dict = Field(..., description="The argument types of the dependency")
 
     @model_validator(mode="after")
     def _check_args(self) -> "InputDependency":
