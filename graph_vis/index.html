@@ -1,8 +1,6 @@
 <body>
     <label for="graph_input">Choose the graph data json file:</label>
     <input type="file" id="graph_input" name="graph_input" accept="application/json" />
-    <label for="info_input">Choose the meta information json file:</label>
-    <input type="file" id="info_input" name="info_input" accept="application/json" />
     <button id="render_button" disabled>Render Graph</button>
     <div id="container" style="width: 100%; height: 100%; align-items: center;"></div>
 </body>
@@ -12,20 +10,16 @@
     
     const { Graph } = G6;
     const graph_input = document.getElementById("graph_input");
-    const info_input = document.getElementById("info_input");
     const graph_reader = new FileReader();
-    const info_reader = new FileReader();
     const render_button = document.getElementById("render_button");
 
     render_button.disabled = true;
     
     let graphFileUploaded = false;
-    let infoFileUploaded = false;
     let graphData = null;
-    let metaInfo = null;
 
     const enableButtonIfReady = () => {
-        if (graphFileUploaded && infoFileUploaded) {
+        if (graphFileUploaded) {
             render_button.disabled = false;
         }
     };
@@ -37,28 +31,15 @@
         }
     };
 
-    info_input.onchange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            info_reader.readAsText(file);
-        }
-    };
-
     graph_reader.onload = (event) => {
         graphFileUploaded = true;
         graphData = JSON.parse(event.target.result);
         enableButtonIfReady();
     };
 
-    info_reader.onload = (event) => {
-        infoFileUploaded = true;
-        metaInfo = JSON.parse(event.target.result);
-        enableButtonIfReady();
-    };
-
     render_button.onclick = () => {
-        if (graphData && metaInfo) {
-            const dataNames = metaInfo.data_names;
+        if (graphData) {
+            const dataNames = ['data'];
 
             for (let i = 0; i < graphData.nodes.length; i++) {
                 graphData.nodes[i].style = {
@@ -71,7 +52,7 @@
             }
             for (let i = 0; i < graphData.edges.length; i++) {
                 const edgeArg = graphData.edges[i].args;
-                const argName = Object.keys(edgeArg)[0]; // fow now only one edge required arg being considered 
+                const argName = Object.values(edgeArg)[0]; // fow now only one edge required arg being considered 
                 if (!dataNames.includes(argName)) {
                     graphData.edges[i].style = {
                         lineDash: 1,
@@ -79,7 +60,6 @@
                 }
             }
             console.log(graphData);
-            console.log(metaInfo);
             showGraph(graphData);
         }
     };
