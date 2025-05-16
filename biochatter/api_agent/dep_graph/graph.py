@@ -21,10 +21,10 @@ class DependencyGraph(DiGraph):
     ----------
     api_names : list[str] | None = None
         The names of the APIs to be added to the graph. These api_names serve as index 
-        to nodes in dependency graph dict. Please finding this dict in meta_info.py.
+        to nodes in dependency graph dict. Please finding this dict in info_hub.py.
     dependencies : list[(str, str)] | None = None
         The dependencies in tuple format to be added to the graph. These dependencies serve as
-        index to edges in dependency graph dict. Please finding this dict in meta_info.py.
+        index to edges in dependency graph dict. Please finding this dict in info_hub.py.
     api_class_dict : dict | None = None
         The dictionary of API classes.
     dep_class : BaseDependency | None = None

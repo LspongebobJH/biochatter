@@ -13,6 +13,7 @@ class ScPlScatter(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.scatter",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(default="data", description="Annotated data matrix.")
     x: str | None = Field(default=None, description="x coordinate.")
     y: str | None = Field(default=None, description="y coordinate.")
@@ -73,6 +74,7 @@ class ScPlPca(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.pca",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix.",
@@ -149,6 +151,7 @@ class ScPlTsne(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.tsne",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix.",
@@ -315,6 +318,7 @@ class ScPlUmap(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.umap",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix.",
@@ -506,6 +510,7 @@ class ScPlDrawGraph(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.draw_graph",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix.",
@@ -681,6 +686,7 @@ class ScPlSpatial(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.spatial",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix.",
@@ -865,6 +871,7 @@ class ScPlHeatmap(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.heatmap",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -884,6 +891,7 @@ class ScPlDotplot(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.dotplot",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -903,6 +911,7 @@ class ScPlTrackplot(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.trackplot",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -922,6 +931,7 @@ class ScPlViolin(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.violin",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -941,6 +951,7 @@ class ScPlDendrogram(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.dendrogram",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -956,6 +967,7 @@ class ScPlDiffmap(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.diffmap",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -971,6 +983,7 @@ class ScPlHighlyVariableGenes(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.highly_variable_genes",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -982,6 +995,7 @@ class ScPlEmbeddingDensity(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.embedding_density",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field( 
         "data",
         description="Annotated data matrix",
@@ -1001,6 +1015,7 @@ class ScPlRankGenesGroupsDotplot(ScanpyAPI):
     _api_name: str = PrivateAttr(
         default="sc.pl.rank_genes_groups_dotplot",
     )
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",

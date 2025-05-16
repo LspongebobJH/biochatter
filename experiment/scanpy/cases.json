@@ -1,0 +1,14 @@
+[
+    "Plot umap embedding of cells.",
+    "Plot umap embedding of cells, which are colored by leiden clustering.",
+    "Plot heatmap of gene expressions of genes ['TMSB4X', 'MALAT1', 'B2M'], where cells are clustered by louvain algorithm.",
+    "Plot dotplot with dendrogram of gene expressions of genes ['TMSB4X', 'MALAT1', 'B2M'], where cells are clustered by louvain algorithm.",
+    "Plot violinplot of gene expressions of genes ['TMSB4X', 'MALAT1', 'B2M'], where cells are clustered by louvain algorithm.",
+    "visualize dendrogram of clusters defined by louvain algorithm on cells.",
+    "visualize diffusion map embedding of cells which are clustered by leiden algorithm.",
+    "visualize dispersions versus mean expressions of genes in scatter plot.",
+    "visualize PCA embedding of cells.",
+    "visualize PCA embedding of cells which are clustered by louvain algorithm.",
+    "visualize tSNE embedding of cells which are clustered by leiden algorithm.",
+    "visualize umap embedding density of cells."
+]

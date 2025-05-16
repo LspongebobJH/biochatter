@@ -471,6 +471,7 @@ class BaseAPI(BaseObject):
 
     _api_name: str = PrivateAttr(default="")
     _products: BaseData = PrivateAttr(default=BaseData())
+
     # The dependencies of the API.
     # This object should NOT be set in initialization.
     # It should only be set dynamically during forward pass over execution graph,
@@ -484,6 +485,11 @@ class BaseAPI(BaseObject):
     # Jiahang: these notes should be written in the docstring of the class.
     _dep_graph_dict: dict = PrivateAttr(default={})
 
+    # Which argument refers to data. These are special arguments, which are standarized
+    # to be "data" in BioMANIA and should be set to "data" in postprocess, no matter what
+    # random predictions made by LLM.
+    _data_name: str = PrivateAttr(default="")
+
     def _hash_members(self):
         members = self.model_dump()
         members['_api_name'] = self._api_name
@@ -491,16 +497,17 @@ class BaseAPI(BaseObject):
         members['_deps'] = self._deps._hash_members()
         return members
     
-    def _var_repr(self, var) -> str:
-        if type(var) == str and var != "data": # Jiahang: a better way is to check arg_types. This is a bit tricky.
-            return f"'{var}'"
-        return var
+    def _val_repr(self, key, val) -> str:
+        if type(val) == str and key != self._data_name:
+            return f"'{val}'"
+        return val
     
     def to_api_calling(self) -> str:
         """Convert a BaseAPI object to a string of api calling."""
         params = []
         for name in self.model_fields.keys():
-            params.append(f"{name}={self._var_repr(self.__getattribute__(name))}")
+            val = self._val_repr(name, self.__getattribute__(name))
+            params.append(f"{name}={val}")
         return f"{self._api_name}({', '.join(params)})"
 
     # Jiahang: be abstractmethod in the future
@@ -515,22 +522,13 @@ class BaseAPI(BaseObject):
             self._products.data = state["data"]
             return results, api_calling
         
-    @classmethod
-    def create(cls, api_name: str):
-        if cls._dep_graph_dict.default:
-            dep_graph_dict = cls._dep_graph_dict.default
-            node_idx = dep_graph_dict['node_index'][api_name]
-            node = dep_graph_dict['nodes'][node_idx]
-            input_api = InputAPI.model_validate(node)
-            internal_api = cls(
-                _api_name=api_name,
-                _products=BaseData(
-                    keys_info=_str_list_to_keys_info(input_api.products)
-                )
-            )
-            return internal_api
-        else:
-            raise ValueError("Dependency graph dict is not set.")
+class ROOT(BaseAPI):
+    """This API does nothing but just returning the input. This API has no arguments and dependencies."""
+    _api_name: str = PrivateAttr(default="root")
+
+    def execute(self, *args, **kwargs):
+        self._products.data = deepcopy(self._deps.data)
+        return None, "ROOT()"
 
 # Jiahang: we should elaborate in doc why BaseAPI use private attr but BaseDependency use field.
 class BaseDependency(BaseObject):

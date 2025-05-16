@@ -3,9 +3,10 @@ from biochatter.llm_connect import Conversation
 from biochatter.api_agent.dep_graph import DependencyGraph, ExecutionGraph
 from biochatter.api_agent.dep_graph.utils import is_active_dep, retrieve_products, aggregate_deps
 from biochatter.api_agent.base.agent_abc import BaseAPI
-from .meta_api import TARGET_TOOLS_DICT, TOOLS_DICT
-from .meta_info import api_names, dependencies
+from .api_hub import TARGET_TOOLS_DICT, TOOLS_DICT
+from .info_hub import api_names, dependencies
 from .base import ScanpyAPI, ScanpyDependency
+from biochatter.api_agent.base.agent_abc import InputAPI, BaseData, _str_list_to_keys_info
 from langchain_core.output_parsers import PydanticToolsParser
 from langchain_core.language_models.chat_models import BaseChatModel
 from pydantic import BaseModel
@@ -16,6 +17,25 @@ from queue import Queue
 import scanpy
 from typing import Any
 
+def _postprocess_parametrise_api(api: BaseAPI) -> "BaseAPI":
+    """Assuming that arguments are all predicted, now to complete other information, such as
+    _products, etc., to support the execution of the API.
+    """
+    if api._api_name != "root": # dunder func needs no postprocessing; Jiahang: is it tricky?
+        assert api._dep_graph_dict, "Dependency graph dict is not set."
+        _api = api.model_copy(deep=True)
+        dep_graph_dict = _api._dep_graph_dict
+        node_idx = dep_graph_dict['node_index'][_api._api_name]
+        node = dep_graph_dict['nodes'][node_idx]
+        input_api = InputAPI.model_validate(node)
+        _api._products = BaseData(
+            keys_info=_str_list_to_keys_info(input_api.products)
+        )
+        _api.__setattr__(_api._data_name, "data")
+        return _api
+    else:
+        return api
+
 class ScanpyQueryBuilder(BaseQueryBuilder):
     def __init__(self, 
                  conversation: Conversation,
@@ -25,7 +45,6 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
                                          dependencies=dependencies, 
                                          api_class_dict=TOOLS_DICT,
                                          dep_class=ScanpyDependency)
-
     def build_api_query(
         self,
         question: str,
@@ -33,9 +52,7 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
 
         tools = list(TARGET_TOOLS_DICT.values())
 
-        # Jiahang: only one target API being considered for now
-        # can we somehow restrict LLM to predict only one API?
-        api: BaseModel = self._parametrise_api(question, tools)[0]
+        api: BaseModel = self._parametrise_api(question, tools)
         execution_graph = self._trace_back(question, api)
 
         return [execution_graph]
@@ -45,12 +62,15 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
         question: str,
         tools: list[BaseAPI | type],
     ):
-        """Parametrise the API data model using LLM."""
         llm_with_tools: BaseChatModel = self.conversation.chat.bind_tools(tools, tool_choice="required")
         parser = PydanticToolsParser(tools=tools)
         runnable = llm_with_tools | parser
-        tools = runnable.invoke(question)
-        return tools
+        # Jiahang: only one target API being considered for now
+        # can we somehow restrict LLM to predict only one API?
+        tool = runnable.invoke(question)[0]
+        tool = _postprocess_parametrise_api(tool)
+        
+        return tool
     
     def _trace_back(
             self, 
@@ -72,7 +92,7 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
                     # For now, we only allow a single instance of each API.
                     if in_dep.u_api_name not in execution_graph.nodes:
                         active_predecessor = self.dep_graph.get_api(in_dep.u_api_name)
-                        active_predecessor = self._parametrise_api(question, [active_predecessor])[0]
+                        active_predecessor = self._parametrise_api(question, [active_predecessor])
                         execution_graph.add_api(active_predecessor)
                         next_api_queue.put(active_predecessor)
                     execution_graph.add_dep(in_dep)

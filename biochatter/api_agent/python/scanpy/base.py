@@ -1,6 +1,8 @@
 from biochatter.api_agent.base.agent_abc import BaseAPI, BaseDependency
-from .meta_info import dep_graph_dict
-from pydantic import PrivateAttr, Field
+# Jiahang: info_hub should be a global stuff, not a module inside each package.
+from .info_hub import dep_graph_dict
+from pydantic import PrivateAttr
+from copy import deepcopy
 
 class ScanpyAPI(BaseAPI):
     _dep_graph_dict: dict = PrivateAttr(default=dep_graph_dict)

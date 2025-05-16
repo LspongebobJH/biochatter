@@ -9,6 +9,7 @@ class ScTlUmap(ScanpyAPI):
     """Embed the neighborhood graph using UMAP."""
 
     _api_name: str = PrivateAttr(default="sc.tl.umap")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -30,6 +31,7 @@ class ScTlTsne(ScanpyAPI):
     """Embed the neighborhood graph using t-SNE."""
 
     _api_name: str = PrivateAttr(default="sc.tl.tsne")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -43,6 +45,7 @@ class ScTlDiffMap(ScanpyAPI):
     """Compute a diffmap from a neighborhood graph."""
 
     _api_name: str = PrivateAttr(default="sc.tl.diffmap")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -56,6 +59,7 @@ class ScTlEmbeddingDensity(ScanpyAPI):
     """Calculate the density of cells in an embedding (per condition).."""
 
     _api_name: str = PrivateAttr(default="sc.tl.embedding_density")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -78,6 +82,7 @@ class ScTlLeiden(ScanpyAPI):
     """Cluster the neighborhood graph using the Leiden algorithm."""
 
     _api_name: str = PrivateAttr(default="sc.tl.leiden")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -102,6 +107,7 @@ class ScTlLouvain(ScanpyAPI):
     """Cluster the neighborhood graph using the Louvain algorithm."""
 
     _api_name: str = PrivateAttr(default="sc.tl.louvain")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -119,6 +125,7 @@ class ScTlDendrogram(ScanpyAPI):
     """Compute a dendrogram of the neighborhood graph."""
 
     _api_name: str = PrivateAttr(default="sc.tl.dendrogram")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
@@ -140,6 +147,7 @@ class ScTlRankGenesGroups(ScanpyAPI):
     """Rank genes for characterizing groups."""
 
     _api_name: str = PrivateAttr(default="sc.tl.rank_genes_groups")
+    _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",

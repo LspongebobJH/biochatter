@@ -3,8 +3,6 @@
 from typing import Any
 from pydantic import BaseModel
 
-from biochatter.llm_connect import Conversation
-
 from .agent_abc import BaseFetcher, BaseInterpreter, BaseQueryBuilder
 
 ### logic
