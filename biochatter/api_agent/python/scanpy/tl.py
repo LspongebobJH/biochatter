@@ -50,6 +50,7 @@ class ScTlDiffMap(ScanpyAPI):
         "data",
         description="Annotated data matrix",
     ),
+    # Jiahang: predict to be 2...
     n_comps: int = Field(
         15,
         description="The number of dimensions of the representation.",
@@ -68,8 +69,8 @@ class ScTlEmbeddingDensity(ScanpyAPI):
         "umap",
         description="The embedding over which the density will be calculated",
     )
-    groupby: str = Field(
-        "None",
+    groupby: str | None = Field(
+        None,
         description="Key for categorical observation/cell annotation for which densities are calculated per category.",
     )
     components: str | list[str] | None = Field(
@@ -153,8 +154,8 @@ class ScTlRankGenesGroups(ScanpyAPI):
         description="Annotated data matrix",
     )
     groupby: str = Field(
-        "leiden",
-        description="The group to rank genes for.",
+        ...,
+        description="The key of the observations grouping to consider.",
     )
 
 TOOLS = [

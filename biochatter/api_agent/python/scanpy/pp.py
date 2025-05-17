@@ -40,7 +40,7 @@ class ScPpFilterCells(ScanpyAPI):
     _data_name: str = PrivateAttr(default='data')
     data: str = Field(
         "data",
-        description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
+        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
     )
     min_counts: int | None = Field(None, description="Minimum number of counts required for a cell to pass filtering.")
     min_genes: int | None = Field(
@@ -61,7 +61,7 @@ class ScPpFilterGenes(ScanpyAPI):
     _data_name: str = PrivateAttr(default='data')
     data: str = Field(
         "data",
-        description="An annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
+        description="An annotated data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
     )
     min_counts: int | None = Field(None, description="Minimum number of counts required for a gene to pass filtering.")
     min_cells: int | None = Field(
@@ -82,7 +82,7 @@ class ScPpHighlyVariableGenes(ScanpyAPI):
     _api_name: str = PrivateAttr(default='sc.pp.highly_variable_genes')
     _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
-        "data", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes."
+        "data", description="Annotated data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes."
     )
     layer: str | None = Field(None, description="Use adata.layers[layer] for expression values instead of adata.X.")
     n_top_genes: int | None = Field(
@@ -99,8 +99,8 @@ class ScPpHighlyVariableGenes(ScanpyAPI):
         0.5, description="Minimum dispersion threshold for highly variable genes. Ignored if flavor='seurat_v3'."
     )
     max_disp: float = Field(
-        float("inf"),
-        description="Maximum dispersion threshold for highly variable genes. Ignored if flavor='seurat_v3'.",
+        1e9,
+        description="Maximum dispersion threshold for highly variable genes. Ignored if flavor='seurat_v3'. Note that we use 1e9 instead of inf as scanpy default to avoid JSON representation error.",
     )
     span: float = Field(
         0.3,
@@ -113,6 +113,7 @@ class ScPpHighlyVariableGenes(ScanpyAPI):
         "seurat", description="The method to use for identifying highly variable genes."
     )
     subset: bool = Field(False, description="If True, subset to highly-variable genes, otherwise just indicate them.")
+    # Jiahang: predict to be False...
     inplace: bool = Field(True, description="Whether to place calculated metrics in .var or return them.")
     batch_key: str | None = Field(
         None, description="If specified, highly-variable genes are selected separately within each batch and merged."
@@ -121,15 +122,13 @@ class ScPpHighlyVariableGenes(ScanpyAPI):
         True, description="Whether to check if counts in selected layer are integers (relevant for flavor='seurat_v3')."
     )
 
-
-
 class ScPpLog1p(ScanpyAPI):
     """Logarithmize the data matrix."""
     _api_name: str = PrivateAttr(default='sc.pp.log1p')
     _data_name: str = PrivateAttr(default='data')
     data: str = Field(
         "data",
-        description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
+        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
     )
     base: float | None = Field(None, description="Base of the logarithm. Natural logarithm is used by default.")
     chunked: bool | None = Field(
@@ -139,6 +138,13 @@ class ScPpLog1p(ScanpyAPI):
     layer: str | None = Field(None, description="Entry of layers to transform.")
     obsm: str | None = Field(None, description="Entry of obsm to transform.")
 
+    def _arg_repr(self, key, val) -> str:
+        if key == self._data_name:
+            return f"{val}" # log1p requires the first arg to be positional arg. bad implementation.
+        if type(val) == str and key != self._data_name:
+            return f"{key}='{val}'"
+        return f"{key}={val}"
+
 
 
 class ScPpPCA(ScanpyAPI):
@@ -147,7 +153,7 @@ class ScPpPCA(ScanpyAPI):
     _data_name: str = PrivateAttr(default='data')
     data: str = Field(
         "data",
-        description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
+        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
     )
     n_comps: int | None = Field(
         None,
@@ -188,7 +194,7 @@ class ScPpNormalizeTotal(ScanpyAPI):
     _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
-        description="The annotated data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
+        description="The annotated data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
     )
     target_sum: float | None = Field(
         None,
@@ -233,7 +239,7 @@ class ScPpScale(ScanpyAPI):
     _data_name: str = PrivateAttr(default='data')
     data: str = Field(
         "data",
-        description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
+        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
     )
     zero_center: bool = Field(
         True, description="If False, omit zero-centering variables, which allows to handle sparse input efficiently."
@@ -256,7 +262,7 @@ class ScPpSample(ScanpyAPI):
     _data_name: str = PrivateAttr(default='data')
     data: str = Field(
         "data",
-        description="The (annotated) data matrix of shape n_obs × n_vars. Rows correspond to cells and columns to genes.",
+        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
     )
     fraction: float | None = Field(None, description="Sample to this fraction of the number of observations.")
     n_obs: int | None = Field(None, description="Sample to this number of observations.")
@@ -336,7 +342,7 @@ class ScPpScrublet(ScanpyAPI):
     """Detect doublets in single-cell RNA-seq data using Scrublet."""
     _api_name: str = PrivateAttr(default='sc.pp.scrublet')
     _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix (n_obs × n_vars).")
+    adata: str = Field("data", description="Annotated data matrix (n_obs x n_vars).")
     adata_sim: str | None = Field(
         None, description="Optional AnnData object from scrublet_simulate_doublets() with same number of vars as adata."
     )
@@ -374,7 +380,7 @@ class ScPpScrubletSimulateDoublets(ScanpyAPI):
     _api_name: str = PrivateAttr(default='sc.pp.scrublet_simulate_doublets')
     _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
-        "data", description="Annotated data matrix of shape n_obs × n_vars. Rows correspond to cells, columns to genes."
+        "data", description="Annotated data matrix of shape n_obs x n_vars. Rows correspond to cells, columns to genes."
     )
     layer: str | None = Field(
         None, description="Layer of adata where raw values are stored, or 'X' if values are in .X."

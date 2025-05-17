@@ -1001,12 +1001,16 @@ class ScPlEmbeddingDensity(ScanpyAPI):
         description="Annotated data matrix",
     )
     basis: str = Field(
-        ...,
+        "umap",
         description="The embedding over which the density was calculated.",
     )
-    groupby: str = Field(
-        ...,
-        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+    key: str | None = Field(
+        None,
+        description="Name of the .obs covariate that contains the density estimates. Alternatively, pass groupby.",
+    )
+    groupby: str | None = Field(
+        None,
+        description="Name of the condition used in tl.embedding_density. Alternatively, pass key.",
     )
 
 class ScPlRankGenesGroupsDotplot(ScanpyAPI):
