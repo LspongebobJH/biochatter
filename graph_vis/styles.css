@@ -1,0 +1,156 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+}
+
+.main-container {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.right-panel {
+    width: 300px;
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-left: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.input-group label {
+    font-weight: bold;
+}
+
+.input-group input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#container {
+    flex: 1;
+    margin-top: 20px;
+}
+
+#render_button {
+    width: fit-content;
+    padding: 4px 12px;
+    font-size: 12px;
+    margin-top: 8px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#render_button:hover {
+    background-color: #e0e0e0;
+}
+
+#render_button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.subpanel {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+}
+
+.subpanel h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+#addNodeButton, #removeNodeButton, #addEdgeButton, #removeEdgeButton, #renderGraphButton {
+    width: 100%;
+    padding: 8px;
+    margin-top: 15px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+#addNodeButton, #addEdgeButton {
+    background-color: #4CAF50;
+}
+
+#addNodeButton:hover, #addEdgeButton:hover {
+    background-color: #45a049;
+}
+
+#removeNodeButton, #removeEdgeButton {
+    background-color: #f44336;
+}
+
+#removeNodeButton:hover, #removeEdgeButton:hover {
+    background-color: #da190b;
+}
+
+#renderGraphButton {
+    background-color: #2196F3;
+}
+
+#renderGraphButton:hover {
+    background-color: #1976D2;
+}
+
+#downloadGraphButton {
+    background-color: #9C27B0;
+    width: 100%;
+    padding: 8px;
+    margin-top: 15px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+#downloadGraphButton:hover {
+    background-color: #7B1FA2;
+}
+
+#addNodeButton:disabled, #removeNodeButton:disabled,
+#addEdgeButton:disabled, #removeEdgeButton:disabled,
+#renderGraphButton:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+#addNodeButton:disabled:hover, #removeNodeButton:disabled:hover,
+#addEdgeButton:disabled:hover, #removeEdgeButton:disabled:hover,
+#renderGraphButton:disabled:hover {
+    background-color: #cccccc;
+}
+
+#addAPIInput, #productsInput, #removeAPIInput,
+#dependenciesInput, #addSourceInput, #addTargetInput,
+#argsInput, #argTypesInput, #removeSourceInput,
+#removeTargetInput {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 5px;
+} 
