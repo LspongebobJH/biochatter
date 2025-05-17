@@ -40,27 +40,43 @@
     render_button.onclick = () => {
         if (graphData) {
             const dataNames = ['data'];
+            const nodes = [];
+            const edges = [];
 
             for (let i = 0; i < graphData.nodes.length; i++) {
-                graphData.nodes[i].style = {
-                    size: 10,
-                    icon: true,
-                    iconText: graphData.nodes[i].id,
-                    iconFontSize: 5,
-                    iconFill: '#000',
-                };
-            }
-            for (let i = 0; i < graphData.edges.length; i++) {
-                const edgeArg = graphData.edges[i].args;
-                const argName = Object.values(edgeArg)[0]; // fow now only one edge required arg being considered 
-                if (!dataNames.includes(argName)) {
-                    graphData.edges[i].style = {
-                        lineDash: 1,
+                if (!("_deprecated" in Object.keys(graphData.nodes[i])) || graphData.nodes[i]._deprecated == false) {
+                    graphData.nodes[i].style = {
+                        size: 10,
+                        icon: true,
+                        iconText: graphData.nodes[i].id,
+                        iconFontSize: 5,
+                        iconFill: '#000',
                     };
+                    const node = graphData.nodes[i];
+                    nodes.push(node);
                 }
             }
-            console.log(graphData);
-            showGraph(graphData);
+            
+            for (let i = 0; i < graphData.edges.length; i++) {
+                if (!("_deprecated" in Object.keys(graphData.edges[i])) || graphData.edges[i]._deprecated == false) {
+                    const edgeArg = graphData.edges[i].args;
+                    const argName = Object.values(edgeArg)[0]; // fow now only one edge required arg being considered 
+                    if (!dataNames.includes(argName)) {
+                        graphData.edges[i].style = {
+                            lineDash: 1,
+                        };
+                    };
+                    const edge = graphData.edges[i];
+                    edges.push(edge);
+                }
+            }
+
+            let processedGraphData = {};
+            Object.assign(processedGraphData, graphData);
+            processedGraphData.nodes = nodes;
+            processedGraphData.edges = edges;
+            console.log(processedGraphData);
+            showGraph(processedGraphData);
         }
     };
 

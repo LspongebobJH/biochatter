@@ -51,83 +51,26 @@
         },
         {
             "api": "sc.pl.heatmap",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "var_names": [
-                    "TMSB4X",
-                    "MALAT1",
-                    "B2M"
-                ],
-                "groupby": "louvain"
-            },
-            "arg_types": {
-                "data": "object",
-                "var_names": "list",
-                "groupby": "str"
-            },
+            "products": [],
             "id": "sc.pl.heatmap"
         },
         {
             "api": "sc.pl.dotplot",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "var_names": [
-                    "TMSB4X",
-                    "MALAT1",
-                    "B2M"
-                ],
-                "groupby": "louvain"
-            },
-            "arg_types": {
-                "data": "object",
-                "var_names": "list",
-                "groupby": "str"
-            },
+            "products": [],
             "id": "sc.pl.dotplot"
         },
         {
             "api": "sc.pl.violin",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "keys": [
-                    "TMSB4X",
-                    "MALAT1",
-                    "B2M"
-                ],
-                "groupby": "louvain"
-            },
-            "arg_types": {
-                "data": "object",
-                "keys": "list",
-                "groupby": "str"
-            },
+            "products": [],
             "id": "sc.pl.violin"
         },
         {
             "api": "sc.pl.dendrogram",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "groupby": "louvain"
-            },
-            "arg_types": {
-                "data": "object",
-                "groupby": "str"
-            },
+            "products": [],
             "id": "sc.pl.dendrogram"
         },
         {
             "api": "sc.tl.diffmap",
-            "prep": "",
-            "args": {
-                "adata": "data"
-            },
-            "arg_types": {
-                "data": "object"
-            },
             "products": [
                 "data.obsm[\"X_diffmap\"]",
                 "data.uns[\"diffmap_evals\"]"
@@ -136,43 +79,18 @@
         },
         {
             "api": "sc.pl.diffmap",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "color": "leiden"
-            },
-            "arg_types": {
-                "data": "object",
-                "color": "str"
-            },
+            "products": [],
             "id": "sc.pl.diffmap"
         },
         {
             "api": "sc.pp.log1p",
-            "prep": "",
-            "args": {
-                "data": "data"
-            },
-            "arg_types": {
-                "data": "object"
-            },
             "products": [
                 "data.X"
-            ],
-            "special": [
-                1
             ],
             "id": "sc.pp.log1p"
         },
         {
             "api": "sc.pp.highly_variable_genes",
-            "prep": "",
-            "args": {
-                "adata": "data"
-            },
-            "arg_types": {
-                "data": "object"
-            },
             "products": [
                 "data.var[\"highly_variable\"]",
                 "data.var[\"means\"]",
@@ -189,39 +107,16 @@
         },
         {
             "api": "sc.pl.highly_variable_genes",
-            "prep": "",
-            "args": {
-                "adata": "data"
-            },
-            "arg_types": {
-                "data": "object"
-            },
+            "products": [],
             "id": "sc.pl.highly_variable_genes"
         },
         {
             "api": "sc.pl.pca",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "color": "louvain"
-            },
-            "arg_types": {
-                "data": "object",
-                "color": "str"
-            },
+            "products": [],
             "id": "sc.pl.pca"
         },
         {
             "api": "sc.tl.embedding_density",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "basis": "umap"
-            },
-            "arg_types": {
-                "data": "object",
-                "basis": "str"
-            },
             "products": [
                 "data.obs[\"umap_density\"]",
                 "data.uns[\"umap_density_params\"]"
@@ -230,28 +125,11 @@
         },
         {
             "api": "sc.pl.embedding_density",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "basis": "umap"
-            },
-            "arg_types": {
-                "data": "object",
-                "basis": "str"
-            },
+            "products": [],
             "id": "sc.pl.embedding_density"
         },
         {
             "api": "sc.tl.rank_genes_groups",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "groupby": "leiden"
-            },
-            "arg_types": {
-                "data": "object",
-                "groupby": "str"
-            },
             "products": [
                 "data.uns[\"rank_genes_groups\"]"
             ],
@@ -259,28 +137,12 @@
         },
         {
             "api": "sc.pl.rank_genes_groups_dotplot",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "groupby": "leiden"
-            },
-            "arg_types": {
-                "data": "object",
-                "groupby": "str"
-            },
+            "products": [],
             "id": "sc.pl.rank_genes_groups_dotplot"
         },
         {
             "api": "sc.pl.correlation_matrix",
-            "prep": "",
-            "args": {
-                "adata": "data",
-                "groupby": "leiden"
-            },
-            "arg_types": {
-                "data": "object",
-                "groupby": "str"
-            },
+            "products": [],
             "id": "sc.pl.correlation_matrix",
             "_deprecated": true,
             "_comment": "Not found in doc."
@@ -526,7 +388,7 @@
             ],
             "source": "sc.pp.log1p",
             "target": "sc.pp.highly_variable_genes",
-            "args": {"data": "data"},
+            "args": {"adata": "data"},
             "arg_types": {
                 "data": "object"
             }
@@ -537,7 +399,7 @@
             ],
             "source": "sc.pp.log1p",
             "target": "sc.pl.highly_variable_genes",
-            "args": {"data": "data"},
+            "args": {"adata": "data"},
             "arg_types": {
                 "data": "object"
             }
