@@ -67,7 +67,11 @@ class ScanpyQueryBuilder(BaseQueryBuilder):
         runnable = llm_with_tools | parser
         # Jiahang: only one target API being considered for now
         # can we somehow restrict LLM to predict only one API?
-        tool = runnable.invoke(question)[0]
+
+        # Jiahang (random note): I found openai llm n -> 1 and temperature -> 0.0,
+        # hindering majority vote and revising incorrect results through multiple trials.
+        tools = llm_with_tools.invoke(question)
+        tool = parser.invoke(tools)[0]
         tool = _postprocess_parametrise_api(tool)
         
         return tool
@@ -118,6 +122,12 @@ class ScanpyFetcher(BaseFetcher):
             in_deps = execution_graph.in_deps(api._api_name)
             if len(in_deps) > 0:
                 api = aggregate_deps(in_deps, api)
+            # Jiahang (severe): question="visualize diffusion map embedding of cells which are clustered by leiden algorithm."
+            # predict sc.pl.diffmap must set n_comps=2, leading to error.
+            # this cannot be prevented by prompts, like
+            # "Predict an argument value only when user clearly specifies. Leave arguments as default otherwise."
+            # and "n_comps=15".
+            # it's weird that the second one cannot work either.
             results, api_calling = api.execute(state={'sc': scanpy})
             code_lines.append(api_calling)
             execution_graph.update_api(api)

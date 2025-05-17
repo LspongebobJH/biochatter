@@ -146,25 +146,14 @@ def aggregate_deps(deps: list[BaseDependency], dst_api: BaseAPI) -> BaseAPI:
     dst_api._deps = dst_data
     return dst_api
 
-def get_active_in_apis(deps: list[BaseDependency], api: BaseAPI) -> list[BaseDependency]:
-        """Get the active dependencies of the given API."""
-        active_deps = []
-        for dep in deps:
-            if check_active_dep_args(dep.args, api):
-                active_deps.append(dep)
-        return [dep.u_api for dep in active_deps]
-
-def check_active_dep_args(dep_args: dict, api: BaseAPI) -> bool:
-    """Check if the edge required argument is activated by the target api."""
+def is_active_dep(dep: BaseDependency, api: BaseAPI) -> bool:
+    """Check if the dependency is active by the target api."""
+    dep_args = dep.args
     e_arg_name = list(dep_args.keys())[0] # Jiahang: only one edge required arg being considered for now
     e_arg_val = dep_args[e_arg_name]
     if e_arg_name in api.model_fields.keys() and getattr(api, e_arg_name) == e_arg_val:
         return True
     return False
-
-def is_active_dep(dep: BaseDependency, api: BaseAPI) -> bool:
-    """Check if the dependency is active by the target api."""
-    return check_active_dep_args(dep.args, api)
 
 def read_apis_from_graph_dict(api_names: list[str], tools_dict: dict) -> dict[str, BaseAPI]:
     """Jiahang: this function is pretty complicated. Documents need to be carefully revised with

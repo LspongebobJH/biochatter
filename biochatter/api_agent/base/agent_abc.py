@@ -497,17 +497,17 @@ class BaseAPI(BaseObject):
         members['_deps'] = self._deps._hash_members()
         return members
     
-    def _val_repr(self, key, val) -> str:
+    def _arg_repr(self, key, val) -> str:
         if type(val) == str and key != self._data_name:
-            return f"'{val}'"
-        return val
+            return f"{key}='{val}'"
+        return f"{key}={val}"
     
     def to_api_calling(self) -> str:
         """Convert a BaseAPI object to a string of api calling."""
         params = []
         for name in self.model_fields.keys():
-            val = self._val_repr(name, self.__getattribute__(name))
-            params.append(f"{name}={val}")
+            arg = self._arg_repr(name, self.__getattribute__(name))
+            params.append(arg)
         return f"{self._api_name}({', '.join(params)})"
 
     # Jiahang: be abstractmethod in the future

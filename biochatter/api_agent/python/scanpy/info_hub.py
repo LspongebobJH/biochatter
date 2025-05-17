@@ -1,12 +1,8 @@
 """
 This file import all external data required by the current package.
 """
-
-data_names = ["adata", "data"]
-_dep_graph_path = "biochatter/api_agent/python/scanpy/graph.json"
-
 import json
-
+_dep_graph_path = "biochatter/api_agent/python/scanpy/graph.json"
 with open(_dep_graph_path, 'r') as f:
     dep_graph_dict = json.load(f)
 
@@ -20,14 +16,20 @@ def preprocess_dep_graph_dict(dep_graph_dict: dict) -> dict:
     for node in _nodes:
         if node.get('_deprecated', False):
             continue
-        else:
-            nodes.append(node)
+        keys = list(node.keys())
+        for key in keys:
+            if key.startswith('_'):
+                node.pop(key)
+        nodes.append(node)
 
     for edge in _edges:
         if edge.get('_deprecated', False):
             continue
-        else:
-            edges.append(edge)
+        keys = list(edge.keys())
+        for key in keys:
+            if key.startswith('_'):
+                edge.pop(key)
+        edges.append(edge)
 
     dep_graph_dict["nodes"] = nodes
     dep_graph_dict["edges"] = edges
