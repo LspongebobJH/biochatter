@@ -80,6 +80,7 @@ class Conversation(ABC):
         self,
         model_name: str,
         prompts: dict,
+        temperature: float = 0.0,
         correct: bool = False,
         split_correction: bool = False,
         use_ragagent_selector: bool = False,
@@ -97,6 +98,7 @@ class Conversation(ABC):
         self._use_ragagent_selector = use_ragagent_selector
         self._chat = None
         self._ca_chat = None
+        self.temperature = temperature
 
     @property
     def chat(self):
@@ -512,6 +514,7 @@ class WasmConversation(Conversation):
         self,
         model_name: str,
         prompts: dict,
+        temperature: float = 0.0,
         correct: bool = False,
         split_correction: bool = False,
     ) -> None:
@@ -531,6 +534,7 @@ class WasmConversation(Conversation):
             prompts=prompts,
             correct=correct,
             split_correction=split_correction,
+            temperature=temperature,
         )
 
     def query(self, text: str) -> tuple:
@@ -583,6 +587,7 @@ class XinferenceConversation(Conversation):
         self,
         base_url: str,
         prompts: dict,
+        temperature: float = 0.0,
         model_name: str = "auto",
         correct: bool = False,
         split_correction: bool = False,
@@ -621,6 +626,7 @@ class XinferenceConversation(Conversation):
             prompts=prompts,
             correct=correct,
             split_correction=split_correction,
+            temperature=temperature,
         )
         self.client = Client(base_url=base_url)
 
@@ -720,7 +726,7 @@ class XinferenceConversation(Conversation):
             response = self.model.chat(
                 prompt=prompt["content"],
                 chat_history=history,
-                generate_config={"max_tokens": 2048, "temperature": 0},
+                generate_config={"max_tokens": 2048, "temperature": self.temperature},
             )
         except (
             openai._exceptions.APIError,
@@ -863,7 +869,7 @@ class XinferenceConversation(Conversation):
         response = self.ca_model.chat(
             prompt=prompt["content"],
             chat_history=history,
-            generate_config={"max_tokens": 2048, "temperature": 0},
+            generate_config={"max_tokens": 2048, "temperature": self.temperature},
         )
 
         correction = response["choices"][0]["message"]["content"]
@@ -970,6 +976,7 @@ class OllamaConversation(Conversation):
         self,
         base_url: str,
         prompts: dict,
+        temperature: float = 0.0,
         model_name: str = "llama3",
         correct: bool = False,
         split_correction: bool = False,
@@ -1000,13 +1007,14 @@ class OllamaConversation(Conversation):
             model_name=model_name,
             prompts=prompts,
             correct=correct,
+            temperature=temperature,
             split_correction=split_correction,
         )
         self.model_name = model_name
         self.model = ChatOllama(
             base_url=base_url,
             model=self.model_name,
-            temperature=0.0,
+            temperature=self.temperature,
         )
 
         self.ca_model_name = "mixtral:latest"
@@ -1014,7 +1022,7 @@ class OllamaConversation(Conversation):
         self.ca_model = ChatOllama(
             base_url=base_url,
             model_name=self.ca_model_name,
-            temperature=0.0,
+            temperature=self.temperature,
         )
 
     def append_system_message(self, message: str) -> None:
@@ -1186,6 +1194,7 @@ class AnthropicConversation(Conversation):
         self,
         model_name: str,
         prompts: dict,
+        temperature: float = 0.0,
         correct: bool = False,
         split_correction: bool = False,
     ) -> None:
@@ -1209,6 +1218,7 @@ class AnthropicConversation(Conversation):
             model_name=model_name,
             prompts=prompts,
             correct=correct,
+            temperature=temperature,
             split_correction=split_correction,
         )
 
@@ -1242,12 +1252,12 @@ class AnthropicConversation(Conversation):
             client.count_tokens("Test connection")
             self.chat = ChatAnthropic(
                 model_name=self.model_name,
-                temperature=0,
+                temperature=self.temperature,
                 api_key=api_key,
             )
             self.ca_chat = ChatAnthropic(
                 model_name=self.ca_model_name,
-                temperature=0,
+                temperature=self.temperature,
                 api_key=api_key,
             )
             if user == "community":
@@ -1425,6 +1435,7 @@ class GptConversation(Conversation):
         self,
         model_name: str,
         prompts: dict,
+        temperature: float = 0.0,
         correct: bool = False,
         split_correction: bool = False,
         base_url: str = None,
@@ -1453,6 +1464,7 @@ class GptConversation(Conversation):
             model_name=model_name,
             prompts=prompts,
             correct=correct,
+            temperature=temperature,
             split_correction=split_correction,
         )
         self.base_url = base_url
@@ -1484,13 +1496,13 @@ class GptConversation(Conversation):
         try:
             self.chat = ChatOpenAI(
                 model_name=self.model_name,
-                temperature=0,
+                temperature=self.temperature,
                 openai_api_key=api_key,
                 base_url=self.base_url,
             )
             self.ca_chat = ChatOpenAI(
                 model_name=self.ca_model_name,
-                temperature=0,
+                temperature=self.temperature,
                 openai_api_key=api_key,
                 base_url=self.base_url,
             )
@@ -1614,6 +1626,7 @@ class AzureGptConversation(GptConversation):
         deployment_name: str,
         model_name: str,
         prompts: dict,
+        temperature: float = 0.0,
         correct: bool = False,
         split_correction: bool = False,
         version: str | None = None,
@@ -1651,6 +1664,7 @@ class AzureGptConversation(GptConversation):
             model_name=model_name,
             prompts=prompts,
             correct=correct,
+            temperature=temperature,
             split_correction=split_correction,
             update_token_usage=update_token_usage,
         )
@@ -1683,7 +1697,7 @@ class AzureGptConversation(GptConversation):
                 openai_api_version=self.version,
                 azure_endpoint=self.base_url,
                 openai_api_key=api_key,
-                temperature=0,
+                temperature=self.temperature,
             )
             self.ca_chat = AzureChatOpenAI(
                 deployment_name=self.deployment_name,
@@ -1691,7 +1705,7 @@ class AzureGptConversation(GptConversation):
                 openai_api_version=self.version,
                 azure_endpoint=self.base_url,
                 openai_api_key=api_key,
-                temperature=0,
+                temperature=self.temperature,
             )
 
             self.chat.generate([[HumanMessage(content="Hello")]])
@@ -1717,6 +1731,7 @@ class BloomConversation(Conversation):
         model_name: str,
         prompts: dict,
         split_correction: bool,
+        temperature: float = 0.0,
     ) -> None:
         """Initialise the BloomConversation class.
 
@@ -1725,6 +1740,7 @@ class BloomConversation(Conversation):
         super().__init__(
             model_name=model_name,
             prompts=prompts,
+            temperature=temperature,
             split_correction=split_correction,
         )
 
@@ -1748,7 +1764,7 @@ class BloomConversation(Conversation):
         """
         self.chat = HuggingFaceHub(
             repo_id=self.model_name,
-            model_kwargs={"temperature": 1.0},  # "regular sampling"
+            model_kwargs={"temperature": self.temperature},  # "regular sampling"
             # as per https://huggingface.co/docs/api-inference/detailed_parameters
             huggingfacehub_api_token=api_key,
         )
