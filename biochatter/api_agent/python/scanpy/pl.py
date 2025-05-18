@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field, PrivateAttr
 from biochatter.api_agent.base.agent_abc import BaseAPI
 from .base import ScanpyAPI
 
+from typing import Literal
+
 class ScPlScatter(ScanpyAPI):
     """Scatter plot along observations or variables axes."""
 
@@ -1024,7 +1026,7 @@ class ScPlRankGenesGroupsDotplot(ScanpyAPI):
         "data",
         description="Annotated data matrix",
     )
-    groups: str | list[str | None] = Field(
+    groups: str | list[str] | None = Field(
         None,
         description="The groups for which to show the gene ranking.",
     )
@@ -1032,13 +1034,9 @@ class ScPlRankGenesGroupsDotplot(ScanpyAPI):
         None,
         description="Number of genes to show in the dot plot.",
     )
-    var_names: list[str] | None = Field(
-        None,
-        description="Genes to plot.",
-    )
     groupby: str | None = Field(
         None,
-        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+        description="The key of the observation grouping to consider. By default, the groupby is chosen from the rank genes groups parameter but other groupby options can be used. It is expected that groupby is a categorical. If groupby is not a categorical observation, it would be subdivided into num_categories (see dotplot()).",
     )
 TOOLS = [
     ScPlScatter,

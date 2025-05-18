@@ -39,7 +39,7 @@ scanpy_agent = APIAgent(
 
 # Execute a query
 # question = "Visualize umap embedding of cells' gene counts data where cells are colored by leiden clustering with smooth coloring."
-question = "visualize dispersions versus mean expressions of genes in scatter plot."
+question = "visualize ranking of marker genes of clusters calculated by leiden algorithm."
 data = pbmc3k()
 result = scanpy_agent.execute(question, data=data)
 

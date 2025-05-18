@@ -10,3 +10,4 @@
 - "visualize PCA embedding of cells which are clustered by louvain algorithm."
 # - "visualize tSNE embedding of cells which are clustered by leiden algorithm."
 - "visualize umap embedding density of cells."
+- "visualize ranking of marker genes of clusters calculated by leiden algorithm."
