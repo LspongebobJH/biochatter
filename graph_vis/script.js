@@ -19,6 +19,10 @@ const removeTargetInput = document.getElementById("removeTargetInput");
 const renderGraphButton = document.getElementById("renderGraphButton");
 const downloadGraphButton = document.getElementById("downloadGraphButton");
 
+const dataNames = ['data'];
+const nodeKeys = ['api', 'products', 'id', '_deprecated', '_comment'];
+const edgeKeys = ['dependencies', 'source', 'target', 'args', 'arg_types', '_deprecated', '_comment'];
+
 let graph = null; // Add graph variable to global scope
 
 render_button.disabled = true;
@@ -38,7 +42,7 @@ const enableButtonIfReady = () => {
 
 // Function to check if both inputs are filled
 const updateNodeButtonState = () => {
-    addNodeButton.disabled = !(addAPIInput.value.trim() && productsInput.value.trim());
+    addNodeButton.disabled = !(addAPIInput.value.trim());
 };
 
 // Function to update remove button state
@@ -81,13 +85,14 @@ addNodeButton.addEventListener('click', () => {
     
     const apiValue = addAPIInput.value.trim();
     const productsValue = productsInput.value.trim();
+    const productsList = productsValue ? productsValue.split('\n').map(p => p.trim()).filter(p => p) : [];
     
     // Add new node to the graph
     graph.addNodeData([
         {
             id: apiValue,
             api: apiValue,
-            products: productsValue,
+            products: productsList,
             style: {
                 size: 10,
                 icon: true,
@@ -97,11 +102,6 @@ addNodeButton.addEventListener('click', () => {
             }
         }
     ]);
-    
-    // Clear the input fields
-    addAPIInput.value = '';
-    productsInput.value = '';
-    updateNodeButtonState(); // Update button state
 });
 
 // Add click handler for removeNodeButton
@@ -112,41 +112,33 @@ removeNodeButton.addEventListener('click', () => {
     
     // Remove the node from the graph
     graph.removeNodeData([nodeId]);
-    
-    // Clear the input field
-    removeAPIInput.value = '';
-    updateRemoveButtonState(); // Update button state
 });
 
 // Add click handler for addEdgeButton
 addEdgeButton.addEventListener('click', () => {
     if (!graph) return;
     
-    try {
-        const args = JSON.parse(argsInput.value.trim());
-        const argTypes = JSON.parse(argTypesInput.value.trim());
-        
-        graph.addEdgeData([{
-            source: addSourceInput.value.trim(),
-            target: addTargetInput.value.trim(),
-            dependencies: dependenciesInput.value.trim(),
-            args: args,
-            arg_types: argTypes,
-            style: {
-                lineDash: 1,
-            }
-        }]);
-        
-        // Clear all inputs
-        dependenciesInput.value = '';
-        addSourceInput.value = '';
-        addTargetInput.value = '';
-        argsInput.value = '';
-        argTypesInput.value = '';
-        updateAddEdgeButtonState();
-    } catch (e) {
-        alert('Invalid JSON format in args or arg_types');
-    }
+    const args = JSON.parse(argsInput.value.trim());
+    const argTypes = JSON.parse(argTypesInput.value.trim());
+    let lineDash = 0;
+    const dependenciesValue = dependenciesInput.value.trim();
+    const dependenciesList = dependenciesValue ? dependenciesValue.split('\n').map(d => d.trim()).filter(d => d) : [];
+
+    const argName = Object.values(args)[0]; // fow now only one edge required arg being considered 
+    if (!dataNames.includes(argName)) {
+        lineDash = 1;
+    };
+
+    graph.addEdgeData([{
+        source: addSourceInput.value.trim(),
+        target: addTargetInput.value.trim(),
+        dependencies: dependenciesList,
+        args: args,
+        arg_types: argTypes,
+        style: {
+            lineDash: lineDash,
+        }
+    }]);
 });
 
 // Add click handler for removeEdgeButton
@@ -165,11 +157,6 @@ removeEdgeButton.addEventListener('click', () => {
     if (edgeToRemove) {
         graph.removeEdgeData([edgeToRemove.id]);
     }
-    
-    // Clear inputs
-    removeSourceInput.value = '';
-    removeTargetInput.value = '';
-    updateRemoveEdgeButtonState();
 });
 
 // Add click handler for renderGraphButton
@@ -187,11 +174,31 @@ downloadGraphButton.addEventListener('click', () => {
     const currentNodes = graph.getNodeData();
     const currentEdges = graph.getEdgeData();
 
+    // Remove style key from nodes and edges
+    const cleanNodes = currentNodes.map(node => {
+        const filteredNode = {};
+        nodeKeys.forEach(key => {
+            if (key in node) {
+                filteredNode[key] = node[key];
+            }
+        });
+        return filteredNode;
+    });
+    const cleanEdges = currentEdges.map(edge => {
+        const filteredEdge = {};
+        edgeKeys.forEach(key => {
+            if (key in edge) {
+                filteredEdge[key] = edge[key];
+            }
+        });
+        return filteredEdge;
+    });
+
     // Create new graph data object
     const newGraphData = {
         ...graphData,
-        nodes: currentNodes,
-        edges: currentEdges
+        nodes: cleanNodes,
+        edges: cleanEdges
     };
 
     // Convert to JSON string
@@ -224,7 +231,6 @@ graph_reader.onload = (event) => {
 
 render_button.onclick = () => {
     if (graphData) {
-        const dataNames = ['data'];
         const nodes = [];
         const edges = [];
 

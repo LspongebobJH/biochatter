@@ -144,13 +144,26 @@ body {
     background-color: #cccccc;
 }
 
-#addAPIInput, #productsInput, #removeAPIInput,
-#dependenciesInput, #addSourceInput, #addTargetInput,
-#argsInput, #argTypesInput, #removeSourceInput,
-#removeTargetInput {
+#addAPIInput, #removeAPIInput,
+#addSourceInput, #addTargetInput,
+#removeSourceInput, #removeTargetInput 
+#argsInput, #argTypesInput
+{
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
     margin-bottom: 5px;
+}
+
+#productsInput, #dependenciesInput
+{
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
 } 
