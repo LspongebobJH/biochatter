@@ -1038,6 +1038,47 @@ class ScPlRankGenesGroupsDotplot(ScanpyAPI):
         None,
         description="The key of the observation grouping to consider. By default, the groupby is chosen from the rank genes groups parameter but other groupby options can be used. It is expected that groupby is a categorical. If groupby is not a categorical observation, it would be subdivided into num_categories (see dotplot()).",
     )
+
+class ScPlHighestExprGenes(ScanpyAPI):
+    """Fraction of counts assigned to each gene over all cells.
+
+    Computes, for each gene, the fraction of counts assigned to that gene within
+    a cell. The `n_top` genes with the highest mean fraction over all cells are
+    plotted as boxplots.
+
+    This plot is similar to the `scater` package function `plotHighestExprs(type
+    = "highest-expression")`, see `here
+    <https://bioconductor.org/packages/devel/bioc/vignettes/scater/inst/doc/vignette-qc.html>`__. Quoting
+    from there:
+
+        *We expect to see the “usual suspects”, i.e., mitochondrial genes, actin,
+        ribosomal protein, MALAT1. A few spike-in transcripts may also be
+        present here, though if all of the spike-ins are in the top 50, it
+        suggests that too much spike-in RNA was added. A large number of
+        pseudo-genes or predicted genes may indicate problems with alignment.*
+        -- Davis McCarthy and Aaron Lun
+    """
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.highest_expr_genes",
+    )
+    _data_name: str = PrivateAttr(default='adata')
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    n_top: int = Field(
+        30,
+        description="Number of genes to plot.",
+    )
+    layer: str | None = Field(
+        None,
+        description="Layer to use for the plot.",
+    )
+    gene_symbols: str | None = Field(
+        None,
+        description="Gene symbols to use for the plot.",
+    )
 TOOLS = [
     ScPlScatter,
     ScPlPca,
@@ -1054,6 +1095,7 @@ TOOLS = [
     ScPlHighlyVariableGenes,
     ScPlEmbeddingDensity,
     ScPlRankGenesGroupsDotplot,
+    ScPlHighestExprGenes,
 ]
 
 TOOLS_DICT = {tool._api_name.default: tool for tool in TOOLS}
