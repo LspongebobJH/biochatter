@@ -72,6 +72,7 @@ igraph = "^0.11.8"
 leidenalg = "^0.10.2"
 scanpy = {extras = ["louvain"], version = "^1.11.1"}
 jupyterlab = "^4.4.2"
+fastcluster = "1.2.6"
 
 [tool.poetry.extras]
 streamlit = ["streamlit"]
