@@ -3,7 +3,7 @@ from biochatter.api_agent import APIAgent, ScanpyQueryBuilder, ScanpyFetcher, Sc
 
 import os
 import scanpy
-from scanpy.datasets import pbmc3k
+from scanpy.datasets import pbmc3k, krumsiek11
 
 scanpy.settings.datasetdir = os.environ.get("DATA")
 
@@ -38,9 +38,9 @@ scanpy_agent = APIAgent(
 )
 
 # Execute a query
-question = "visualize tsne embedding density of cells."
-# question = "visualize fraction of counts assigned to each gene."
-data = pbmc3k()
+question = "visualize stacked violin plot of gene expressions of genes Gata2, Gata1 and Fog1, where cells are clustered by leiden algorithm."
+data = krumsiek11()
+# data = pbmc3k()
 result = scanpy_agent.execute(question, data=data)
 
 pass
