@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, PrivateAttr
 from biochatter.api_agent.base.agent_abc import BaseAPI
 from .base import ScanpyAPI
 
-from typing import Literal
+from typing import Literal, Mapping
 
 class ScPlScatter(ScanpyAPI):
     """Scatter plot along observations or variables axes."""
@@ -907,24 +907,36 @@ class ScPlDotplot(ScanpyAPI):
         description="Key for categorical observation/cell annotation for which densities are calculated per category.",
     )
 
-class ScPlTrackplot(ScanpyAPI):
-    """Track plot of the expression values of genes."""
+class ScPlTracksplot(ScanpyAPI):
+    """Compact plot of expression of a list of genes.
+
+    In this type of plot each var_name is plotted as a filled line plot where the y values correspond to the var_name values and x is each of the cells. Best results are obtained when using raw counts that are not log-transformed.
+
+    groupby is required to sort and order the values using the respective group and should be a categorical value."""
 
     _api_name: str = PrivateAttr(
-        default="sc.pl.trackplot",
+        default="sc.pl.tracksplot",
     )
     _data_name: str = PrivateAttr(default='adata')
     adata: str = Field(
         "data",
         description="Annotated data matrix",
     )
-    var_names: str | list[str] = Field(
+    var_names: str | list[str] | Mapping[str, str | list[str]] = Field(
         ...,
-        description="List of var_names to use for the track plot.",
+        description="var_names should be a valid subset of adata.var_names. If var_names is a mapping, then the key is used as label to group the values (see var_group_labels). The mapping values should be sequences of valid adata.var_names. In this case either coloring or ‘brackets’ are used for the grouping of var names depending on the plot. When var_names is a mapping, then the var_group_labels and var_group_positions are set.",
     )
     groupby: str = Field(
         ...,
-        description="Key for categorical observation/cell annotation for which densities are calculated per category.",
+        description="The key of the observation grouping to consider.",
+    )
+    use_raw: bool | None = Field(
+        None,
+        description="Use raw attribute of adata if present.",
+    )
+    log: bool | None = Field(
+        None,
+        description="Plot on logarithmic axis.",
     )
 
 class ScPlViolin(ScanpyAPI):
@@ -1079,6 +1091,64 @@ class ScPlHighestExprGenes(ScanpyAPI):
         None,
         description="Gene symbols to use for the plot.",
     )
+
+class ScPlClusterMap(ScanpyAPI):
+    """Hierarchically-clustered heatmap."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.clustermap",
+    )
+    _data_name: str = PrivateAttr(default='adata')
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    obs_keys: str | None = Field(
+        None,
+        description="Categorical annotation to plot with a different color map. Currently, only a single key is supported.",
+    )
+    use_raw: bool | None = Field(
+        None,
+        description="Whether to use raw attribute of adata. Defaults to True if .raw is present.",
+    )
+    
+class ScPlStackedViolin(ScanpyAPI):
+    """Stacked violin plots.
+
+    Makes a compact image composed of individual violin plots (from violinplot()) stacked on top of each other. Useful to visualize gene expression per cluster.
+
+    Wraps seaborn.violinplot() for AnnData.
+
+    This function provides a convenient interface to the StackedViolin class. If you need more flexibility, you should use StackedViolin directly."""
+
+    _api_name: str = PrivateAttr(
+        default="sc.pl.stacked_violin",
+    )
+    _data_name: str = PrivateAttr(default='adata')
+    adata: str = Field(
+        "data",
+        description="Annotated data matrix",
+    )
+    var_names: str | list[str] | Mapping[str, str | list[str]] = Field(
+        ...,
+        description="var_names should be a valid subset of adata.var_names. If var_names is a mapping, then the key is used as label to group the values (see var_group_labels). The mapping values should be sequences of valid adata.var_names. In this case either coloring or ‘brackets’ are used for the grouping of var names depending on the plot. When var_names is a mapping, then the var_group_labels and var_group_positions are set.",
+    )
+    groupby: str = Field(
+        ...,
+        description="The key of the observation grouping to consider.",
+    )
+    use_raw: bool | None = Field(
+        None,
+        description="Use raw attribute of adata if present.",
+    )
+    log: bool = Field(
+        False,
+        description="Plot on logarithmic axis.",
+    )
+    dendrogram: bool = Field(
+        True,
+        description="If True or a valid dendrogram key, a dendrogram based on the hierarchical clustering between the groupby categories is added. The dendrogram information is computed using scanpy.tl.dendrogram(). If tl.dendrogram has not been called previously the function is called with default parameters.",
+    )
 TOOLS = [
     ScPlScatter,
     ScPlPca,
@@ -1088,7 +1158,7 @@ TOOLS = [
     ScPlSpatial,
     ScPlHeatmap,
     ScPlDotplot,
-    ScPlTrackplot,
+    ScPlTracksplot,
     ScPlViolin,
     ScPlDendrogram,
     ScPlDiffmap,
@@ -1096,6 +1166,8 @@ TOOLS = [
     ScPlEmbeddingDensity,
     ScPlRankGenesGroupsDotplot,
     ScPlHighestExprGenes,
+    ScPlClusterMap,
+    ScPlStackedViolin,
 ]
 
 TOOLS_DICT = {tool._api_name.default: tool for tool in TOOLS}

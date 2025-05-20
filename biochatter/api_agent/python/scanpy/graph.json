@@ -4,11 +4,23 @@
   "graph": {},
   "nodes": [
     {
+      "api": "sc.tl.paga",
+      "products": [
+        "data.uns[\"paga\"][\"connectivities\"]",
+        "data.uns[\"paga\"][\"connectivities_tree\"]"
+      ],
+      "id": "sc.tl.paga"
+    },
+    {
+      "api": "sc.pl.paga",
+      "products": [
+        "data.uns[\"paga\"][\"pos\"]"
+      ],
+      "id": "sc.pl.paga"
+    },
+    {
       "api": "sc.pp.neighbors",
       "products": [
-        "data.obsm[\"X_pca\"]",
-        "data.varm[\"PCs\"]",
-        "data.uns[\"pca\"]",
         "data.uns[\"neighbors\"]",
         "data.obsp[\"distances\"]",
         "data.obsp[\"connectivities\"]"
@@ -171,6 +183,31 @@
         "data.uns['tsne']"
       ],
       "id": "sc.tl.tsne"
+    },
+    {
+      "api": "sc.pl.tracksplot",
+      "products": [],
+      "id": "sc.pl.tracksplot"
+    },
+    {
+      "api": "sc.pl.clustermap",
+      "products": [],
+      "id": "sc.pl.clustermap"
+    },
+    {
+      "api": "sc.pp.pca",
+      "products": [
+        "data.obsm[\"X_pca\"]",
+        "data.varm[\"PCs\"]",
+        "data.uns[\"pca\"][\"variance_ratio\"]",
+        "data.uns[\"pca\"][\"variance\"]"
+      ],
+      "id": "sc.pp.pca"
+    },
+    {
+      "api": "sc.pl.stacked_violin",
+      "products": [],
+      "id": "sc.pl.stacked_violin"
     }
   ],
   "edges": [
@@ -223,19 +260,6 @@
       ],
       "source": "sc.pp.neighbors",
       "target": "sc.tl.diffmap",
-      "args": {
-        "adata": "data"
-      },
-      "arg_types": {
-        "adata": "object"
-      }
-    },
-    {
-      "dependencies": [
-        "data.obsm[\"X_pca\"]"
-      ],
-      "source": "sc.pp.neighbors",
-      "target": "sc.pl.pca",
       "args": {
         "adata": "data"
       },
@@ -611,6 +635,123 @@
       },
       "arg_types": {
         "basis": "str"
+      }
+    },
+    {
+      "dependencies": [
+        "data.obs[\"louvain\"]"
+      ],
+      "source": "sc.tl.louvain",
+      "target": "sc.pl.tracksplot",
+      "args": {
+        "groupby": "louvain"
+      },
+      "arg_types": {
+        "groupby": "str"
+      }
+    },
+    {
+      "dependencies": [
+        "data.obs[\"leiden\"]"
+      ],
+      "source": "sc.tl.leiden",
+      "target": "sc.pl.tracksplot",
+      "args": {
+        "groupby": "leiden"
+      },
+      "arg_types": {
+        "groupby": "str"
+      }
+    },
+    {
+      "dependencies": [
+        "data.obs[\"louvain\"]"
+      ],
+      "source": "sc.tl.louvain",
+      "target": "sc.pl.clustermap",
+      "args": {
+        "obs_keys": "louvain"
+      },
+      "arg_types": {
+        "obs_keys": "str"
+      }
+    },
+    {
+      "dependencies": [
+        "data.obs[\"leiden\"]"
+      ],
+      "source": "sc.tl.leiden",
+      "target": "sc.pl.clustermap",
+      "args": {
+        "obs_keys": "leiden"
+      },
+      "arg_types": {
+        "obs_keys": "str"
+      }
+    },
+    {
+      "dependencies": [
+        "data.X"
+      ],
+      "source": "root",
+      "target": "sc.pl.clustermap",
+      "args": {
+        "adata": "data"
+      },
+      "arg_types": {
+        "adata": "object"
+      }
+    },
+    {
+      "dependencies": [
+        "data.X"
+      ],
+      "source": "root",
+      "target": "sc.pp.pca",
+      "args": {
+        "data": "data"
+      },
+      "arg_types": {
+        "data": "object"
+      }
+    },
+    {
+      "dependencies": [
+        "data.obsm[\"X_pca\"]"
+      ],
+      "source": "sc.pp.pca",
+      "target": "sc.pl.pca",
+      "args": {
+        "adata": "data"
+      },
+      "arg_types": {
+        "adata": "object"
+      }
+    },
+    {
+      "dependencies": [
+        "data.obs[\"louvain\"]"
+      ],
+      "source": "sc.tl.louvain",
+      "target": "sc.pl.stacked_violin",
+      "args": {
+        "groupby": "louvain"
+      },
+      "arg_types": {
+        "groupby": "str"
+      }
+    },
+    {
+      "dependencies": [
+        "data.obs[\"leiden\"]"
+      ],
+      "source": "sc.tl.leiden",
+      "target": "sc.pl.stacked_violin",
+      "args": {
+        "groupby": "leiden"
+      },
+      "arg_types": {
+        "groupby": "str"
       }
     }
   ]
