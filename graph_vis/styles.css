@@ -3,6 +3,7 @@ body {
     padding: 0;
     display: flex;
     height: 100vh;
+    overflow: hidden; /* Prevent body scrolling */
 }
 
 .main-container {
@@ -10,6 +11,7 @@ body {
     padding: 20px;
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevent main container scrolling */
 }
 
 .right-panel {
@@ -20,6 +22,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    overflow-y: auto; /* Make right panel independently scrollable */
+    height: 100vh; /* Full height */
 }
 
 .input-group {
@@ -43,7 +47,7 @@ body {
     margin-top: 20px;
 }
 
-#render_button {
+#readerButton {
     width: fit-content;
     padding: 4px 12px;
     font-size: 12px;
@@ -54,11 +58,11 @@ body {
     border-radius: 4px;
 }
 
-#render_button:hover {
+#readerButton:hover {
     background-color: #e0e0e0;
 }
 
-#render_button:disabled {
+#readerButton:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -130,9 +134,27 @@ body {
     background-color: #7B1FA2;
 }
 
+#searchNodeButton, #modifyNodeButton, #Button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 15px;
+    background-color: #1976D2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+#searchNodeButton:hover, #modifyNodeButton:hover {
+    background-color: #1976D2;
+}
+
 #addNodeButton:disabled, #removeNodeButton:disabled,
 #addEdgeButton:disabled, #removeEdgeButton:disabled,
-#renderGraphButton:disabled {
+#renderGraphButton:disabled, #searchNodeButton:disabled, 
+#modifyNodeButton:disabled {
     background-color: #cccccc;
     color: #666666;
     cursor: not-allowed;
@@ -140,7 +162,8 @@ body {
 
 #addNodeButton:disabled:hover, #removeNodeButton:disabled:hover,
 #addEdgeButton:disabled:hover, #removeEdgeButton:disabled:hover,
-#renderGraphButton:disabled:hover {
+#renderGraphButton:disabled:hover, #searchNodeButton:disabled:hover, 
+#modifyNodeButton:disabled:hover {
     background-color: #cccccc;
 }
 
@@ -156,7 +179,7 @@ body {
     margin-bottom: 5px;
 }
 
-#productsInput, #dependenciesInput
+#productsInput, #dependenciesInput, #modifyProductsInput
 {
     width: 100%;
     padding: 8px;

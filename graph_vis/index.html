@@ -5,14 +5,27 @@
 </head>
 <body>
     <div class="main-container">
-        <label for="graph_input">Choose the graph data json file:</label>
-        <input type="file" id="graph_input" name="graph_input" accept="application/json" />
-        <button id="render_button" disabled>Render Graph</button>
+        <label for="graphInput">Choose the graph data json file:</label>
+        <input type="file" id="graphInput" name="graphInput" accept="application/json" />
+        <button id="readerButton" disabled>Render Graph</button>
         <div id="container"></div>
     </div>
     <div class="right-panel">
         <button id="renderGraphButton">Re-render</button>
         <button id="downloadGraphButton">Download Graph</button>
+        <div class="subpanel">
+            <h3>Show, Search and Modify Node</h3>
+            <div class="input-group">
+                <label for="searchAndModifyAPIInput">API:</label>
+                <input type="text" id="searchAndModifyAPIInput" placeholder="Enter API name to search">
+            </div>
+            <div class="input-group">
+                <label for="modifyProductsInput">Products:</label>
+                <textarea id="modifyProductsInput" placeholder="Enter products (one per line)"></textarea>
+            </div>
+            <button id="searchNodeButton" disabled>Search</button>
+            <button id="modifyNodeButton" disabled>Modify</button>
+        </div>
         <div class="subpanel">
             <h3>Add Node</h3>
             <div class="input-group">
@@ -72,7 +85,7 @@
     </div>
 
     <script src="https://unpkg.com/@antv/g6@5/dist/g6.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js" type="module"></script>
 </body>
 </html>
 

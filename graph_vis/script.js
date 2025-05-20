@@ -1,7 +1,9 @@
+import { NodeEvent, EdgeEvent, CanvasEvent, GraphEvent } from '@antv/g6';
+
 const { Graph } = G6;
-const graph_input = document.getElementById("graph_input");
-const graph_reader = new FileReader();
-const render_button = document.getElementById("render_button");
+const graphInput = document.getElementById("graphInput");
+const graphReader = new FileReader();
+const readerButton = document.getElementById("readerButton");
 const addNodeButton = document.getElementById("addNodeButton");
 const addAPIInput = document.getElementById("addAPIInput");
 const productsInput = document.getElementById("productsInput");
@@ -18,6 +20,10 @@ const removeSourceInput = document.getElementById("removeSourceInput");
 const removeTargetInput = document.getElementById("removeTargetInput");
 const renderGraphButton = document.getElementById("renderGraphButton");
 const downloadGraphButton = document.getElementById("downloadGraphButton");
+const searchAndModifyAPIInput = document.getElementById("searchAndModifyAPIInput");
+const modifyProductsInput = document.getElementById("modifyProductsInput");
+const searchNodeButton = document.getElementById("searchNodeButton");
+const modifyNodeButton = document.getElementById("modifyNodeButton");
 
 const dataNames = ['data'];
 const nodeKeys = ['api', 'products', 'id', '_deprecated', '_comment'];
@@ -25,7 +31,7 @@ const edgeKeys = ['dependencies', 'source', 'target', 'args', 'arg_types', '_dep
 
 let graph = null; // Add graph variable to global scope
 
-render_button.disabled = true;
+readerButton.disabled = true;
 addNodeButton.disabled = true;
 removeNodeButton.disabled = true;
 addEdgeButton.disabled = true;
@@ -36,7 +42,7 @@ let graphData = null;
 
 const enableButtonIfReady = () => {
     if (graphFileUploaded) {
-        render_button.disabled = false;
+        readerButton.disabled = false;
     }
 };
 
@@ -67,6 +73,18 @@ const updateRemoveEdgeButtonState = () => {
     removeEdgeButton.disabled = !allFilled;
 };
 
+// Function to update search button state
+const updateSearchButtonState = () => {
+    searchNodeButton.disabled = !searchAndModifyAPIInput.value.trim();
+};
+
+// Function to update modify button state
+const updateModifyButtonState = () => {
+    if (!graph) return;
+    const selectedNodes = graph.getElementDataByState('node', 'selected');
+    modifyNodeButton.disabled = selectedNodes.length === 0;
+};
+
 // Add input event listeners to both fields
 addAPIInput.addEventListener('input', updateNodeButtonState);
 productsInput.addEventListener('input', updateNodeButtonState);
@@ -78,7 +96,7 @@ argsInput.addEventListener('input', updateAddEdgeButtonState);
 argTypesInput.addEventListener('input', updateAddEdgeButtonState);
 removeSourceInput.addEventListener('input', updateRemoveEdgeButtonState);
 removeTargetInput.addEventListener('input', updateRemoveEdgeButtonState);
-
+searchAndModifyAPIInput.addEventListener('input', updateSearchButtonState);
 // Add click handler for addNodeButton
 addNodeButton.addEventListener('click', () => {
     if (!graph) return; // Ensure graph exists
@@ -216,21 +234,74 @@ downloadGraphButton.addEventListener('click', () => {
     URL.revokeObjectURL(url);
 });
 
-graph_input.onchange = (event) => {
+// Add click handler for searchNodeButton
+searchNodeButton.addEventListener('click', () => {
+    if (!graph) return;
+    
+    const searchAPI = searchAndModifyAPIInput.value.trim();
+    const nodes = graph.getNodeData();
+    const foundNode = nodes.find(node => node.api === searchAPI);
+    
+    if (foundNode) {    
+        // Select the found node
+        graph.setElementState(foundNode.api, ['selected']);
+        
+        // Update products textarea
+        modifyProductsInput.value = foundNode.products.join('\n');
+        
+        // Enable modify button
+        modifyNodeButton.disabled = false;
+    } else {
+        alert('Node not found!');
+    }
+});
+
+// Add click handler for modifyNodeButton
+modifyNodeButton.addEventListener('click', () => {
+    if (!graph) return;
+    
+    const selectedNodes = graph.getElementDataByState('node', 'selected');
+    if (selectedNodes.length === 0) return;
+    if (selectedNodes.length > 1) {
+        alert('Only one node can be selected for modification!');
+        return;
+    }
+    
+    const originalAPI = selectedNodes[0].api;
+    const newAPI = searchAndModifyAPIInput.value.trim();
+    if (originalAPI != newAPI) {
+        alert('The API name cannot be changed! Otherwise you are creating a new node!');
+        return;
+    }
+    const newProducts = modifyProductsInput.value.trim().split('\n').map(p => p.trim()).filter(p => p);
+    
+    graph.updateNodeData([{
+        api: originalAPI,
+        id: originalAPI,
+        products: newProducts
+    }]);
+
+    graph.draw();
+});
+
+graphInput.onchange = (event) => {
     const file = event.target.files[0];
     if (file) {
-        graph_reader.readAsText(file);
+        graphReader.readAsText(file);
     }
 };
 
-graph_reader.onload = (event) => {
+graphReader.onload = (event) => {
     graphFileUploaded = true;
     graphData = JSON.parse(event.target.result);
     enableButtonIfReady();
 };
 
-render_button.onclick = () => {
+readerButton.onclick = () => {
     if (graphData) {
+        if (graph) {
+            graph.destroy();
+        }
         const nodes = [];
         const edges = [];
 
@@ -243,6 +314,9 @@ render_button.onclick = () => {
                     iconFontSize: 5,
                     iconFill: '#000',
                 };
+                if (graphData.nodes[i].api == "root") {
+                    graphData.nodes[i].style.fill = '#FFB6C1';
+                }
                 const node = graphData.nodes[i];
                 nodes.push(node);
             }
@@ -271,13 +345,18 @@ render_button.onclick = () => {
     }
 };
 
-var showGraph = data => {
+let showGraph = data => {
     graph = new Graph({
         container: 'container',
         autoFit: 'view',
         autoResize: true,
         data,
         node: {
+            state: {
+                selected: {
+                    lineWidth: 0,
+                }
+            },
             palette: {
                 field: 'group',
                 color: 'tableau',
@@ -285,17 +364,19 @@ var showGraph = data => {
         },
         edge: {
             style: {
-                haloLineWidth: 8,
+                haloLineWidth: 2,
                 endArrow: true,
                 endArrowSize: 2,
             },
+            state: {
+                selected: {
+                    lineWidth: 1,
+                }
+            },
         },
         layout: {
-            type: 'dendrogram',
-            direction: 'LR',
-            nodeSep: 20,
-            rankSep: 50,
-            radial: false,
+            type: 'd3-force',
+            nodeSize: 10,
         },
         behaviors: [
             'zoom-canvas', 'drag-element',
@@ -304,6 +385,8 @@ var showGraph = data => {
                 type: 'click-select',
                 key: 'click-select-1',
                 multiple: true,
+                degree: 1,
+                neighborState: 'active',
             },
             {
                 type: 'drag-canvas',
@@ -347,5 +430,25 @@ var showGraph = data => {
         ]
     });
     
+    graph.on(NodeEvent.CLICK, (e) => {
+        if (!graph) return;
+        const selectedNodes = graph.getElementDataByState('node', 'selected');
+        if (selectedNodes.length === 0) return;
+        else if (selectedNodes.length > 1) {
+            alert('Only one node can be selected!');
+            return;
+        }
+        const nodeAPI = selectedNodes[0].api;
+        const nodeProducts = selectedNodes[0].products;
+        
+        searchAndModifyAPIInput.value = nodeAPI;
+        modifyProductsInput.value = nodeProducts.join('\n');
+        
+        updateSearchButtonState();
+        updateModifyButtonState();
+    });
+
     graph.render();
+
+
 }; 
