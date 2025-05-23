@@ -5,7 +5,6 @@ from typing import Any, Optional
 from pydantic import ConfigDict, Field, PrivateAttr
 
 from biochatter.api_agent.base.agent_abc import BaseAPI
-from biochatter.api_agent.python.scanpy.info_hub import dep_graph_dict
 
 
 class ScanpyPlottingPaga(BaseAPI):
@@ -209,7 +208,6 @@ class ScanpyPlottingPaga(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.paga')
     _products_original = PrivateAttr(default=['data.uns["paga"]["pos"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -354,7 +352,6 @@ class ScanpyPlottingScatter(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.scatter')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -594,7 +591,6 @@ class ScanpyPlottingUmap(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.umap')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -834,7 +830,6 @@ class ScanpyPlottingTsne(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.tsne')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -955,7 +950,6 @@ class ScanpyPlottingHeatmap(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.heatmap')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1140,7 +1134,6 @@ class ScanpyPlottingDotplot(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.dotplot')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1246,7 +1239,6 @@ class ScanpyPlottingViolin(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.violin')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1296,7 +1288,6 @@ class ScanpyPlottingDendrogram(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.dendrogram')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1536,7 +1527,6 @@ class ScanpyPlottingDiffmap(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.diffmap')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1571,7 +1561,6 @@ class ScanpyPlottingHighlyVariableGenes(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.highly_variable_genes')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1816,7 +1805,6 @@ class ScanpyPlottingPca(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.pca')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1926,7 +1914,6 @@ class ScanpyPlottingEmbeddingDensity(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.embedding_density')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -1997,7 +1984,6 @@ class ScanpyPlottingRankGenesGroupsDotplot(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.rank_genes_groups_dotplot')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -2068,7 +2054,6 @@ class ScanpyPlottingCorrelationMatrix(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.correlation_matrix')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -2117,7 +2102,6 @@ class ScanpyPlottingHighestExprGenes(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.highest_expr_genes')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -2193,7 +2177,6 @@ class ScanpyPlottingTracksplot(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.tracksplot')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -2229,7 +2212,6 @@ class ScanpyPlottingClustermap(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.clustermap')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -2415,7 +2397,6 @@ class ScanpyPlottingStackedViolin(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.plotting.stacked_violin')
     _products_original = PrivateAttr(default=[])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 TOOLS_DICT = {
     "ScanpyPlottingPaga": ScanpyPlottingPaga,

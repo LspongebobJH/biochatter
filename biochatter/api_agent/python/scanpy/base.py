@@ -4,8 +4,5 @@ from .info_hub import dep_graph_dict
 from pydantic import PrivateAttr
 from copy import deepcopy
 
-class ScanpyAPI(BaseAPI):
-    _dep_graph_dict: dict = PrivateAttr(default=dep_graph_dict)
-
 class ScanpyDependency(BaseDependency):
     _dep_graph_dict: dict = PrivateAttr(default=dep_graph_dict)

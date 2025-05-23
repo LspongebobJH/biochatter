@@ -202,9 +202,6 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
         attr = data_model.__private_attributes__[key]
         codes += f"""\n    {key} = PrivateAttr({attr})"""
 
-    # special case for _dep_graph_dict
-    codes += f"""\n    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)"""
-
     # remove model_config as it's already set by base_class.
     codes = re.sub(
         r"model_config\s*=\s*ConfigDict\(\s*.*?\s*\)",
@@ -322,7 +319,6 @@ def apis_to_data_models(
         additional_imports = [
             "biochatter.api_agent.base.agent_abc.BaseAPI",
             "pydantic.PrivateAttr",
-            get_info_import_path(package, "dep_graph_dict")
         ]
         codes = data_model_to_py(data_model, additional_imports, _need_import)
         codes_list.append(codes)

@@ -5,7 +5,6 @@ from typing import Any, Optional
 from pydantic import ConfigDict, Field, PrivateAttr
 
 from biochatter.api_agent.base.agent_abc import BaseAPI
-from biochatter.api_agent.python.scanpy.info_hub import dep_graph_dict
 
 
 class ScanpyPreprocessingNeighbors(BaseAPI):
@@ -75,7 +74,6 @@ class ScanpyPreprocessingNeighbors(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.preprocessing.neighbors')
     _products_original = PrivateAttr(default=['data.uns["neighbors"]', 'data.obsp["distances"]', 'data.obsp["connectivities"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -121,7 +119,6 @@ class ScanpyPreprocessingLogP(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.preprocessing.log1p')
     _products_original = PrivateAttr(default=['data.X'])
     _data_name = PrivateAttr(default='data')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -201,7 +198,6 @@ class ScanpyPreprocessingHighlyVariableGenes(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.preprocessing.highly_variable_genes')
     _products_original = PrivateAttr(default=['data.var["highly_variable"]', 'data.var["means"]', 'data.var["dispersions"]', 'data.var["dispersions_norm"]', 'data.var["variances"]', 'data.var["variances_norm"]', 'data.var["highly_variable_rank"]', 'data.var["highly_variable_nbatches"]', 'data.var["highly_variable_intersection"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -282,7 +278,6 @@ class ScanpyPreprocessingPca(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.preprocessing.pca')
     _products_original = PrivateAttr(default=['data.obsm["X_pca"]', 'data.varm["PCs"]', 'data.uns["pca"]["variance_ratio"]', 'data.uns["pca"]["variance"]'])
     _data_name = PrivateAttr(default='data')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 TOOLS_DICT = {
     "ScanpyPreprocessingNeighbors": ScanpyPreprocessingNeighbors,

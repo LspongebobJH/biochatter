@@ -5,7 +5,6 @@ from typing import Any, Optional
 from pydantic import ConfigDict, Field, PrivateAttr
 
 from biochatter.api_agent.base.agent_abc import BaseAPI
-from biochatter.api_agent.python.scanpy.info_hub import dep_graph_dict
 
 
 class ScanpyToolsPaga(BaseAPI):
@@ -45,7 +44,6 @@ class ScanpyToolsPaga(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.paga')
     _products_original = PrivateAttr(default=['data.uns["paga"]["connectivities"]', 'data.uns["paga"]["connectivities_tree"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -129,7 +127,6 @@ class ScanpyToolsLeiden(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.leiden')
     _products_original = PrivateAttr(default=['data.obs["leiden"]', 'data.uns["leiden"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -210,7 +207,6 @@ class ScanpyToolsLouvain(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.louvain')
     _products_original = PrivateAttr(default=['data.obs["louvain"]', 'data.uns["louvain"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -301,7 +297,6 @@ class ScanpyToolsUmap(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.umap')
     _products_original = PrivateAttr(default=['data.obsm["X_umap"]', 'data.uns["umap"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -372,7 +367,6 @@ class ScanpyToolsTsne(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.tsne')
     _products_original = PrivateAttr(default=['data.obsm["X_tsne"]', 'data.uns["tsne"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -408,7 +402,6 @@ class ScanpyToolsDiffmap(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.diffmap')
     _products_original = PrivateAttr(default=['data.obsm["X_diffmap"]', 'data.uns["diffmap_evals"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -443,7 +436,6 @@ class ScanpyToolsEmbeddingDensity(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.embedding_density')
     _products_original = PrivateAttr(default=['data.obs["umap_density"]', 'data.uns["umap_density_params"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
@@ -534,7 +526,6 @@ class ScanpyToolsRankGenesGroups(BaseAPI):
     _api_name = PrivateAttr(default='scanpy.tools.rank_genes_groups')
     _products_original = PrivateAttr(default=['data.uns["rank_genes_groups"]'])
     _data_name = PrivateAttr(default='adata')
-    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 TOOLS_DICT = {
     "ScanpyToolsPaga": ScanpyToolsPaga,

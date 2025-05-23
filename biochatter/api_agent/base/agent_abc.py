@@ -476,9 +476,6 @@ class BaseAPI(BaseObject):
     _products_original: list[str] = PrivateAttr(default=[])
     _data_name: str = PrivateAttr(default="")
 
-    ## it's better to use API-specific dict rather than the whole dependency graph dict
-    _dep_graph_dict: dict = PrivateAttr(default={})
-
     # these members can only be set during execution graph forward pass.
     # _products.data and _deps.data are created in forward pass.
     # _products.keys_info is created in post parametrize stage.
