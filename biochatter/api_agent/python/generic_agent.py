@@ -6,10 +6,10 @@ from types import ModuleType
 from langchain_core.output_parsers import PydanticToolsParser
 
 from biochatter.api_agent.base.agent_abc import BaseAPIModel, BaseQueryBuilder
-from biochatter.api_agent.python.autogenerate_model import generate_pydantic_classes
+from biochatter.api_agent.gen_data_model import generate_pydantic_classes
 from biochatter.llm_connect import Conversation
 
-
+# Jiahang: deprecated.
 class GenericQueryBuilder(BaseQueryBuilder):
     """A class for building a generic query using LLM tools.
 

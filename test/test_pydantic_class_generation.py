@@ -1,6 +1,6 @@
 import scanpy as sc
 
-from biochatter.api_agent.python.autogenerate_model import generate_pydantic_classes
+from biochatter.api_agent.gen_data_model import generate_pydantic_classes
 
 EXPECTED_UMAP_PARAMS = 16
 

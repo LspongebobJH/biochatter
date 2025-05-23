@@ -31,7 +31,6 @@ def _postprocess_parametrise_api(api: BaseAPI) -> "BaseAPI":
         _api._products = BaseData(
             keys_info=_str_list_to_keys_info(input_api.products)
         )
-        _api.__setattr__(_api._data_name, "data")
         return _api
     else:
         return api

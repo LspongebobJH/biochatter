@@ -11,9 +11,9 @@ import ast
 import json
 from typing import Any
 from copy import deepcopy
+
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr, field_validator, model_validator
-from pydantic.fields import FieldInfo
 from biochatter.llm_connect import Conversation
 from ._python_interpreter import evaluate_python_code
 
@@ -168,6 +168,7 @@ class BaseInterpreter(ABC):
         """
 
 
+# Jiahang: deprecated, replaced by BaseAPI
 class BaseAPIModel(BaseModel):
     """A base class for all API models.
 
@@ -469,26 +470,22 @@ class BaseAPI(BaseObject):
     the variable name "data" should not be overlapped. This is one of the standards.
     """
 
+    # Jiahang: revise below
+    # these members should be set in class definition.
     _api_name: str = PrivateAttr(default="")
-    _products: BaseData = PrivateAttr(default=BaseData())
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="")
 
-    # The dependencies of the API.
-    # This object should NOT be set in initialization.
-    # It should only be set dynamically during forward pass over execution graph,
-    # which is conducted internally.
-    _deps: BaseData = PrivateAttr(default=BaseData())
-
-    # state should only be things like imported packages, environment variables, etc., which
-    # will not be used in actual computation and not be modified. all computed things should be
-    # stored in _deps.data and _products.data.
-    # Jiahang: we need to some how check this.
-    # Jiahang: these notes should be written in the docstring of the class.
+    ## it's better to use API-specific dict rather than the whole dependency graph dict
     _dep_graph_dict: dict = PrivateAttr(default={})
 
-    # Which argument refers to data. These are special arguments, which are standarized
-    # to be "data" in BioMANIA and should be set to "data" in postprocess, no matter what
-    # random predictions made by LLM.
-    _data_name: str = PrivateAttr(default="")
+    # these members can only be set during execution graph forward pass.
+    # _products.data and _deps.data are created in forward pass.
+    # _products.keys_info is created in post parametrize stage.
+    # _deps.keys_info in created in forward pass.
+    _products: BaseData = PrivateAttr(default=BaseData())
+    _deps: BaseData = PrivateAttr(default=BaseData())
+    
 
     def _hash_members(self):
         members = self.model_dump()
@@ -510,7 +507,6 @@ class BaseAPI(BaseObject):
             params.append(arg)
         return f"{self._api_name}({', '.join(params)})"
 
-    # Jiahang: be abstractmethod in the future
     def execute(self, state: dict[str, object]):
         """Execute the API call with the given arguments."""
         api_calling = self.to_api_calling()
@@ -521,6 +517,18 @@ class BaseAPI(BaseObject):
         else:
             self._products.data = state["data"]
             return results, api_calling
+        
+    def post_parametrise(self):
+        """Post parametrise the API.
+        
+        Assuming the API is instantiated and parametrised, this method is to complete the API
+        with other information, such as _products.keys_info.
+
+        Jiahang: not employed yet.
+        """
+        self._products = BaseData(
+            keys_info=_str_list_to_keys_info(self._products_original)
+        )
         
 class ROOT(BaseAPI):
     """This API does nothing but just returning the input. This API has no arguments and dependencies."""
@@ -568,7 +576,7 @@ class BaseDependency(BaseObject):
             return internal_dep
         else:
             raise ValueError("Dependency graph dict is not set.")
-    
+
 
 class InputAPI(BaseObject):
     """A class representing an input API.

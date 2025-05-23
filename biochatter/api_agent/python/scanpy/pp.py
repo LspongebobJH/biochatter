@@ -1,418 +1,292 @@
-from typing import Literal
-from pydantic import BaseModel, PrivateAttr, Field, model_validator
+from __future__ import annotations
+
+from typing import Any, Optional
+
+from pydantic import ConfigDict, Field, PrivateAttr
 
 from biochatter.api_agent.base.agent_abc import BaseAPI
-from .base import ScanpyAPI
-
-# Jiahang: unfinished
-class ScPpNeighbors(ScanpyAPI):
-    """Compute the nearest neighbors distance matrix and a neighborhood graph of observations."""
-
-    _api_name: str = PrivateAttr(default='sc.pp.neighbors')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix")
-    n_neighbors: int = Field(15, description="The size of local neighborhood (in terms of number of neighboring data points) used for manifold approximation.")
-    n_pcs: int | None = Field(None, description="Number of principal components to use.")
-    knn: bool = Field(True, description="If True, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to neighbors more distant than the n_neighbors nearest neighbor.")
+from biochatter.api_agent.python.scanpy.info_hub import dep_graph_dict
 
 
-class ScPpCalculateQCMetrics(ScanpyAPI):
-    """Calculate quality control metrics for the data matrix."""
-
-    _api_name: str = PrivateAttr(default='sc.pp.calculate_qc_metrics')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix")
-    expr_type: str = Field("counts", description="Name of kind of values in X")
-    var_type: str = Field("genes", description="The kind of thing the variables are")
-    qc_vars: str = Field("", description="Keys for boolean columns of .var for control variables")
-    percent_top: str = Field("50,100,200,500", description="Ranks for library complexity assessment")
-    layer: str = Field(None, description="Layer to use for expression values")
-    use_raw: bool = Field(False, description="Use adata.raw.X instead of adata.X")
-    inplace: bool = Field(False, description="Place calculated metrics in adata's .obs and .var")
-    log1p: bool = Field(True, description="Compute log1p transformed annotations")
-    parallel: bool | None = Field(None, description="Parallel computation flag")
-
-
-
-class ScPpFilterCells(ScanpyAPI):
-    """Filter cells based on number of gene counts."""
-    _api_name: str = PrivateAttr(default='sc.pp.filter_cells')
-    _data_name: str = PrivateAttr(default='data')
-    data: str = Field(
-        "data",
-        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
-    )
-    min_counts: int | None = Field(None, description="Minimum number of counts required for a cell to pass filtering.")
-    min_genes: int | None = Field(
-        None, description="Minimum number of genes expressed required for a cell to pass filtering."
-    )
-    max_counts: int | None = Field(None, description="Maximum number of counts required for a cell to pass filtering.")
-    max_genes: int | None = Field(
-        None, description="Maximum number of genes expressed required for a cell to pass filtering."
-    )
-    inplace: bool = Field(True, description="Perform computation inplace or return result.")
-
-
-
-class ScPpFilterGenes(ScanpyAPI):
-    """Filter genes based on number of cell counts."""
-
-    _api_name: str = PrivateAttr(default='sc.pp.filter_genes')
-    _data_name: str = PrivateAttr(default='data')
-    data: str = Field(
-        "data",
-        description="An annotated data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
-    )
-    min_counts: int | None = Field(None, description="Minimum number of counts required for a gene to pass filtering.")
-    min_cells: int | None = Field(
-        None,
-        description="Minimum number of cells in which the gene is expressed required for the gene to pass filtering.",
-    )
-    max_counts: int | None = Field(None, description="Maximum number of counts allowed for a gene to pass filtering.")
-    max_cells: int | None = Field(
-        None,
-        description="Maximum number of cells in which the gene is expressed allowed for the gene to pass filtering.",
-    )
-    inplace: bool = Field(True, description="Perform computation inplace or return result.")
-
-
-
-class ScPpHighlyVariableGenes(ScanpyAPI):
-    """Identify highly variable genes based on mean and variance of gene expressions."""
-    _api_name: str = PrivateAttr(default='sc.pp.highly_variable_genes')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field(
-        "data", description="Annotated data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes."
-    )
-    layer: str | None = Field(None, description="Use adata.layers[layer] for expression values instead of adata.X.")
-    n_top_genes: int | None = Field(
-        None, description="Number of highly-variable genes to keep. Mandatory if flavor='seurat_v3'."
-    )
-    min_mean: float = Field(
-        0.0125,
-        description="Minimum mean expression threshold for highly variable genes. Ignored if flavor='seurat_v3'.",
-    )
-    max_mean: float = Field(
-        3, description="Maximum mean expression threshold for highly variable genes. Ignored if flavor='seurat_v3'."
-    )
-    min_disp: float = Field(
-        0.5, description="Minimum dispersion threshold for highly variable genes. Ignored if flavor='seurat_v3'."
-    )
-    max_disp: float = Field(
-        1e9,
-        description="Maximum dispersion threshold for highly variable genes. Ignored if flavor='seurat_v3'. Note that we use 1e9 instead of inf as scanpy default to avoid JSON representation error.",
-    )
-    span: float = Field(
-        0.3,
-        description="Fraction of the data (cells) used in variance estimation for the loess model fit if flavor='seurat_v3'.",
-    )
-    n_bins: int = Field(
-        20, description="Number of bins for binning the mean gene expression. Normalization is done per bin."
-    )
-    flavor: Literal["seurat", "cell_ranger", "seurat_v3", "seurat_v3_paper"] = Field(
-        "seurat", description="The method to use for identifying highly variable genes."
-    )
-    subset: bool = Field(False, description="If True, subset to highly-variable genes, otherwise just indicate them.")
-    # Jiahang: predict to be False...
-    inplace: bool = Field(True, description="Whether to place calculated metrics in .var or return them.")
-    batch_key: str | None = Field(
-        None, description="If specified, highly-variable genes are selected separately within each batch and merged."
-    )
-    check_values: bool = Field(
-        True, description="Whether to check if counts in selected layer are integers (relevant for flavor='seurat_v3')."
-    )
-
-class ScPpLog1p(ScanpyAPI):
-    """Logarithmize the data matrix."""
-    _api_name: str = PrivateAttr(default='sc.pp.log1p')
-    _data_name: str = PrivateAttr(default='data')
-    data: str = Field(
-        "data",
-        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
-    )
-    base: float | None = Field(None, description="Base of the logarithm. Natural logarithm is used by default.")
-    chunked: bool | None = Field(
-        None, description="Process the data matrix in chunks, which will save memory. Applies only to AnnData."
-    )
-    chunk_size: int | None = Field(None, description="Number of observations (n_obs) per chunk to process the data in.")
-    layer: str | None = Field(None, description="Entry of layers to transform.")
-    obsm: str | None = Field(None, description="Entry of obsm to transform.")
-
-    def _arg_repr(self, key, val) -> str:
-        if key == self._data_name:
-            return f"{val}" # log1p requires the first arg to be positional arg. bad implementation.
-        if type(val) == str and key != self._data_name:
-            return f"{key}='{val}'"
-        return f"{key}={val}"
-
-
-
-class ScPpPCA(ScanpyAPI):
-    """Apply Principal Component Analysis (PCA) for dimensionality reduction to data matrix ."""
-    _api_name: str = PrivateAttr(default='sc.pp.pca')
-    _data_name: str = PrivateAttr(default='data')
-    data: str = Field(
-        "data",
-        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
-    )
-    n_comps: int | None = Field(
-        None,
-        description="Number of principal components to compute. Defaults to 50, or 1 - minimum dimension size of selected representation.",
-    )
-    layer: str | None = Field(None, description="If provided, which element of layers to use for PCA.")
-    zero_center: bool = Field(
-        True,
-        description="If True, compute standard PCA from covariance matrix. If False, omit zero-centering variables.",
-    )
-    svd_solver: str | None = Field(
-        None, description="SVD solver to use. Options: 'auto', 'arpack', 'randomized', 'lobpcg', or 'tsqr'."
-    )
-    random_state: int | None = Field(0, description="Change to use different initial states for the optimization.")
-    return_info: bool = Field(
-        False, description="Only relevant when not passing an AnnData. Whether to return PCA info."
-    )
-    mask_var: str | None = Field(
-        None, description="To run PCA only on certain genes. Default is .var['highly_variable'] if available."
-    )
-    use_highly_variable: bool | None = Field(
-        None,
-        description="Whether to use highly variable genes only, stored in .var['highly_variable']. Deprecated in 1.10.0.",
-    )
-    dtype: str = Field("float32", description="Numpy data type string to which to convert the result.")
-    chunked: bool = Field(
-        False, description="If True, perform incremental PCA using sklearn IncrementalPCA or dask-ml IncrementalPCA."
-    )
-    chunk_size: int | None = Field(
-        None, description="Number of observations to include in each chunk. Required if chunked=True."
-    )
-
-
-
-class ScPpNormalizeTotal(ScanpyAPI):
-    """Normalize total counts per cell to a target sum."""
-    _api_name: str = PrivateAttr(default='sc.pp.normalize_total')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field(
-        "data",
-        description="The annotated data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
-    )
-    target_sum: float | None = Field(
-        None,
-        description="Target sum after normalization. If None, each cell will have total counts equal to the median before normalization.",
-    )
-    exclude_highly_expressed: bool = Field(
-        False, description="If True, exclude highly expressed genes from normalization computation."
-    )
-    max_fraction: float = Field(
-        0.05,
-        description="If exclude_highly_expressed=True, consider a gene as highly expressed if it has more than max_fraction of the total counts in at least one cell.",
-    )
-    key_added: str | None = Field(
-        None, description="Name of the field in adata.obs where the normalization factor is stored."
-    )
-    layer: str | None = Field(None, description="Layer to normalize instead of X. If None, normalize X.")
-    inplace: bool = Field(
-        True, description="Whether to update adata or return normalized copies of adata.X and adata.layers."
-    )
-
-
-
-class ScPpRegressOut(ScanpyAPI):
-    """Regress out unwanted sources of variation from the data matrix."""
-    _api_name: str = PrivateAttr(default='sc.pp.regress_out')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="The annotated data matrix.")
-    keys: str | list[str] = Field(
+class ScanpyPreprocessingNeighbors(BaseAPI):
+    
+    adata: Any = Field(
         ...,
-        description="Keys for observation annotation on which to regress on. Can be a single key or a list of keys.",
+        description='Annotated data matrix.\nOriginal type annotation: AnnData',
+        title='Adata',
     )
-    layer: str | None = Field(None, description="Layer to regress on, if provided.")
-    n_jobs: int | None = Field(
-        None, description="Number of jobs for parallel computation. None means using default n_jobs."
+    n_neighbors: Optional[Any] = Field(
+        15,
+        description='The size of local neighborhood (in terms of number of neighboring data\npoints) used for manifold approximation. Larger values result in more\nglobal views of the manifold, while smaller values result in more local\ndata being preserved. In general values should be in the range 2 to 100.\nIf `knn` is `True`, number of nearest neighbors to be searched. If `knn`\nis `False`, a Gaussian kernel width is set to the distance of the\n`n_neighbors` neighbor.\n\n*ignored if ``transformer`` is an instance.*\nOriginal type annotation: int',
+        title='N Neighbors',
     )
-
-
-
-class ScPpScale(ScanpyAPI):
-    """Scale the data matrix to unit variance and zero mean."""
-    _api_name: str = PrivateAttr(default='sc.pp.scale')
-    _data_name: str = PrivateAttr(default='data')
-    data: str = Field(
-        "data",
-        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
-    )
-    zero_center: bool = Field(
-        True, description="If False, omit zero-centering variables, which allows to handle sparse input efficiently."
-    )
-    max_value: float | None = Field(
-        None, description="Clip (truncate) to this value after scaling. If None, do not clip."
-    )
-    layer: str | None = Field(None, description="If provided, which element of layers to scale.")
-    obsm: str | None = Field(None, description="If provided, which element of obsm to scale.")
-    mask_obs: str | None = Field(
+    n_pcs: Any = Field(
         None,
-        description="Restrict the scaling to a certain set of observations. The mask is specified as a boolean array or a string referring to an array in obs.",
+        description='Use this many PCs. If `n_pcs==0` use `.X` if `use_rep is None`.\nOriginal type annotation: int | None',
+        title='N Pcs',
     )
-
-
-
-class ScPpSample(ScanpyAPI):
-    """Sample observations or variables with or without replacement."""
-    _api_name: str = PrivateAttr(default='sc.pp.sample')
-    _data_name: str = PrivateAttr(default='data')
-    data: str = Field(
-        "data",
-        description="The (annotated) data matrix of shape n_obs x n_vars. Rows correspond to cells and columns to genes.",
-    )
-    fraction: float | None = Field(None, description="Sample to this fraction of the number of observations.")
-    n_obs: int | None = Field(None, description="Sample to this number of observations.")
-    random_state: int | None = Field(0, description="Random seed to change subsampling.")
-
-
-
-class ScPpDownsampleCounts(ScanpyAPI):
-    """Downsample counts in the data matrix."""
-    _api_name: str = PrivateAttr(default='sc.pp.downsample_counts')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix.")
-    counts_per_cell: int | None = Field(
+    use_rep: Any = Field(
         None,
-        description="Target total counts per cell. If a cell has more than ‘counts_per_cell’, it will be downsampled to this number. Can be an integer or integer ndarray with same length as number of observations.",
+        description="Use the indicated representation. `'X'` or any key for `.obsm` is valid.\nIf `None`, the representation is chosen automatically:\nFor `.n_vars` < :attr:`~scanpy._settings.ScanpyConfig.N_PCS` (default: 50), `.X` is used, otherwise 'X_pca' is used.\nIf 'X_pca' is not present, it’s computed with default parameters or `n_pcs` if present.\nOriginal type annotation: str | None",
+        title='Use Rep',
     )
-    total_counts: int | None = Field(
+    knn: Optional[Any] = Field(
+        True,
+        description='If `True`, use a hard threshold to restrict the number of neighbors to\n`n_neighbors`, that is, consider a knn graph. Otherwise, use a Gaussian\nKernel to assign low weights to neighbors more distant than the\n`n_neighbors` nearest neighbor.\nOriginal type annotation: bool',
+        title='Knn',
+    )
+    method: Optional[Any] = Field(
+        'umap',
+        description="Use 'umap' :cite:p:`McInnes2018` or 'gauss' (Gauss kernel following :cite:t:`Coifman2005`\nwith adaptive width :cite:t:`Haghverdi2016`) for computing connectivities.\nOriginal type annotation: _Method",
+        title='Method',
+    )
+    transformer: Any = Field(
         None,
-        description="Target total counts. If the count matrix has more than total_counts, it will be downsampled to this number.",
+        description="Approximate kNN search implementation following the API of\n:class:`~sklearn.neighbors.KNeighborsTransformer`.\nSee :doc:`/how-to/knn-transformers` for more details.\nAlso accepts the following known options:\n\n`None` (the default)\n    Behavior depends on data size.\n    For small data, we will calculate exact kNN, otherwise we use\n    :class:`~pynndescent.pynndescent_.PyNNDescentTransformer`\n`'pynndescent'`\n    :class:`~pynndescent.pynndescent_.PyNNDescentTransformer`\n`'rapids'`\n    A transformer based on :class:`cuml.neighbors.NearestNeighbors`.\n\n    .. deprecated:: 1.10.0\n       Use :func:`rapids_singlecell.pp.neighbors` instead.\nOriginal type annotation: KnnTransformerLike | _KnownTransformer | None",
+        title='Transformer',
     )
-    random_state: int | None = Field(0, description="Random seed for subsampling.")
-    replace: bool = Field(False, description="Whether to sample the counts with replacement.")
-
-
-
-class ScPpRecipeZheng17(ScanpyAPI):
-    """Preprocess data according to the Zheng et al. (2017) recipe."""
-    _api_name: str = PrivateAttr(default='sc.pp.recipe_zeng17')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix.")
-    n_top_genes: int = Field(1000, description="Number of genes to keep.")
-    log: bool = Field(True, description="Take logarithm. If True, log-transform data after filtering.")
-    plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
-
-
-
-class ScPpRecipeWeinreb17(ScanpyAPI):
-    """Preprocess data according to the Weinreb et al. (2017) recipe."""
-    _api_name: str = PrivateAttr(default='sc.pp.recipe_weinreb17')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix.")
-    log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
-    mean_threshold: float = Field(0.01, description="Threshold for mean expression of genes.")
-    cv_threshold: float = Field(2, description="Threshold for coefficient of variation (CV) for gene dispersion.")
-    n_pcs: int = Field(50, description="Number of principal components to use.")
-    svd_solver: str = Field("randomized", description="SVD solver to use.")
-    random_state: int = Field(0, description="Random state for reproducibility of results.")
-
-
-
-class ScPpRecipeSeurat(ScanpyAPI):
-    """Preprocess data according to the Seurat recipe."""
-    _api_name: str = PrivateAttr(default='sc.pp.recipe_seurat')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix.")
-    log: bool = Field(True, description="Logarithmize data? If True, log-transform the data.")
-    plot: bool = Field(False, description="Show a plot of the gene dispersion vs. mean relation.")
-
-
-
-class ScPpCombat(ScanpyAPI):
-    """Remove batch effects from the data matrix using ComBat."""
-    _api_name: str = PrivateAttr(default='sc.pp.combat')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix.")
-    key: str = Field(
-        "batch", description="Key to a categorical annotation from obs that will be used for batch effect removal."
+    metric: Optional[Any] = Field(
+        'euclidean',
+        description='A known metric’s name or a callable that returns a distance.\n\n*ignored if ``transformer`` is an instance.*\nOriginal type annotation: _Metric | _MetricFn',
+        title='Metric',
     )
-    covariates: list[str] | None = Field(
-        None, description="Additional covariates such as adjustment variables or biological conditions."
+    metric_kwds: Optional[Any] = Field(
+        {},
+        description='Options for the metric.\n\n*ignored if ``transformer`` is an instance.*\nOriginal type annotation: Mapping[str, Any]',
+        title='Metric Kwds',
     )
-    inplace: bool = Field(True, description="Whether to replace adata.X or to return the corrected data.")
+    random_state: Optional[Any] = Field(
+        0,
+        description='A numpy random seed.\n\n*ignored if ``transformer`` is an instance.*\nOriginal type annotation: _LegacyRandom',
+        title='Random State',
+    )
+    key_added: Any = Field(
+        None,
+        description="If not specified, the neighbors data is stored in `.uns['neighbors']`,\ndistances and connectivities are stored in `.obsp['distances']` and\n`.obsp['connectivities']` respectively.\nIf specified, the neighbors data is added to .uns[key_added],\ndistances are stored in `.obsp[key_added+'_distances']` and\nconnectivities in `.obsp[key_added+'_connectivities']`.\nOriginal type annotation: str | None",
+        title='Key Added',
+    )
+    copy_: Optional[Any] = Field(
+        False,
+        alias='copy',
+        description='Return a copy instead of writing to adata.\nOriginal type annotation: bool',
+        title='Copy',
+    )
+
+    _api_name = PrivateAttr(default='scanpy.preprocessing.neighbors')
+    _products_original = PrivateAttr(default=['data.uns["neighbors"]', 'data.obsp["distances"]', 'data.obsp["connectivities"]'])
+    _data_name = PrivateAttr(default='adata')
+    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
-class ScPpScrublet(ScanpyAPI):
-    """Detect doublets in single-cell RNA-seq data using Scrublet."""
-    _api_name: str = PrivateAttr(default='sc.pp.scrublet')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field("data", description="Annotated data matrix (n_obs x n_vars).")
-    adata_sim: str | None = Field(
-        None, description="Optional AnnData object from scrublet_simulate_doublets() with same number of vars as adata."
+class ScanpyPreprocessingLogP(BaseAPI):
+    
+    data: Any = Field(
+        ...,
+        description='The (annotated) data matrix of shape `n_obs` × `n_vars`.\nRows correspond to cells and columns to genes.\nOriginal type annotation: AnnData | np.ndarray | _CSMatrix',
+        title='Data',
     )
-    batch_key: str | None = Field(None, description="Optional obs column name discriminating between batches.")
-    sim_doublet_ratio: float = Field(
-        2.0, description="Number of doublets to simulate relative to the number of observed transcriptomes."
+    base: Any = Field(
+        None,
+        description='Base of the logarithm. Natural logarithm is used by default.\nOriginal type annotation: Number | None',
+        title='Base',
     )
-    expected_doublet_rate: float = Field(0.05, description="Estimated doublet rate for the experiment.")
-    stdev_doublet_rate: float = Field(0.02, description="Uncertainty in the expected doublet rate.")
-    synthetic_doublet_umi_subsampling: float = Field(
-        1.0, description="Rate for sampling UMIs when creating synthetic doublets."
+    copy_: Optional[Any] = Field(
+        False,
+        alias='copy',
+        description='If an :class:`~anndata.AnnData` is passed, determines whether a copy\nis returned.\nOriginal type annotation: bool',
+        title='Copy',
     )
-    knn_dist_metric: str = Field("euclidean", description="Distance metric used for nearest neighbor search.")
-    normalize_variance: bool = Field(True, description="Normalize the data such that each gene has a variance of 1.")
-    log_transform: bool = Field(False, description="Whether to log-transform the data prior to PCA.")
-    mean_center: bool = Field(True, description="If True, center the data such that each gene has a mean of 0.")
-    n_prin_comps: int = Field(
-        30,
-        description="Number of principal components used to embed the transcriptomes prior to KNN graph construction.",
+    chunked: Any = Field(
+        None,
+        description='Process the data matrix in chunks, which will save memory.\nApplies only to :class:`~anndata.AnnData`.\nOriginal type annotation: bool | None',
+        title='Chunked',
     )
-    use_approx_neighbors: bool = Field(
-        False, description="Use approximate nearest neighbor method (annoy) for KNN classifier."
+    chunk_size: Any = Field(
+        None,
+        description='`n_obs` of the chunks to process the data in.\nOriginal type annotation: int | None',
+        title='Chunk Size',
     )
-    get_doublet_neighbor_parents: bool = Field(
-        False, description="If True, return parent transcriptomes that generated the doublet neighbors."
+    layer: Any = Field(
+        None,
+        description='Entry of layers to transform.\nOriginal type annotation: str | None',
+        title='Layer',
     )
-    n_neighbors: int | None = Field(None, description="Number of neighbors used to construct the KNN graph.")
-    threshold: float | None = Field(None, description="Doublet score threshold for calling a transcriptome a doublet.")
-    verbose: bool = Field(True, description="If True, log progress updates.")
+    obsm: Any = Field(
+        None,
+        description='Entry of obsm to transform.\nOriginal type annotation: str | None',
+        title='Obsm',
+    )
+
+    _api_name = PrivateAttr(default='scanpy.preprocessing.log1p')
+    _products_original = PrivateAttr(default=['data.X'])
+    _data_name = PrivateAttr(default='data')
+    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
 
-class ScPpScrubletSimulateDoublets(ScanpyAPI):
-    """Simulate doublets by adding the counts of random observed transcriptome pairs."""
-    _api_name: str = PrivateAttr(default='sc.pp.scrublet_simulate_doublets')
-    _data_name: str = PrivateAttr(default='adata')
-    adata: str = Field(
-        "data", description="Annotated data matrix of shape n_obs x n_vars. Rows correspond to cells, columns to genes."
+class ScanpyPreprocessingHighlyVariableGenes(BaseAPI):
+    
+    adata: Any = Field(
+        ...,
+        description='The annotated data matrix of shape `n_obs` × `n_vars`. Rows correspond\nto cells and columns to genes.\nOriginal type annotation: AnnData',
+        title='Adata',
     )
-    layer: str | None = Field(
-        None, description="Layer of adata where raw values are stored, or 'X' if values are in .X."
+    layer: Any = Field(
+        None,
+        description='If provided, use `adata.layers[layer]` for expression values instead of `adata.X`.\nOriginal type annotation: str | None',
+        title='Layer',
     )
-    sim_doublet_ratio: float = Field(
-        2.0, description="Number of doublets to simulate relative to the number of observed transcriptomes."
+    n_top_genes: Any = Field(
+        None,
+        description="Number of highly-variable genes to keep. Mandatory if `flavor='seurat_v3'`.\nOriginal type annotation: int | None",
+        title='N Top Genes',
     )
-    synthetic_doublet_umi_subsampling: float = Field(
-        1.0,
-        description="Rate for sampling UMIs when creating synthetic doublets. If 1.0, simply add UMIs from two randomly sampled transcriptomes.",
+    min_disp: Optional[Any] = Field(
+        0.5,
+        description="If `n_top_genes` unequals `None`, this and all other cutoffs for the means and the\nnormalized dispersions are ignored. Ignored if `flavor='seurat_v3'`.\nOriginal type annotation: float",
+        title='Min Disp',
     )
-    random_seed: int = Field(0, description="Random seed for reproducibility.")
+    max_disp: Optional[Any] = Field(
+        'inf',
+        description="If `n_top_genes` unequals `None`, this and all other cutoffs for the means and the\nnormalized dispersions are ignored. Ignored if `flavor='seurat_v3'`.\nOriginal type annotation: float",
+        title='Max Disp',
+    )
+    min_mean: Optional[Any] = Field(
+        0.0125,
+        description="If `n_top_genes` unequals `None`, this and all other cutoffs for the means and the\nnormalized dispersions are ignored. Ignored if `flavor='seurat_v3'`.\nOriginal type annotation: float",
+        title='Min Mean',
+    )
+    max_mean: Optional[Any] = Field(
+        3,
+        description="If `n_top_genes` unequals `None`, this and all other cutoffs for the means and the\nnormalized dispersions are ignored. Ignored if `flavor='seurat_v3'`.\nOriginal type annotation: float",
+        title='Max Mean',
+    )
+    span: Optional[Any] = Field(
+        0.3,
+        description="The fraction of the data (cells) used when estimating the variance in the loess\nmodel fit if `flavor='seurat_v3'`.\nOriginal type annotation: float",
+        title='Span',
+    )
+    n_bins: Optional[Any] = Field(
+        20,
+        description="Number of bins for binning the mean gene expression. Normalization is\ndone with respect to each bin. If just a single gene falls into a bin,\nthe normalized dispersion is artificially set to 1. You'll be informed\nabout this if you set `settings.verbosity = 4`.\nOriginal type annotation: int",
+        title='N Bins',
+    )
+    flavor: Optional[Any] = Field(
+        'seurat',
+        description="Choose the flavor for identifying highly variable genes. For the dispersion\nbased methods in their default workflows, Seurat passes the cutoffs whereas\nCell Ranger passes `n_top_genes`.\nOriginal type annotation: Literal['seurat', 'cell_ranger', 'seurat_v3', 'seurat_v3_paper']",
+        title='Flavor',
+    )
+    subset: Optional[Any] = Field(
+        False,
+        description='Inplace subset to highly-variable genes if `True` otherwise merely indicate\nhighly variable genes.\nOriginal type annotation: bool',
+        title='Subset',
+    )
+    inplace: Optional[Any] = Field(
+        True,
+        description='Whether to place calculated metrics in `.var` or return them.\nOriginal type annotation: bool',
+        title='Inplace',
+    )
+    batch_key: Any = Field(
+        None,
+        description="If specified, highly-variable genes are selected within each batch separately and merged.\nThis simple process avoids the selection of batch-specific genes and acts as a\nlightweight batch correction method. For all flavors, except `seurat_v3`, genes are first sorted\nby how many batches they are a HVG. For dispersion-based flavors ties are broken\nby normalized dispersion. For `flavor = 'seurat_v3_paper'`, ties are broken by the median\n(across batches) rank based on within-batch normalized variance.\nOriginal type annotation: str | None",
+        title='Batch Key',
+    )
+    check_values: Optional[Any] = Field(
+        True,
+        description="Check if counts in selected layer are integers. A Warning is returned if set to True.\nOnly used if `flavor='seurat_v3'`/`'seurat_v3_paper'`.\nOriginal type annotation: bool",
+        title='Check Values',
+    )
+
+    _api_name = PrivateAttr(default='scanpy.preprocessing.highly_variable_genes')
+    _products_original = PrivateAttr(default=['data.var["highly_variable"]', 'data.var["means"]', 'data.var["dispersions"]', 'data.var["dispersions_norm"]', 'data.var["variances"]', 'data.var["variances_norm"]', 'data.var["highly_variable_rank"]', 'data.var["highly_variable_nbatches"]', 'data.var["highly_variable_intersection"]'])
+    _data_name = PrivateAttr(default='adata')
+    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
 
 
-TOOLS = [
-    ScPpNeighbors,
-    ScPpCalculateQCMetrics,
-    ScPpFilterCells,
-    ScPpFilterGenes,
-    ScPpHighlyVariableGenes,
-    ScPpLog1p,
-    ScPpPCA,
-    ScPpNormalizeTotal,
-    ScPpRegressOut,
-    ScPpScale,
-    ScPpSample,
-    ScPpRecipeZheng17,
-    ScPpRecipeWeinreb17,
-    ScPpRecipeSeurat,
-    ScPpCombat,
-    ScPpScrublet,
-    ScPpScrubletSimulateDoublets
-]
 
-TOOLS_DICT = {tool._api_name.default: tool for tool in TOOLS}
+class ScanpyPreprocessingPca(BaseAPI):
+    
+    data: Any = Field(
+        ...,
+        description='The (annotated) data matrix of shape `n_obs` × `n_vars`.\nRows correspond to cells and columns to genes.\nOriginal type annotation: AnnData | np.ndarray | _CSMatrix',
+        title='Data',
+    )
+    n_comps: Any = Field(
+        None,
+        description='Number of principal components to compute. Defaults to 50, or 1 - minimum\ndimension size of selected representation.\nOriginal type annotation: int | None',
+        title='N Comps',
+    )
+    layer: Any = Field(
+        None,
+        description='Layer of `adata` to use as expression values.\nOriginal type annotation: str | None',
+        title='Layer',
+    )
+    zero_center: Optional[Any] = Field(
+        True,
+        description='If `True`, compute standard PCA from covariance matrix.\nIf `False`, omit zero-centering variables\n(uses *scikit-learn* :class:`~sklearn.decomposition.TruncatedSVD` or\n*dask-ml* :class:`~dask_ml.decomposition.TruncatedSVD`),\nwhich allows to handle sparse input efficiently.\nPassing `None` decides automatically based on sparseness of the data.\nOriginal type annotation: bool | None',
+        title='Zero Center',
+    )
+    svd_solver: Any = Field(
+        None,
+        description='SVD solver to use:\n\n`None`\n    See `chunked` and `zero_center` descriptions to determine which class will be used.\n    Depending on the class and the type of X different values for default will be set.\n    For sparse *dask* arrays, will use `\'covariance_eigh\'`.\n    If *scikit-learn* :class:`~sklearn.decomposition.PCA` is used, will give `\'arpack\'`,\n    if *scikit-learn* :class:`~sklearn.decomposition.TruncatedSVD` is used, will give `\'randomized\'`,\n    if *dask-ml* :class:`~dask_ml.decomposition.PCA` or :class:`~dask_ml.decomposition.IncrementalPCA` is used, will give `\'auto\'`,\n    if *dask-ml* :class:`~dask_ml.decomposition.TruncatedSVD` is used, will give `\'tsqr\'`\n`\'arpack\'`\n    for the ARPACK wrapper in SciPy (:func:`~scipy.sparse.linalg.svds`)\n    Not available with *dask* arrays.\n`\'covariance_eigh\'`\n    Classic eigendecomposition of the covariance matrix, suited for tall-and-skinny matrices.\n    With dask, array must be CSR or dense and chunked as (N, adata.shape[1]).\n`\'randomized\'`\n    for the randomized algorithm due to Halko (2009). For *dask* arrays,\n    this will use :func:`~dask.array.linalg.svd_compressed`.\n`\'auto\'`\n    chooses automatically depending on the size of the problem.\n`\'tsqr\'`\n    Only available with dense *dask* arrays. "tsqr"\n    algorithm from Benson et. al. (2013).\n\n.. versionchanged:: 1.9.3\n   Default value changed from `\'arpack\'` to None.\n.. versionchanged:: 1.4.5\n   Default value changed from `\'auto\'` to `\'arpack\'`.\n\nEfficient computation of the principal components of a sparse matrix\ncurrently only works with the `\'arpack`\' or `\'covariance_eigh`\' solver.\n\nIf X is a sparse *dask* array, a custom `\'covariance_eigh\'` solver will be used.\nIf X is a dense *dask* array, *dask-ml* classes :class:`~dask_ml.decomposition.PCA`,\n:class:`~dask_ml.decomposition.IncrementalPCA`, or\n:class:`~dask_ml.decomposition.TruncatedSVD` will be used.\nOtherwise their *scikit-learn* counterparts :class:`~sklearn.decomposition.PCA`,\n:class:`~sklearn.decomposition.IncrementalPCA`, or\n:class:`~sklearn.decomposition.TruncatedSVD` will be used.\nOriginal type annotation: SvdSolver | None',
+        title='Svd Solver',
+    )
+    random_state: Optional[Any] = Field(
+        0,
+        description='Change to use different initial states for the optimization.\nOriginal type annotation: _LegacyRandom',
+        title='Random State',
+    )
+    return_info: Optional[Any] = Field(
+        False,
+        description='Only relevant when not passing an :class:`~anndata.AnnData`:\nsee “Returns”.\nOriginal type annotation: bool',
+        title='Return Info',
+    )
+    mask_var: Optional[Any] = Field(
+        0,
+        description="To run only on a certain set of genes given by a boolean array\nor a string referring to an array in :attr:`~anndata.AnnData.var`.\nBy default, uses `.var['highly_variable']` if available, else everything.\nOriginal type annotation: NDArray[np.bool_] | str | None | Empty",
+        title='Mask Var',
+    )
+    use_highly_variable: Any = Field(
+        None,
+        description="Whether to use highly variable genes only, stored in\n`.var['highly_variable']`.\nBy default uses them if they have been determined beforehand.\n\n.. deprecated:: 1.10.0\n   Use `mask_var` instead\nOriginal type annotation: bool | None",
+        title='Use Highly Variable',
+    )
+    dtype: Optional[Any] = Field(
+        'float32',
+        description='Numpy data type string to which to convert the result.\nOriginal type annotation: DTypeLike',
+        title='Dtype',
+    )
+    chunked: Optional[Any] = Field(
+        False,
+        description='If `True`, perform an incremental PCA on segments of `chunk_size`.\nThe incremental PCA automatically zero centers and ignores settings of\n`random_seed` and `svd_solver`. Uses sklearn :class:`~sklearn.decomposition.IncrementalPCA` or\n*dask-ml* :class:`~dask_ml.decomposition.IncrementalPCA`. If `False`, perform a full PCA and\nuse sklearn :class:`~sklearn.decomposition.PCA` or\n*dask-ml* :class:`~dask_ml.decomposition.PCA`\nOriginal type annotation: bool',
+        title='Chunked',
+    )
+    chunk_size: Any = Field(
+        None,
+        description='Number of observations to include in each chunk.\nRequired if `chunked=True` was passed.\nOriginal type annotation: int | None',
+        title='Chunk Size',
+    )
+    key_added: Any = Field(
+        None,
+        description="If not specified, the embedding is stored as\n:attr:`~anndata.AnnData.obsm`\\ `['X_pca']`, the loadings as\n:attr:`~anndata.AnnData.varm`\\ `['PCs']`, and the the parameters in\n:attr:`~anndata.AnnData.uns`\\ `['pca']`.\nIf specified, the embedding is stored as\n:attr:`~anndata.AnnData.obsm`\\ ``[key_added]``, the loadings as\n:attr:`~anndata.AnnData.varm`\\ ``[key_added]``, and the the parameters in\n:attr:`~anndata.AnnData.uns`\\ ``[key_added]``.\nOriginal type annotation: str | None",
+        title='Key Added',
+    )
+    copy_: Optional[Any] = Field(
+        False,
+        alias='copy',
+        description='If an :class:`~anndata.AnnData` is passed, determines whether a copy\nis returned. Is ignored otherwise.\nOriginal type annotation: bool',
+        title='Copy',
+    )
+
+    _api_name = PrivateAttr(default='scanpy.preprocessing.pca')
+    _products_original = PrivateAttr(default=['data.obsm["X_pca"]', 'data.varm["PCs"]', 'data.uns["pca"]["variance_ratio"]', 'data.uns["pca"]["variance"]'])
+    _data_name = PrivateAttr(default='data')
+    _dep_graph_dict = PrivateAttr(default=dep_graph_dict)
+
+TOOLS_DICT = {
+    "ScanpyPreprocessingNeighbors": ScanpyPreprocessingNeighbors,
+    "ScanpyPreprocessingLogP": ScanpyPreprocessingLogP,
+    "ScanpyPreprocessingHighlyVariableGenes": ScanpyPreprocessingHighlyVariableGenes,
+    "ScanpyPreprocessingPca": ScanpyPreprocessingPca,
+}
