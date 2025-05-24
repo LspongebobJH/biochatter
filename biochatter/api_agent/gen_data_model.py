@@ -1,17 +1,30 @@
+import os
 import inspect
 import json
 import re
 from types import MappingProxyType, ModuleType
 from typing import Any, Callable
+from copy import deepcopy
 import argparse
 import importlib
+from tqdm import tqdm
+from dotenv import load_dotenv
+load_dotenv()
 
 from docstring_parser import parse
 from pydantic import Field, create_model, PrivateAttr
+from pydantic.fields import FieldInfo
 from importlib.metadata import version
 
 from langchain_core.utils.pydantic import create_model as create_model_v1
 from langchain_core.pydantic_v1 import Field as FieldV1
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.exceptions import OutputParserException
+from langchain.chat_models import init_chat_model
+from langchain.output_parsers.fix import OutputFixingParser
+from langchain.output_parsers import RetryOutputParser
 
 from datamodel_code_generator import DataModelType, PythonVersion
 from datamodel_code_generator.model import get_data_model_types
@@ -194,7 +207,7 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
     # and thus can be guaranteed on only datamodel_code_generator 0.30.1.
 
     # add docstring to data model.
-    doc = data_model.__doc__
+    doc = inspect.getdoc(data_model)
     doc = '\n    '.join(doc.strip().splitlines())
     ## Escape backslashes in docstring
     ## another hack.
@@ -229,6 +242,63 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
     
     return codes
 
+def simplify_desc(
+    fields: dict[str, tuple[type, FieldInfo] | str], 
+    llm: BaseChatModel,
+) -> dict[str, tuple[Any, Field]]:
+    """Summarize the descriptions of multiple fields.
+    """
+    _fields = {field_name: str for field_name in fields.keys()}
+    output_format = create_model(
+        "OutputFormat", **_fields,
+    )
+    desc = {}
+    for key, value in fields.items():
+        if isinstance(list(fields.values())[0], tuple):
+            desc[key] = value[1].description
+        else:
+            desc[key] = value
+
+    parser = PydanticOutputParser(pydantic_object=output_format)
+    prompt = ChatPromptTemplate([
+        ("system", "Summarize descriptions of each term into one or two sentences. The response format follows these instructions:\n{format}"),
+        ("user", "{desc}"),
+    ])
+
+    prompt = prompt.invoke({"desc": desc, "format": parser.get_format_instructions()})
+    response = llm.invoke(prompt)
+
+    except_tag = True
+    if except_tag:
+        try:
+            result: dict = parser.invoke(response).model_dump()
+            except_tag = False
+        except OutputParserException as e:
+            except_tag = True
+    if except_tag:
+        try:
+            correct_parser = OutputFixingParser.from_llm(parser=parser, llm=llm)
+            result: dict = correct_parser.invoke(response).model_dump()
+            except_tag = False
+        except OutputParserException as e:
+            except_tag = True
+    if except_tag:
+        try:
+            correct_parser = RetryOutputParser.from_llm(parser=parser, llm=llm, max_retries=3)
+            result: dict = correct_parser.parse_with_prompt(response.content, prompt)
+        except OutputParserException as e:
+            raise e
+        
+    for key, value in result.items():
+        if isinstance(list(fields.values())[0], tuple):
+            annotation, field_info = fields[key]
+            field_info.description = value
+            fields[key] = (annotation, field_info)
+        else:
+            fields[key] = value
+
+    return fields
+
 def apis_to_data_models(
         api_dict: str, 
         ) -> list[type[BaseAPIModel]]:
@@ -246,12 +316,12 @@ def apis_to_data_models(
     classes_list = []
     codes_list = []
     api_list = api_dict['api_list']
-    package = api_dict['meta']['package']
     module = api_dict['meta']['module']
 
+    llm = init_chat_model(os.environ.get("MODEL"), model_provider="openai", temperature=0.7)
     _need_import = True
 
-    for _api in api_list:
+    for _api in tqdm(api_list):
         api = _api['api']
         assert 'products' in _api and 'data_name' in _api, \
             "configs should contain 'products' and 'data_name'."
@@ -296,6 +366,8 @@ def apis_to_data_models(
             # Append the original annotation as a note in the description if
             # available
             if param.annotation is not inspect.Parameter.empty:
+                # Jiahang(TODO): this is not needed, since all predicted types should be
+                # basic types.
                 description += f"\nOriginal type annotation: {param.annotation}"
 
             # If default_value is None, parameter can be Optional
@@ -315,7 +387,12 @@ def apis_to_data_models(
 
             fields[field_name] = (annotation, Field(**field_kwargs))
 
-        
+        try:
+            fields = simplify_desc(fields, llm)
+            doc = simplify_desc({"doc": parsed_doc.description}, llm)['doc']
+        except OutputParserException as e:
+            print(f"The descriptions of API or arguments of {name} are not summarized correctly. Please summarize them manually.")
+
         # Create the Pydantic model
         fields['_api_name'] = (str, PrivateAttr(default=get_api_path(module, api)))
         fields['_products_original'] = (str, PrivateAttr(default=_api['products']))
@@ -323,7 +400,7 @@ def apis_to_data_models(
 
         data_model = create_model(
             get_class_name(module, api),
-            __doc__ = doc,
+            __doc__ = doc, 
             __base__ = BaseAPI,
             **fields,
         )

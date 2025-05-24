@@ -5,6 +5,9 @@ import os
 import scanpy
 from scanpy.datasets import pbmc3k, krumsiek11
 
+from dotenv import load_dotenv
+load_dotenv()
+
 scanpy.settings.datasetdir = os.environ.get("DATA")
 
 system_prompt = """
@@ -14,13 +17,13 @@ You are a professional bioinformatician.
 """
 # Create an API agent for OncoKB
 query_builder_conv = GptConversation(
-    model_name="gpt-3.5-turbo", 
+    model_name=os.environ.get("MODEL"), 
     prompts={
         "primary_model_prompts": system_prompt
     }
 )
 interpreter_conv = GptConversation(
-    model_name="gpt-3.5-turbo", 
+    model_name=os.environ.get("MODEL"), 
     prompts={
         "primary_model_prompts": system_prompt
     }
