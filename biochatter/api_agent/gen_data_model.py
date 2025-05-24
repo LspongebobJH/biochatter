@@ -130,7 +130,7 @@ def get_api_path(module: ModuleType, api: Callable) -> str:
     """
     return module.__name__ + '.' + api.__name__
 
-def get_api_internal_name(module: ModuleType, api: Callable) -> str:
+def get_class_name(module: ModuleType, api: Callable) -> str:
     """Get the internal name of an API.
 
     This apition takes a module and an API, and returns the internal name of the
@@ -309,7 +309,7 @@ def apis_to_data_models(
         fields['_data_name'] = (str, PrivateAttr(default=_api['data_name']))
 
         data_model = create_model(
-            get_api_internal_name(module, api),
+            get_class_name(module, api),
             __doc__ = doc,
             __base__ = BaseAPI,
             **fields,
@@ -331,7 +331,7 @@ def apis_to_data_models(
     codes = "\n\n".join(codes_list)
     codes += "\n\nTOOLS_DICT = {"
     for data_model in classes_list:
-        codes += f"\n    \"{data_model.__name__}\": {data_model.__name__},"
+        codes += f"\n    \"{data_model._api_name.default}\": {data_model.__name__},"
     codes += "\n}"
 
     return classes_list, codes

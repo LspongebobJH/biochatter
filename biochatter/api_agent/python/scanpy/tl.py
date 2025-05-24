@@ -528,12 +528,12 @@ class ScanpyToolsRankGenesGroups(BaseAPI):
     _data_name = PrivateAttr(default='adata')
 
 TOOLS_DICT = {
-    "ScanpyToolsPaga": ScanpyToolsPaga,
-    "ScanpyToolsLeiden": ScanpyToolsLeiden,
-    "ScanpyToolsLouvain": ScanpyToolsLouvain,
-    "ScanpyToolsUmap": ScanpyToolsUmap,
-    "ScanpyToolsTsne": ScanpyToolsTsne,
-    "ScanpyToolsDiffmap": ScanpyToolsDiffmap,
-    "ScanpyToolsEmbeddingDensity": ScanpyToolsEmbeddingDensity,
-    "ScanpyToolsRankGenesGroups": ScanpyToolsRankGenesGroups,
+    "scanpy.tools.paga": ScanpyToolsPaga,
+    "scanpy.tools.leiden": ScanpyToolsLeiden,
+    "scanpy.tools.louvain": ScanpyToolsLouvain,
+    "scanpy.tools.umap": ScanpyToolsUmap,
+    "scanpy.tools.tsne": ScanpyToolsTsne,
+    "scanpy.tools.diffmap": ScanpyToolsDiffmap,
+    "scanpy.tools.embedding_density": ScanpyToolsEmbeddingDensity,
+    "scanpy.tools.rank_genes_groups": ScanpyToolsRankGenesGroups,
 }

@@ -38,7 +38,7 @@ scanpy_agent = APIAgent(
 )
 
 # Execute a query
-question = "visualize stacked violin plot of gene expressions of genes Gata2, Gata1 and Fog1, where cells are clustered by leiden algorithm."
+question = "visualize the t-SNE plot of the cells."
 data = krumsiek11()
 # data = pbmc3k()
 result = scanpy_agent.execute(question, data=data)

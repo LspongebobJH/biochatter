@@ -280,8 +280,8 @@ class ScanpyPreprocessingPca(BaseAPI):
     _data_name = PrivateAttr(default='data')
 
 TOOLS_DICT = {
-    "ScanpyPreprocessingNeighbors": ScanpyPreprocessingNeighbors,
-    "ScanpyPreprocessingLogP": ScanpyPreprocessingLogP,
-    "ScanpyPreprocessingHighlyVariableGenes": ScanpyPreprocessingHighlyVariableGenes,
-    "ScanpyPreprocessingPca": ScanpyPreprocessingPca,
+    "scanpy.preprocessing.neighbors": ScanpyPreprocessingNeighbors,
+    "scanpy.preprocessing.log1p": ScanpyPreprocessingLogP,
+    "scanpy.preprocessing.highly_variable_genes": ScanpyPreprocessingHighlyVariableGenes,
+    "scanpy.preprocessing.pca": ScanpyPreprocessingPca,
 }
