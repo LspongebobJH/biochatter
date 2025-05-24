@@ -11,7 +11,6 @@ system_prompt = """
 You are a professional bioinformatician. 
 1. You have access to the data object named `data`.
 2. Please only use the provided tools. Do not use any tools that are not provided.
-3. n_comps = 15
 """
 # Create an API agent for OncoKB
 query_builder_conv = GptConversation(
