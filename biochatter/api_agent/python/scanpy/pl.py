@@ -8,6 +8,160 @@ from biochatter.api_agent.base.agent_abc import BaseAPI
 
 
 class ScanpyPlottingPaga(BaseAPI):
+    """
+    Plot the PAGA graph through thresholding low-connectivity edges.
+    
+    Compute a coarse-grained layout of the data. Reuse this by passing
+    `init_pos='paga'` to :func:`~scanpy.tl.umap` or
+    :func:`~scanpy.tl.draw_graph` and obtain embeddings with more meaningful
+    global topology :cite:p:`Wolf2019`.
+    
+    This uses ForceAtlas2 or igraph's layout algorithms for most layouts :cite:p:`Csardi2006`.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    threshold
+        Do not draw edges for weights below this threshold. Set to 0 if you want
+        all edges. Discarding low-connectivity edges helps in getting a much
+        clearer picture of the graph.
+    color
+        Gene name or `obs` annotation defining the node colors.
+        Also plots the degree of the abstracted graph when
+        passing {`'degree_dashed'`, `'degree_solid'`}.
+    
+        Can be also used to visualize pie chart at each node in the following form:
+        `{<group name or index>: {<color>: <fraction>, ...}, ...}`. If the fractions
+        do not sum to 1, a new category called `'rest'` colored grey will be created.
+    labels
+        The node labels. If `None`, this defaults to the group labels stored in
+        the categorical for which :func:`~scanpy.tl.paga` has been computed.
+    pos
+        Two-column array-like storing the x and y coordinates for drawing.
+        Otherwise, path to a `.gdf` file that has been exported from Gephi or
+        a similar graph visualization software.
+    layout
+        Plotting layout that computes positions.
+        `'fa'` stands for “ForceAtlas2”,
+        `'fr'` stands for “Fruchterman-Reingold”,
+        `'rt'` stands for “Reingold-Tilford”,
+        `'eq_tree'` stands for “eqally spaced tree”.
+        All but `'fa'` and `'eq_tree'` are igraph layouts.
+        All other igraph layouts are also permitted.
+        See also parameter `pos` and :func:`~scanpy.tl.draw_graph`.
+    layout_kwds
+        Keywords for the layout.
+    init_pos
+        Two-column array storing the x and y coordinates for initializing the
+        layout.
+    random_state
+        For layouts with random initialization like `'fr'`, change this to use
+        different intial states for the optimization. If `None`, the initial
+        state is not reproducible.
+    root
+        If choosing a tree layout, this is the index of the root node or a list
+        of root node indices. If this is a non-empty vector then the supplied
+        node IDs are used as the roots of the trees (or a single tree if the
+        graph is connected). If this is `None` or an empty list, the root
+        vertices are automatically calculated based on topological sorting.
+    transitions
+        Key for `.uns['paga']` that specifies the matrix that stores the
+        arrows, for instance `'transitions_confidence'`.
+    solid_edges
+        Key for `.uns['paga']` that specifies the matrix that stores the edges
+        to be drawn solid black.
+    dashed_edges
+        Key for `.uns['paga']` that specifies the matrix that stores the edges
+        to be drawn dashed grey. If `None`, no dashed edges are drawn.
+    single_component
+        Restrict to largest connected component.
+    fontsize
+        Font size for node labels.
+    fontoutline
+        Width of the white outline around fonts.
+    text_kwds
+        Keywords for :meth:`~matplotlib.axes.Axes.text`.
+    node_size_scale
+        Increase or decrease the size of the nodes.
+    node_size_power
+        The power with which groups sizes influence the radius of the nodes.
+    edge_width_scale
+        Edge with scale in units of `rcParams['lines.linewidth']`.
+    min_edge_width
+        Min width of solid edges.
+    max_edge_width
+        Max width of solid and dashed edges.
+    arrowsize
+       For directed graphs, choose the size of the arrow head head's length and
+       width. See :py:class: `matplotlib.patches.FancyArrowPatch` for attribute
+       `mutation_scale` for more info.
+    export_to_gexf
+        Export to gexf format to be read by graph visualization programs such as
+        Gephi.
+    normalize_to_color
+        Whether to normalize categorical plots to `color` or the underlying
+        grouping.
+    cmap
+        The color map.
+    cax
+        A matplotlib axes object for a potential colorbar.
+    cb_kwds
+        Keyword arguments for :class:`~matplotlib.colorbar.Colorbar`,
+        for instance, `ticks`.
+    add_pos
+        Add the positions to `adata.uns['paga']`.
+    title
+        Provide a title.
+    frameon
+        Draw a frame around the PAGA graph.
+    plot
+        If `False`, do not create the figure, simply compute the layout.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on \{`'.pdf'`, `'.png'`, `'.svg'`\}.
+    ax
+        A matplotlib axes object.
+    
+    Returns
+    -------
+    If `show==False`, one or more :class:`~matplotlib.axes.Axes` objects.
+    Adds `'pos'` to `adata.uns['paga']` if `add_pos` is `True`.
+    
+    Examples
+    --------
+    
+    .. plot::
+        :context: close-figs
+    
+        import scanpy as sc
+        adata = sc.datasets.pbmc3k_processed()
+        sc.tl.paga(adata, groups='louvain')
+        sc.pl.paga(adata)
+    
+    You can increase node and edge sizes by specifying additional arguments.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.paga(adata, node_size_scale=10, edge_width_scale=2)
+    
+    Notes
+    -----
+    When initializing the positions, note that – for some reason – igraph
+    mirrors coordinates along the x axis... that is, you should increase the
+    `maxiter` parameter by 1 if the layout is flipped.
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    tl.paga
+    pl.paga_compare
+    pl.paga_path
+    """
+
     
     adata: Any = Field(
         ...,
@@ -212,6 +366,110 @@ class ScanpyPlottingPaga(BaseAPI):
 
 
 class ScanpyPlottingScatter(BaseAPI):
+    """
+    Scatter plot along observations or variables axes.
+    
+    Color the plot using annotations of observations (`.obs`), variables
+    (`.var`) or expression of genes (`.var_names`).
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    x
+        x coordinate.
+    y
+        y coordinate.
+    color
+        Keys for annotations of observations/cells or variables/genes,
+        or a hex color specification, e.g.,
+        `'ann1'`, `'#fe57a1'`, or `['ann1', 'ann2']`.
+    use_raw
+        Whether to use `raw` attribute of `adata`. Defaults to `True` if `.raw` is present.
+    layers
+        Use the `layers` attribute of `adata` if present: specify the layer for
+        `x`, `y` and `color`. If `layers` is a string, then it is expanded to
+        `(layers, layers, layers)`.
+    basis
+        String that denotes a plotting tool that computed coordinates.
+    sort_order
+        For continuous annotations used as color parameter, plot data points
+        with higher values on top of others.
+    groups
+        Restrict to a few categories in categorical observation annotation.
+        The default is not to restrict to any groups.
+    dimensions
+        0-indexed dimensions of the embedding to plot as integers. E.g. [(0, 1), (1, 2)].
+        Unlike `components`, this argument is used in the same way as `colors`, e.g. is
+        used to specify a single plot at a time. Will eventually replace the components
+        argument.
+    components
+        For instance, `['1,2', '2,3']`. To plot all available components use
+        `components='all'`.
+    projection
+        Projection of plot (default: `'2d'`).
+    legend_loc
+        Location of legend, either `'on data'`, `'right margin'`, `None`,
+        or a valid keyword for the `loc` parameter of :class:`~matplotlib.legend.Legend`.
+    legend_fontsize
+        Numeric size in pt or string describing the size.
+        See :meth:`~matplotlib.text.Text.set_fontsize`.
+    legend_fontweight
+        Legend font weight. A numeric value in range 0-1000 or a string.
+        Defaults to `'bold'` if `legend_loc == 'on data'`, otherwise to `'normal'`.
+        See :meth:`~matplotlib.text.Text.set_fontweight`.
+    legend_fontoutline
+        Line width of the legend font outline in pt. Draws a white outline using
+        the path effect :class:`~matplotlib.patheffects.withStroke`.
+    colorbar_loc
+        Where to place the colorbar for continous variables. If `None`, no colorbar
+        is added.
+    size
+        Point size. If `None`, is automatically computed as 120000 / n_cells.
+        Can be a sequence containing the size for each cell. The order should be
+        the same as in adata.obs.
+    color_map
+        Color map to use for continous variables. Can be a name or a
+        :class:`~matplotlib.colors.Colormap` instance (e.g. `"magma`", `"viridis"`
+        or `mpl.cm.cividis`), see :meth:`~matplotlib.cm.ColormapRegistry.get_cmap`.
+        If `None`, the value of `mpl.rcParams["image.cmap"]` is used.
+        The default `color_map` can be set using :func:`~scanpy.set_figure_params`.
+    palette
+        Colors to use for plotting categorical annotation groups.
+        The palette can be a valid :class:`~matplotlib.colors.ListedColormap` name
+        (`'Set2'`, `'tab20'`, …), a :class:`~cycler.Cycler` object, a dict mapping
+        categories to colors, or a sequence of colors. Colors must be valid to
+        matplotlib. (see :func:`~matplotlib.colors.is_color_like`).
+        If `None`, `mpl.rcParams["axes.prop_cycle"]` is used unless the categorical
+        variable already has colors stored in `adata.uns["{var}_colors"]`.
+        If provided, values of `adata.uns["{var}_colors"]` will be set.
+    na_color
+        Color to use for null or masked values. Can be anything matplotlib accepts as a
+        color. Used for all points if `color=None`.
+    na_in_legend
+        If there are missing values, whether they get an entry in the legend. Currently
+        only implemented for categorical legends.
+    frameon
+        Draw a frame around the scatter plot. Defaults to value set in
+        :func:`~scanpy.set_figure_params`, defaults to `True`.
+    title
+        Provide title for panels either as string or list of strings,
+        e.g. `['title1', 'title2', ...]`.
+    
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    
+    Returns
+    -------
+    If `show==False` a :class:`~matplotlib.axes.Axes` or a list of it.
+    """
+
     
     adata: Any = Field(
         ...,
@@ -356,6 +614,195 @@ class ScanpyPlottingScatter(BaseAPI):
 
 
 class ScanpyPlottingUmap(BaseAPI):
+    """
+    Scatter plot in UMAP basis.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    color
+        Keys for annotations of observations/cells or variables/genes, e.g.,
+        `'ann1'` or `['ann1', 'ann2']`.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols. By default `var_names`
+        refer to the index column of the `.var` DataFrame. Setting this option allows
+        alternative names to be used.
+    use_raw
+        Use `.raw` attribute of `adata` for coloring with gene expression. If `None`,
+        defaults to `True` if `layer` isn't provided and `adata.raw` is present.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default
+        adata.raw.X is plotted. If `use_raw=False` is set, then `adata.X` is plotted.
+        If `layer` is set to a valid layer name, then the layer is plotted. `layer`
+        takes precedence over `use_raw`.
+    edges
+        Show edges.
+    edges_width
+        Width of edges.
+    edges_color
+        Color of edges. See :func:`~networkx.drawing.nx_pylab.draw_networkx_edges`.
+    neighbors_key
+        Where to look for neighbors connectivities.
+        If not specified, this looks .obsp['connectivities'] for connectivities
+        (default storage place for pp.neighbors).
+        If specified, this looks
+        .obsp[.uns[neighbors_key]['connectivities_key']] for connectivities.
+    arrows
+        Show arrows (deprecated in favour of `scvelo.pl.velocity_embedding`).
+    arrows_kwds
+        Passed to :meth:`~matplotlib.axes.Axes.quiver`
+    sort_order
+        For continuous annotations used as color parameter, plot data points
+        with higher values on top of others.
+    groups
+        Restrict to a few categories in categorical observation annotation.
+        The default is not to restrict to any groups.
+    dimensions
+        0-indexed dimensions of the embedding to plot as integers. E.g. [(0, 1), (1, 2)].
+        Unlike `components`, this argument is used in the same way as `colors`, e.g. is
+        used to specify a single plot at a time. Will eventually replace the components
+        argument.
+    components
+        For instance, `['1,2', '2,3']`. To plot all available components use
+        `components='all'`.
+    projection
+        Projection of plot (default: `'2d'`).
+    legend_loc
+        Location of legend, either `'on data'`, `'right margin'`, `None`,
+        or a valid keyword for the `loc` parameter of :class:`~matplotlib.legend.Legend`.
+    legend_fontsize
+        Numeric size in pt or string describing the size.
+        See :meth:`~matplotlib.text.Text.set_fontsize`.
+    legend_fontweight
+        Legend font weight. A numeric value in range 0-1000 or a string.
+        Defaults to `'bold'` if `legend_loc == 'on data'`, otherwise to `'normal'`.
+        See :meth:`~matplotlib.text.Text.set_fontweight`.
+    legend_fontoutline
+        Line width of the legend font outline in pt. Draws a white outline using
+        the path effect :class:`~matplotlib.patheffects.withStroke`.
+    colorbar_loc
+        Where to place the colorbar for continous variables. If `None`, no colorbar
+        is added.
+    size
+        Point size. If `None`, is automatically computed as 120000 / n_cells.
+        Can be a sequence containing the size for each cell. The order should be
+        the same as in adata.obs.
+    color_map
+        Color map to use for continous variables. Can be a name or a
+        :class:`~matplotlib.colors.Colormap` instance (e.g. `"magma`", `"viridis"`
+        or `mpl.cm.cividis`), see :meth:`~matplotlib.cm.ColormapRegistry.get_cmap`.
+        If `None`, the value of `mpl.rcParams["image.cmap"]` is used.
+        The default `color_map` can be set using :func:`~scanpy.set_figure_params`.
+    palette
+        Colors to use for plotting categorical annotation groups.
+        The palette can be a valid :class:`~matplotlib.colors.ListedColormap` name
+        (`'Set2'`, `'tab20'`, …), a :class:`~cycler.Cycler` object, a dict mapping
+        categories to colors, or a sequence of colors. Colors must be valid to
+        matplotlib. (see :func:`~matplotlib.colors.is_color_like`).
+        If `None`, `mpl.rcParams["axes.prop_cycle"]` is used unless the categorical
+        variable already has colors stored in `adata.uns["{var}_colors"]`.
+        If provided, values of `adata.uns["{var}_colors"]` will be set.
+    na_color
+        Color to use for null or masked values. Can be anything matplotlib accepts as a
+        color. Used for all points if `color=None`.
+    na_in_legend
+        If there are missing values, whether they get an entry in the legend. Currently
+        only implemented for categorical legends.
+    frameon
+        Draw a frame around the scatter plot. Defaults to value set in
+        :func:`~scanpy.set_figure_params`, defaults to `True`.
+    title
+        Provide title for panels either as string or list of strings,
+        e.g. `['title1', 'title2', ...]`.
+    
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin. vmin can be a number, a string, a function or `None`. If
+        vmin is a string and has the format `pN`, this is interpreted as a vmin=percentile(N).
+        For example vmin='p1.5' is interpreted as the 1.5 percentile. If vmin is function, then
+        vmin is interpreted as the return value of the function over the list of values to plot.
+        For example to set vmin tp the mean of the values to plot, `def my_vmin(values): return
+        np.mean(values)` and then set `vmin=my_vmin`. If vmin is None (default) an automatic
+        minimum value is used as defined by matplotlib `scatter` function. When making multiple
+        plots, vmin can be a list of values, one for each plot. For example `vmin=[0.1, 'p1', None, my_vmin]`
+    vmax
+        The value representing the upper limit of the color scale. The format is the same as for `vmin`.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+        The format is the same as for `vmin`.
+        Example: ``sc.pl.umap(adata, color='TREM2', vcenter='p50', cmap='RdBu_r')``
+    add_outline
+        If set to True, this will add a thin border around groups of dots. In some situations
+        this can enhance the aesthetics of the resulting image
+    outline_color
+        Tuple with two valid color names used to adjust the add_outline. The first color is the
+        border color (default: black), while the second color is a gap color between the
+        border color and the scatter dot (default: white).
+    outline_width
+        Tuple with two width numbers used to adjust the outline. The first value is the width
+        of the border color as a fraction of the scatter dot size (default: 0.3). The second value is
+        width of the gap color (default: 0.05).
+    ncols
+        Number of panels per row.
+    wspace
+        Adjust the width of the space between multiple panels.
+    hspace
+        Adjust the height of the space between multiple panels.
+    return_fig
+        Return the matplotlib figure.
+    kwargs
+        Arguments to pass to :func:`matplotlib.pyplot.scatter`,
+        for instance: the maximum and minimum values (e.g. `vmin=-2, vmax=5`).
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    
+    Returns
+    -------
+    If `show==False` a :class:`~matplotlib.axes.Axes` or a list of it.
+    
+    Examples
+    --------
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        sc.pl.umap(adata)
+    
+    Colour points by discrete variable (Louvain clusters).
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.umap(adata, color="louvain")
+    
+    Colour points by gene expression.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.umap(adata, color="HES4")
+    
+    Plot muliple umaps for different gene expressions.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.umap(adata, color=["HES4", "TNFRSF4"])
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    tl.umap
+    """
+
     
     adata: Any = Field(
         ...,
@@ -595,6 +1042,174 @@ class ScanpyPlottingUmap(BaseAPI):
 
 
 class ScanpyPlottingTsne(BaseAPI):
+    """
+    Scatter plot in tSNE basis.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    color
+        Keys for annotations of observations/cells or variables/genes, e.g.,
+        `'ann1'` or `['ann1', 'ann2']`.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols. By default `var_names`
+        refer to the index column of the `.var` DataFrame. Setting this option allows
+        alternative names to be used.
+    use_raw
+        Use `.raw` attribute of `adata` for coloring with gene expression. If `None`,
+        defaults to `True` if `layer` isn't provided and `adata.raw` is present.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default
+        adata.raw.X is plotted. If `use_raw=False` is set, then `adata.X` is plotted.
+        If `layer` is set to a valid layer name, then the layer is plotted. `layer`
+        takes precedence over `use_raw`.
+    edges
+        Show edges.
+    edges_width
+        Width of edges.
+    edges_color
+        Color of edges. See :func:`~networkx.drawing.nx_pylab.draw_networkx_edges`.
+    neighbors_key
+        Where to look for neighbors connectivities.
+        If not specified, this looks .obsp['connectivities'] for connectivities
+        (default storage place for pp.neighbors).
+        If specified, this looks
+        .obsp[.uns[neighbors_key]['connectivities_key']] for connectivities.
+    arrows
+        Show arrows (deprecated in favour of `scvelo.pl.velocity_embedding`).
+    arrows_kwds
+        Passed to :meth:`~matplotlib.axes.Axes.quiver`
+    sort_order
+        For continuous annotations used as color parameter, plot data points
+        with higher values on top of others.
+    groups
+        Restrict to a few categories in categorical observation annotation.
+        The default is not to restrict to any groups.
+    dimensions
+        0-indexed dimensions of the embedding to plot as integers. E.g. [(0, 1), (1, 2)].
+        Unlike `components`, this argument is used in the same way as `colors`, e.g. is
+        used to specify a single plot at a time. Will eventually replace the components
+        argument.
+    components
+        For instance, `['1,2', '2,3']`. To plot all available components use
+        `components='all'`.
+    projection
+        Projection of plot (default: `'2d'`).
+    legend_loc
+        Location of legend, either `'on data'`, `'right margin'`, `None`,
+        or a valid keyword for the `loc` parameter of :class:`~matplotlib.legend.Legend`.
+    legend_fontsize
+        Numeric size in pt or string describing the size.
+        See :meth:`~matplotlib.text.Text.set_fontsize`.
+    legend_fontweight
+        Legend font weight. A numeric value in range 0-1000 or a string.
+        Defaults to `'bold'` if `legend_loc == 'on data'`, otherwise to `'normal'`.
+        See :meth:`~matplotlib.text.Text.set_fontweight`.
+    legend_fontoutline
+        Line width of the legend font outline in pt. Draws a white outline using
+        the path effect :class:`~matplotlib.patheffects.withStroke`.
+    colorbar_loc
+        Where to place the colorbar for continous variables. If `None`, no colorbar
+        is added.
+    size
+        Point size. If `None`, is automatically computed as 120000 / n_cells.
+        Can be a sequence containing the size for each cell. The order should be
+        the same as in adata.obs.
+    color_map
+        Color map to use for continous variables. Can be a name or a
+        :class:`~matplotlib.colors.Colormap` instance (e.g. `"magma`", `"viridis"`
+        or `mpl.cm.cividis`), see :meth:`~matplotlib.cm.ColormapRegistry.get_cmap`.
+        If `None`, the value of `mpl.rcParams["image.cmap"]` is used.
+        The default `color_map` can be set using :func:`~scanpy.set_figure_params`.
+    palette
+        Colors to use for plotting categorical annotation groups.
+        The palette can be a valid :class:`~matplotlib.colors.ListedColormap` name
+        (`'Set2'`, `'tab20'`, …), a :class:`~cycler.Cycler` object, a dict mapping
+        categories to colors, or a sequence of colors. Colors must be valid to
+        matplotlib. (see :func:`~matplotlib.colors.is_color_like`).
+        If `None`, `mpl.rcParams["axes.prop_cycle"]` is used unless the categorical
+        variable already has colors stored in `adata.uns["{var}_colors"]`.
+        If provided, values of `adata.uns["{var}_colors"]` will be set.
+    na_color
+        Color to use for null or masked values. Can be anything matplotlib accepts as a
+        color. Used for all points if `color=None`.
+    na_in_legend
+        If there are missing values, whether they get an entry in the legend. Currently
+        only implemented for categorical legends.
+    frameon
+        Draw a frame around the scatter plot. Defaults to value set in
+        :func:`~scanpy.set_figure_params`, defaults to `True`.
+    title
+        Provide title for panels either as string or list of strings,
+        e.g. `['title1', 'title2', ...]`.
+    
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin. vmin can be a number, a string, a function or `None`. If
+        vmin is a string and has the format `pN`, this is interpreted as a vmin=percentile(N).
+        For example vmin='p1.5' is interpreted as the 1.5 percentile. If vmin is function, then
+        vmin is interpreted as the return value of the function over the list of values to plot.
+        For example to set vmin tp the mean of the values to plot, `def my_vmin(values): return
+        np.mean(values)` and then set `vmin=my_vmin`. If vmin is None (default) an automatic
+        minimum value is used as defined by matplotlib `scatter` function. When making multiple
+        plots, vmin can be a list of values, one for each plot. For example `vmin=[0.1, 'p1', None, my_vmin]`
+    vmax
+        The value representing the upper limit of the color scale. The format is the same as for `vmin`.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+        The format is the same as for `vmin`.
+        Example: ``sc.pl.umap(adata, color='TREM2', vcenter='p50', cmap='RdBu_r')``
+    add_outline
+        If set to True, this will add a thin border around groups of dots. In some situations
+        this can enhance the aesthetics of the resulting image
+    outline_color
+        Tuple with two valid color names used to adjust the add_outline. The first color is the
+        border color (default: black), while the second color is a gap color between the
+        border color and the scatter dot (default: white).
+    outline_width
+        Tuple with two width numbers used to adjust the outline. The first value is the width
+        of the border color as a fraction of the scatter dot size (default: 0.3). The second value is
+        width of the gap color (default: 0.05).
+    ncols
+        Number of panels per row.
+    wspace
+        Adjust the width of the space between multiple panels.
+    hspace
+        Adjust the height of the space between multiple panels.
+    return_fig
+        Return the matplotlib figure.
+    kwargs
+        Arguments to pass to :func:`matplotlib.pyplot.scatter`,
+        for instance: the maximum and minimum values (e.g. `vmin=-2, vmax=5`).
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    
+    Returns
+    -------
+    If `show==False` a :class:`~matplotlib.axes.Axes` or a list of it.
+    
+    Examples
+    --------
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        sc.tl.tsne(adata)
+        sc.pl.tsne(adata, color='bulk_labels')
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    tl.tsne
+    """
+
     
     adata: Any = Field(
         ...,
@@ -834,6 +1449,120 @@ class ScanpyPlottingTsne(BaseAPI):
 
 
 class ScanpyPlottingHeatmap(BaseAPI):
+    """
+    Heatmap of the expression values of genes.
+    
+    If `groupby` is given, the heatmap is ordered by the respective group. For
+    example, a list of marker genes can be plotted, ordered by clustering. If
+    the `groupby` observation annotation is not categorical the observation
+    annotation is turned into a categorical by binning the data into the number
+    specified in `num_categories`.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    var_names
+        `var_names` should be a valid subset of `adata.var_names`.
+        If `var_names` is a mapping, then the key is used as label
+        to group the values (see `var_group_labels`). The mapping values
+        should be sequences of valid `adata.var_names`. In this
+        case either coloring or 'brackets' are used for the grouping
+        of var names depending on the plot. When `var_names` is a mapping,
+        then the `var_group_labels` and `var_group_positions` are set.
+    groupby
+        The key of the observation grouping to consider.
+    use_raw
+        Use `raw` attribute of `adata` if present.
+    log
+        Plot on logarithmic axis.
+    num_categories
+        Only used if groupby observation is not categorical. This value
+        determines the number of groups into which the groupby observation
+        should be subdivided.
+    categories_order
+        Order in which to show the categories. Note: add_dendrogram or add_totals
+        can change the categories order.
+    figsize
+        Figure size when `multi_panel=True`.
+        Otherwise the `rcParam['figure.figsize]` value is used.
+        Format is (width, height)
+    dendrogram
+        If True or a valid dendrogram key, a dendrogram based on the hierarchical
+        clustering between the `groupby` categories is added.
+        The dendrogram information is computed using :func:`scanpy.tl.dendrogram`.
+        If `tl.dendrogram` has not been called previously the function is called
+        with default parameters.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols.
+        By default `var_names` refer to the index column of the `.var` DataFrame.
+        Setting this option allows alternative names to be used.
+    var_group_positions
+        Use this parameter to highlight groups of `var_names`.
+        This will draw a 'bracket' or a color block between the given start and end
+        positions. If the parameter `var_group_labels` is set, the corresponding
+        labels are added on top/left. E.g. `var_group_positions=[(4,10)]`
+        will add a bracket between the fourth `var_name` and the tenth `var_name`.
+        By giving more positions, more brackets/color blocks are drawn.
+    var_group_labels
+        Labels for each of the `var_group_positions` that want to be highlighted.
+    var_group_rotation
+        Label rotation degrees.
+        By default, labels larger than 4 characters are rotated 90 degrees.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default adata.raw.X is plotted.
+        If `use_raw=False` is set, then `adata.X` is plotted. If `layer` is set to a valid layer name,
+        then the layer is plotted. `layer` takes precedence over `use_raw`.
+    standard_scale
+        Whether or not to standardize that dimension between 0 and 1, meaning for each variable or observation,
+        subtract the minimum and divide each by its maximum.
+    swap_axes
+         By default, the x axis contains `var_names` (e.g. genes) and the y axis the `groupby`
+         categories (if any). By setting `swap_axes` then x are the `groupby` categories and y the `var_names`.
+    show_gene_labels
+         By default gene labels are shown when there are 50 or less genes. Otherwise the labels are removed.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin.
+    vmax
+        The value representing the upper limit of the color scale. Values larger than vmax are plotted
+        with the same color as vmax.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+    norm
+        Custom color normalization object from matplotlib. See
+        `https://matplotlib.org/stable/tutorials/colors/colormapnorms.html` for details.
+    **kwds
+        Are passed to :func:`matplotlib.pyplot.imshow`.
+    
+    Returns
+    -------
+    Dict of :class:`~matplotlib.axes.Axes`
+    
+    Examples
+    --------
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        markers = ['C1QA', 'PSAP', 'CD79A', 'CD79B', 'CST3', 'LYZ']
+        sc.pl.heatmap(adata, markers, groupby='bulk_labels', swap_axes=True)
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    pl.rank_genes_groups_heatmap
+    tl.rank_genes_groups
+    """
+
     
     adata: Any = Field(
         ...,
@@ -954,6 +1683,187 @@ class ScanpyPlottingHeatmap(BaseAPI):
 
 
 class ScanpyPlottingDotplot(BaseAPI):
+    """
+    Make a *dot plot* of the expression values of `var_names`.
+    
+    For each var_name and each `groupby` category a dot is plotted.
+    Each dot represents two values: mean expression within each category
+    (visualized by color) and fraction of cells expressing the `var_name` in the
+    category (visualized by the size of the dot). If `groupby` is not given,
+    the dotplot assumes that all data belongs to a single category.
+    
+    .. note::
+       A gene is considered expressed if the expression value in the `adata` (or
+       `adata.raw`) is above the specified threshold which is zero by default.
+    
+    An example of dotplot usage is to visualize, for multiple marker genes,
+    the mean value and the percentage of cells expressing the gene
+    across  multiple clusters.
+    
+    This function provides a convenient interface to the :class:`~scanpy.pl.DotPlot`
+    class. If you need more flexibility, you should use :class:`~scanpy.pl.DotPlot`
+    directly.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    var_names
+        `var_names` should be a valid subset of `adata.var_names`.
+        If `var_names` is a mapping, then the key is used as label
+        to group the values (see `var_group_labels`). The mapping values
+        should be sequences of valid `adata.var_names`. In this
+        case either coloring or 'brackets' are used for the grouping
+        of var names depending on the plot. When `var_names` is a mapping,
+        then the `var_group_labels` and `var_group_positions` are set.
+    groupby
+        The key of the observation grouping to consider.
+    use_raw
+        Use `raw` attribute of `adata` if present.
+    log
+        Plot on logarithmic axis.
+    num_categories
+        Only used if groupby observation is not categorical. This value
+        determines the number of groups into which the groupby observation
+        should be subdivided.
+    categories_order
+        Order in which to show the categories. Note: add_dendrogram or add_totals
+        can change the categories order.
+    figsize
+        Figure size when `multi_panel=True`.
+        Otherwise the `rcParam['figure.figsize]` value is used.
+        Format is (width, height)
+    dendrogram
+        If True or a valid dendrogram key, a dendrogram based on the hierarchical
+        clustering between the `groupby` categories is added.
+        The dendrogram information is computed using :func:`scanpy.tl.dendrogram`.
+        If `tl.dendrogram` has not been called previously the function is called
+        with default parameters.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols.
+        By default `var_names` refer to the index column of the `.var` DataFrame.
+        Setting this option allows alternative names to be used.
+    var_group_positions
+        Use this parameter to highlight groups of `var_names`.
+        This will draw a 'bracket' or a color block between the given start and end
+        positions. If the parameter `var_group_labels` is set, the corresponding
+        labels are added on top/left. E.g. `var_group_positions=[(4,10)]`
+        will add a bracket between the fourth `var_name` and the tenth `var_name`.
+        By giving more positions, more brackets/color blocks are drawn.
+    var_group_labels
+        Labels for each of the `var_group_positions` that want to be highlighted.
+    var_group_rotation
+        Label rotation degrees.
+        By default, labels larger than 4 characters are rotated 90 degrees.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default adata.raw.X is plotted.
+        If `use_raw=False` is set, then `adata.X` is plotted. If `layer` is set to a valid layer name,
+        then the layer is plotted. `layer` takes precedence over `use_raw`.
+    title
+        Title for the figure
+    colorbar_title
+        Title for the color bar. New line character (\n) can be used.
+    cmap
+        String denoting matplotlib color map.
+    standard_scale
+        Whether or not to standardize the given dimension between 0 and 1, meaning for
+        each variable or group, subtract the minimum and divide each by its maximum.
+    swap_axes
+         By default, the x axis contains `var_names` (e.g. genes) and the y axis
+         the `groupby` categories. By setting `swap_axes` then x are the
+         `groupby` categories and y the `var_names`.
+    return_fig
+        Returns :class:`DotPlot` object. Useful for fine-tuning
+        the plot. Takes precedence over `show=False`.
+    
+    size_title
+        Title for the size legend. New line character (\n) can be used.
+    expression_cutoff
+        Expression cutoff that is used for binarizing the gene expression and
+        determining the fraction of cells expressing given genes. A gene is
+        expressed only if the expression value is greater than this threshold.
+    mean_only_expressed
+        If True, gene expression is averaged only over the cells
+        expressing the given genes.
+    dot_max
+        If ``None``, the maximum dot size is set to the maximum fraction value found
+        (e.g. 0.6). If given, the value should be a number between 0 and 1.
+        All fractions larger than dot_max are clipped to this value.
+    dot_min
+        If ``None``, the minimum dot size is set to 0. If given,
+        the value should be a number between 0 and 1.
+        All fractions smaller than dot_min are clipped to this value.
+    smallest_dot
+        All expression levels with `dot_min` are plotted with this size.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin.
+    vmax
+        The value representing the upper limit of the color scale. Values larger than vmax are plotted
+        with the same color as vmax.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+    norm
+        Custom color normalization object from matplotlib. See
+        `https://matplotlib.org/stable/tutorials/colors/colormapnorms.html` for details.
+    kwds
+        Are passed to :func:`matplotlib.pyplot.scatter`.
+    
+    Returns
+    -------
+    If `return_fig` is `True`, returns a :class:`~scanpy.pl.DotPlot` object,
+    else if `show` is false, return axes dict
+    
+    See Also
+    --------
+    :class:`~scanpy.pl.DotPlot`: The DotPlot class can be used to to control
+        several visual parameters not available in this function.
+    :func:`~scanpy.pl.rank_genes_groups_dotplot`: to plot marker genes
+        identified using the :func:`~scanpy.tl.rank_genes_groups` function.
+    
+    Examples
+    --------
+    Create a dot plot using the given markers and the PBMC example dataset grouped by
+    the category 'bulk_labels'.
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        markers = ['C1QA', 'PSAP', 'CD79A', 'CD79B', 'CST3', 'LYZ']
+        sc.pl.dotplot(adata, markers, groupby='bulk_labels', dendrogram=True)
+    
+    Using var_names as dict:
+    
+    .. plot::
+        :context: close-figs
+    
+        markers = {'T-cell': 'CD3D', 'B-cell': 'CD79A', 'myeloid': 'CST3'}
+        sc.pl.dotplot(adata, markers, groupby='bulk_labels', dendrogram=True)
+    
+    Get DotPlot object for fine tuning
+    
+    .. plot::
+        :context: close-figs
+    
+        dp = sc.pl.dotplot(adata, markers, 'bulk_labels', return_fig=True)
+        dp.add_totals().style(dot_edge_color='black', dot_edge_lw=0.5).show()
+    
+    The axes used can be obtained using the get_axes() method
+    
+    .. code-block:: python
+    
+        axes_dict = dp.get_axes()
+        print(axes_dict)
+    """
+
     
     adata: Any = Field(
         ...,
@@ -1138,6 +2048,114 @@ class ScanpyPlottingDotplot(BaseAPI):
 
 
 class ScanpyPlottingViolin(BaseAPI):
+    """
+    Violin plot.
+    
+    Wraps :func:`seaborn.violinplot` for :class:`~anndata.AnnData`.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    keys
+        Keys for accessing variables of `.var_names` or fields of `.obs`.
+    groupby
+        The key of the observation grouping to consider.
+    log
+        Plot on logarithmic axis.
+    use_raw
+        Whether to use `raw` attribute of `adata`. Defaults to `True` if `.raw` is present.
+    stripplot
+        Add a stripplot on top of the violin plot.
+        See :func:`~seaborn.stripplot`.
+    jitter
+        Add jitter to the stripplot (only when stripplot is True)
+        See :func:`~seaborn.stripplot`.
+    size
+        Size of the jitter points.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By
+        default adata.raw.X is plotted. If `use_raw=False` is set,
+        then `adata.X` is plotted. If `layer` is set to a valid layer name,
+        then the layer is plotted. `layer` takes precedence over `use_raw`.
+    density_norm
+        The method used to scale the width of each violin.
+        If 'width' (the default), each violin will have the same width.
+        If 'area', each violin will have the same area.
+        If 'count', a violin’s width corresponds to the number of observations.
+    order
+        Order in which to show the categories.
+    multi_panel
+        Display keys in multiple panels also when `groupby is not None`.
+    xlabel
+        Label of the x axis. Defaults to `groupby` if `rotation` is `None`,
+        otherwise, no label is shown.
+    ylabel
+        Label of the y axis. If `None` and `groupby` is `None`, defaults
+        to `'value'`. If `None` and `groubpy` is not `None`, defaults to `keys`.
+    rotation
+        Rotation of xtick labels.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    **kwds
+        Are passed to :func:`~seaborn.violinplot`.
+    
+    Returns
+    -------
+    A :class:`~matplotlib.axes.Axes` object if `ax` is `None` else `None`.
+    
+    Examples
+    --------
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        sc.pl.violin(adata, keys='S_score')
+    
+    Plot by category. Rotate x-axis labels so that they do not overlap.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.violin(adata, keys='S_score', groupby='bulk_labels', rotation=90)
+    
+    Set order of categories to be plotted or select specific categories to be plotted.
+    
+    .. plot::
+        :context: close-figs
+    
+        groupby_order = ['CD34+', 'CD19+ B']
+        sc.pl.violin(adata, keys='S_score', groupby='bulk_labels', rotation=90,
+            order=groupby_order)
+    
+    Plot multiple keys.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.violin(adata, keys=['S_score', 'G2M_score'], groupby='bulk_labels',
+            rotation=90)
+    
+    For large datasets consider omitting the overlaid scatter plot.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.violin(adata, keys='S_score', stripplot=False)
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    pl.stacked_violin
+    """
+
     
     adata: Any = Field(
         ...,
@@ -1243,6 +2261,50 @@ class ScanpyPlottingViolin(BaseAPI):
 
 
 class ScanpyPlottingDendrogram(BaseAPI):
+    """
+    Plot a dendrogram of the categories defined in `groupby`.
+    
+    See :func:`~scanpy.tl.dendrogram`.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    groupby
+        Categorical data column used to create the dendrogram
+    dendrogram_key
+        Key under with the dendrogram information was stored.
+        By default the dendrogram information is stored under
+        `.uns[f'dendrogram_{groupby}']`.
+    orientation
+        Origin of the tree. Will grow into the opposite direction.
+    remove_labels
+        Don’t draw labels. Used e.g. by :func:`scanpy.pl.matrixplot`
+        to annotate matrix columns/rows.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    
+    Returns
+    -------
+    :class:`matplotlib.axes.Axes`
+    
+    Examples
+    --------
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        sc.tl.dendrogram(adata, 'bulk_labels')
+        sc.pl.dendrogram(adata, 'bulk_labels')
+    
+    .. currentmodule:: scanpy
+    """
+
     
     adata: Any = Field(
         ...,
@@ -1292,6 +2354,158 @@ class ScanpyPlottingDendrogram(BaseAPI):
 
 
 class ScanpyPlottingDiffmap(BaseAPI):
+    """
+    Scatter plot in Diffusion Map basis.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    color
+        Keys for annotations of observations/cells or variables/genes, e.g.,
+        `'ann1'` or `['ann1', 'ann2']`.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols. By default `var_names`
+        refer to the index column of the `.var` DataFrame. Setting this option allows
+        alternative names to be used.
+    use_raw
+        Use `.raw` attribute of `adata` for coloring with gene expression. If `None`,
+        defaults to `True` if `layer` isn't provided and `adata.raw` is present.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default
+        adata.raw.X is plotted. If `use_raw=False` is set, then `adata.X` is plotted.
+        If `layer` is set to a valid layer name, then the layer is plotted. `layer`
+        takes precedence over `use_raw`.
+    sort_order
+        For continuous annotations used as color parameter, plot data points
+        with higher values on top of others.
+    groups
+        Restrict to a few categories in categorical observation annotation.
+        The default is not to restrict to any groups.
+    dimensions
+        0-indexed dimensions of the embedding to plot as integers. E.g. [(0, 1), (1, 2)].
+        Unlike `components`, this argument is used in the same way as `colors`, e.g. is
+        used to specify a single plot at a time. Will eventually replace the components
+        argument.
+    components
+        For instance, `['1,2', '2,3']`. To plot all available components use
+        `components='all'`.
+    projection
+        Projection of plot (default: `'2d'`).
+    legend_loc
+        Location of legend, either `'on data'`, `'right margin'`, `None`,
+        or a valid keyword for the `loc` parameter of :class:`~matplotlib.legend.Legend`.
+    legend_fontsize
+        Numeric size in pt or string describing the size.
+        See :meth:`~matplotlib.text.Text.set_fontsize`.
+    legend_fontweight
+        Legend font weight. A numeric value in range 0-1000 or a string.
+        Defaults to `'bold'` if `legend_loc == 'on data'`, otherwise to `'normal'`.
+        See :meth:`~matplotlib.text.Text.set_fontweight`.
+    legend_fontoutline
+        Line width of the legend font outline in pt. Draws a white outline using
+        the path effect :class:`~matplotlib.patheffects.withStroke`.
+    colorbar_loc
+        Where to place the colorbar for continous variables. If `None`, no colorbar
+        is added.
+    size
+        Point size. If `None`, is automatically computed as 120000 / n_cells.
+        Can be a sequence containing the size for each cell. The order should be
+        the same as in adata.obs.
+    color_map
+        Color map to use for continous variables. Can be a name or a
+        :class:`~matplotlib.colors.Colormap` instance (e.g. `"magma`", `"viridis"`
+        or `mpl.cm.cividis`), see :meth:`~matplotlib.cm.ColormapRegistry.get_cmap`.
+        If `None`, the value of `mpl.rcParams["image.cmap"]` is used.
+        The default `color_map` can be set using :func:`~scanpy.set_figure_params`.
+    palette
+        Colors to use for plotting categorical annotation groups.
+        The palette can be a valid :class:`~matplotlib.colors.ListedColormap` name
+        (`'Set2'`, `'tab20'`, …), a :class:`~cycler.Cycler` object, a dict mapping
+        categories to colors, or a sequence of colors. Colors must be valid to
+        matplotlib. (see :func:`~matplotlib.colors.is_color_like`).
+        If `None`, `mpl.rcParams["axes.prop_cycle"]` is used unless the categorical
+        variable already has colors stored in `adata.uns["{var}_colors"]`.
+        If provided, values of `adata.uns["{var}_colors"]` will be set.
+    na_color
+        Color to use for null or masked values. Can be anything matplotlib accepts as a
+        color. Used for all points if `color=None`.
+    na_in_legend
+        If there are missing values, whether they get an entry in the legend. Currently
+        only implemented for categorical legends.
+    frameon
+        Draw a frame around the scatter plot. Defaults to value set in
+        :func:`~scanpy.set_figure_params`, defaults to `True`.
+    title
+        Provide title for panels either as string or list of strings,
+        e.g. `['title1', 'title2', ...]`.
+    
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin. vmin can be a number, a string, a function or `None`. If
+        vmin is a string and has the format `pN`, this is interpreted as a vmin=percentile(N).
+        For example vmin='p1.5' is interpreted as the 1.5 percentile. If vmin is function, then
+        vmin is interpreted as the return value of the function over the list of values to plot.
+        For example to set vmin tp the mean of the values to plot, `def my_vmin(values): return
+        np.mean(values)` and then set `vmin=my_vmin`. If vmin is None (default) an automatic
+        minimum value is used as defined by matplotlib `scatter` function. When making multiple
+        plots, vmin can be a list of values, one for each plot. For example `vmin=[0.1, 'p1', None, my_vmin]`
+    vmax
+        The value representing the upper limit of the color scale. The format is the same as for `vmin`.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+        The format is the same as for `vmin`.
+        Example: ``sc.pl.umap(adata, color='TREM2', vcenter='p50', cmap='RdBu_r')``
+    add_outline
+        If set to True, this will add a thin border around groups of dots. In some situations
+        this can enhance the aesthetics of the resulting image
+    outline_color
+        Tuple with two valid color names used to adjust the add_outline. The first color is the
+        border color (default: black), while the second color is a gap color between the
+        border color and the scatter dot (default: white).
+    outline_width
+        Tuple with two width numbers used to adjust the outline. The first value is the width
+        of the border color as a fraction of the scatter dot size (default: 0.3). The second value is
+        width of the gap color (default: 0.05).
+    ncols
+        Number of panels per row.
+    wspace
+        Adjust the width of the space between multiple panels.
+    hspace
+        Adjust the height of the space between multiple panels.
+    return_fig
+        Return the matplotlib figure.
+    kwargs
+        Arguments to pass to :func:`matplotlib.pyplot.scatter`,
+        for instance: the maximum and minimum values (e.g. `vmin=-2, vmax=5`).
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    
+    Returns
+    -------
+    If `show==False` a :class:`~matplotlib.axes.Axes` or a list of it.
+    
+    Examples
+    --------
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        sc.tl.diffmap(adata)
+        sc.pl.diffmap(adata, color='bulk_labels')
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    tl.diffmap
+    """
+
     
     adata: Any = Field(
         ...,
@@ -1531,6 +2745,26 @@ class ScanpyPlottingDiffmap(BaseAPI):
 
 
 class ScanpyPlottingHighlyVariableGenes(BaseAPI):
+    """
+    Plot dispersions or normalized variance versus means for genes.
+    
+    Produces Supp. Fig. 5c of Zheng et al. (2017) and MeanVarPlot() and
+    VariableFeaturePlot() of Seurat.
+    
+    Parameters
+    ----------
+    adata
+        Result of :func:`~scanpy.pp.highly_variable_genes`.
+    log
+        Plot on logarithmic axes.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {{`'.pdf'`, `'.png'`, `'.svg'`}}.
+    """
+
     
     adata_or_result: Any = Field(
         ...,
@@ -1565,6 +2799,175 @@ class ScanpyPlottingHighlyVariableGenes(BaseAPI):
 
 
 class ScanpyPlottingPca(BaseAPI):
+    """
+    Scatter plot in PCA coordinates.
+    
+    Use the parameter `annotate_var_explained` to annotate the explained variance.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    color
+        Keys for annotations of observations/cells or variables/genes, e.g.,
+        `'ann1'` or `['ann1', 'ann2']`.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols. By default `var_names`
+        refer to the index column of the `.var` DataFrame. Setting this option allows
+        alternative names to be used.
+    use_raw
+        Use `.raw` attribute of `adata` for coloring with gene expression. If `None`,
+        defaults to `True` if `layer` isn't provided and `adata.raw` is present.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default
+        adata.raw.X is plotted. If `use_raw=False` is set, then `adata.X` is plotted.
+        If `layer` is set to a valid layer name, then the layer is plotted. `layer`
+        takes precedence over `use_raw`.
+    annotate_var_explained
+    sort_order
+        For continuous annotations used as color parameter, plot data points
+        with higher values on top of others.
+    groups
+        Restrict to a few categories in categorical observation annotation.
+        The default is not to restrict to any groups.
+    dimensions
+        0-indexed dimensions of the embedding to plot as integers. E.g. [(0, 1), (1, 2)].
+        Unlike `components`, this argument is used in the same way as `colors`, e.g. is
+        used to specify a single plot at a time. Will eventually replace the components
+        argument.
+    components
+        For instance, `['1,2', '2,3']`. To plot all available components use
+        `components='all'`.
+    projection
+        Projection of plot (default: `'2d'`).
+    legend_loc
+        Location of legend, either `'on data'`, `'right margin'`, `None`,
+        or a valid keyword for the `loc` parameter of :class:`~matplotlib.legend.Legend`.
+    legend_fontsize
+        Numeric size in pt or string describing the size.
+        See :meth:`~matplotlib.text.Text.set_fontsize`.
+    legend_fontweight
+        Legend font weight. A numeric value in range 0-1000 or a string.
+        Defaults to `'bold'` if `legend_loc == 'on data'`, otherwise to `'normal'`.
+        See :meth:`~matplotlib.text.Text.set_fontweight`.
+    legend_fontoutline
+        Line width of the legend font outline in pt. Draws a white outline using
+        the path effect :class:`~matplotlib.patheffects.withStroke`.
+    colorbar_loc
+        Where to place the colorbar for continous variables. If `None`, no colorbar
+        is added.
+    size
+        Point size. If `None`, is automatically computed as 120000 / n_cells.
+        Can be a sequence containing the size for each cell. The order should be
+        the same as in adata.obs.
+    color_map
+        Color map to use for continous variables. Can be a name or a
+        :class:`~matplotlib.colors.Colormap` instance (e.g. `"magma`", `"viridis"`
+        or `mpl.cm.cividis`), see :meth:`~matplotlib.cm.ColormapRegistry.get_cmap`.
+        If `None`, the value of `mpl.rcParams["image.cmap"]` is used.
+        The default `color_map` can be set using :func:`~scanpy.set_figure_params`.
+    palette
+        Colors to use for plotting categorical annotation groups.
+        The palette can be a valid :class:`~matplotlib.colors.ListedColormap` name
+        (`'Set2'`, `'tab20'`, …), a :class:`~cycler.Cycler` object, a dict mapping
+        categories to colors, or a sequence of colors. Colors must be valid to
+        matplotlib. (see :func:`~matplotlib.colors.is_color_like`).
+        If `None`, `mpl.rcParams["axes.prop_cycle"]` is used unless the categorical
+        variable already has colors stored in `adata.uns["{var}_colors"]`.
+        If provided, values of `adata.uns["{var}_colors"]` will be set.
+    na_color
+        Color to use for null or masked values. Can be anything matplotlib accepts as a
+        color. Used for all points if `color=None`.
+    na_in_legend
+        If there are missing values, whether they get an entry in the legend. Currently
+        only implemented for categorical legends.
+    frameon
+        Draw a frame around the scatter plot. Defaults to value set in
+        :func:`~scanpy.set_figure_params`, defaults to `True`.
+    title
+        Provide title for panels either as string or list of strings,
+        e.g. `['title1', 'title2', ...]`.
+    
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin. vmin can be a number, a string, a function or `None`. If
+        vmin is a string and has the format `pN`, this is interpreted as a vmin=percentile(N).
+        For example vmin='p1.5' is interpreted as the 1.5 percentile. If vmin is function, then
+        vmin is interpreted as the return value of the function over the list of values to plot.
+        For example to set vmin tp the mean of the values to plot, `def my_vmin(values): return
+        np.mean(values)` and then set `vmin=my_vmin`. If vmin is None (default) an automatic
+        minimum value is used as defined by matplotlib `scatter` function. When making multiple
+        plots, vmin can be a list of values, one for each plot. For example `vmin=[0.1, 'p1', None, my_vmin]`
+    vmax
+        The value representing the upper limit of the color scale. The format is the same as for `vmin`.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+        The format is the same as for `vmin`.
+        Example: ``sc.pl.umap(adata, color='TREM2', vcenter='p50', cmap='RdBu_r')``
+    add_outline
+        If set to True, this will add a thin border around groups of dots. In some situations
+        this can enhance the aesthetics of the resulting image
+    outline_color
+        Tuple with two valid color names used to adjust the add_outline. The first color is the
+        border color (default: black), while the second color is a gap color between the
+        border color and the scatter dot (default: white).
+    outline_width
+        Tuple with two width numbers used to adjust the outline. The first value is the width
+        of the border color as a fraction of the scatter dot size (default: 0.3). The second value is
+        width of the gap color (default: 0.05).
+    ncols
+        Number of panels per row.
+    wspace
+        Adjust the width of the space between multiple panels.
+    hspace
+        Adjust the height of the space between multiple panels.
+    return_fig
+        Return the matplotlib figure.
+    kwargs
+        Arguments to pass to :func:`matplotlib.pyplot.scatter`,
+        for instance: the maximum and minimum values (e.g. `vmin=-2, vmax=5`).
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    
+    Returns
+    -------
+    If `show==False` a :class:`~matplotlib.axes.Axes` or a list of it.
+    
+    Examples
+    --------
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc3k_processed()
+        sc.pl.pca(adata)
+    
+    Colour points by discrete variable (Louvain clusters).
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.pca(adata, color="louvain")
+    
+    Colour points by gene expression.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.pca(adata, color="CST3")
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    pp.pca
+    """
+
     
     adata: Any = Field(
         ...,
@@ -1809,6 +3212,106 @@ class ScanpyPlottingPca(BaseAPI):
 
 
 class ScanpyPlottingEmbeddingDensity(BaseAPI):
+    """
+    Plot the density of cells in an embedding (per condition).
+    
+    Plots the gaussian kernel density estimates (over condition) from the
+    `sc.tl.embedding_density()` output.
+    
+    This function was written by Sophie Tritschler and implemented into
+    Scanpy by Malte Luecken.
+    
+    Parameters
+    ----------
+    adata
+        The annotated data matrix.
+    basis
+        The embedding over which the density was calculated. This embedded
+        representation should be found in `adata.obsm['X_[basis]']``.
+    key
+        Name of the `.obs` covariate that contains the density estimates. Alternatively, pass `groupby`.
+    groupby
+        Name of the condition used in `tl.embedding_density`. Alternatively, pass `key`.
+    group
+        The category in the categorical observation annotation to be plotted.
+        For example, 'G1' in the cell cycle 'phase' covariate. If all categories
+        are to be plotted use group='all' (default), If multiple categories
+        want to be plotted use a list (e.g.: ['G1', 'S']. If the overall density
+        wants to be ploted set group to 'None'.
+    color_map
+        Matplolib color map to use for density plotting.
+    bg_dotsize
+        Dot size for background data points not in the `group`.
+    fg_dotsize
+        Dot size for foreground data points in the `group`.
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin. vmin can be a number, a string, a function or `None`. If
+        vmin is a string and has the format `pN`, this is interpreted as a vmin=percentile(N).
+        For example vmin='p1.5' is interpreted as the 1.5 percentile. If vmin is function, then
+        vmin is interpreted as the return value of the function over the list of values to plot.
+        For example to set vmin tp the mean of the values to plot, `def my_vmin(values): return
+        np.mean(values)` and then set `vmin=my_vmin`. If vmin is None (default) an automatic
+        minimum value is used as defined by matplotlib `scatter` function. When making multiple
+        plots, vmin can be a list of values, one for each plot. For example `vmin=[0.1, 'p1', None, my_vmin]`
+    vmax
+        The value representing the upper limit of the color scale. The format is the same as for `vmin`.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+        The format is the same as for `vmin`.
+        Example: ``sc.pl.umap(adata, color='TREM2', vcenter='p50', cmap='RdBu_r')``
+    ncols
+        Number of panels per row.
+    wspace
+        Adjust the width of the space between multiple panels.
+    hspace
+        Adjust the height of the space between multiple panels.
+    return_fig
+        Return the matplotlib figure.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    
+    Examples
+    --------
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        sc.tl.umap(adata)
+        sc.tl.embedding_density(adata, basis='umap', groupby='phase')
+    
+    Plot all categories be default
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.embedding_density(adata, basis='umap', key='umap_density_phase')
+    
+    Plot selected categories
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.embedding_density(
+            adata,
+            basis='umap',
+            key='umap_density_phase',
+            group=['G1', 'S'],
+        )
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    tl.embedding_density
+    """
+
     
     adata: Any = Field(
         ...,
@@ -1918,6 +3421,147 @@ class ScanpyPlottingEmbeddingDensity(BaseAPI):
 
 
 class ScanpyPlottingRankGenesGroupsDotplot(BaseAPI):
+    """
+    Plot ranking of genes using dotplot plot (see :func:`~scanpy.pl.dotplot`).
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    groups
+        The groups for which to show the gene ranking.
+    n_genes
+        Number of genes to show. This can be a negative number to show for
+        example the down regulated genes. eg: num_genes=-10. Is ignored if
+        `gene_names` is passed.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols. By default `var_names`
+        refer to the index column of the `.var` DataFrame. Setting this option allows
+        alternative names to be used.
+    groupby
+        The key of the observation grouping to consider. By default,
+        the groupby is chosen from the rank genes groups parameter but
+        other groupby options can be used.  It is expected that
+        groupby is a categorical. If groupby is not a categorical observation,
+        it would be subdivided into `num_categories` (see :func:`~scanpy.pl.dotplot`).
+    min_logfoldchange
+        Value to filter genes in groups if their logfoldchange is less than the
+        min_logfoldchange
+    key
+        Key used to store the ranking results in `adata.uns`.
+    values_to_plot
+        Instead of the mean gene value, plot the values computed by `sc.rank_genes_groups`.
+        The options are: ['scores', 'logfoldchanges', 'pvals', 'pvals_adj',
+        'log10_pvals', 'log10_pvals_adj']. When plotting logfoldchanges a divergent
+        colormap is recommended. See examples below.
+    var_names
+        Genes to plot. Sometimes is useful to pass a specific list of var names (e.g. genes)
+        to check their fold changes or p-values, instead of the top/bottom genes. The
+        var_names could be a dictionary or a list as in :func:`~scanpy.pl.dotplot` or
+        :func:`~scanpy.pl.matrixplot`. See examples below.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    return_fig
+        Returns :class:`DotPlot` object. Useful for fine-tuning
+        the plot. Takes precedence over `show=False`.
+    **kwds
+        Are passed to :func:`~scanpy.pl.dotplot`.
+    
+    Returns
+    -------
+    If `return_fig` is `True`, returns a :class:`DotPlot` object,
+    else if `show` is false, return axes dict
+    
+    Examples
+    --------
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        sc.tl.rank_genes_groups(adata, 'bulk_labels', n_genes=adata.raw.shape[1])
+    
+    Plot top 2 genes per group.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.rank_genes_groups_dotplot(adata,n_genes=2)
+    
+    Plot with scaled expressions for easier identification of differences.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.rank_genes_groups_dotplot(adata, n_genes=2, standard_scale='var')
+    
+    Plot `logfoldchanges` instead of gene expression. In this case a diverging colormap
+    like `bwr` or `seismic` works better. To center the colormap in zero, the minimum
+    and maximum values to plot are set to -4 and 4 respectively.
+    Also, only genes with a log fold change of 3 or more are shown.
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.rank_genes_groups_dotplot(
+            adata,
+            n_genes=4,
+            values_to_plot="logfoldchanges", cmap='bwr',
+            vmin=-4,
+            vmax=4,
+            min_logfoldchange=3,
+            colorbar_title='log fold change'
+        )
+    
+    Also, the last genes can be plotted. This can be useful to identify genes
+    that are lowly expressed in a group. For this `n_genes=-4` is used
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.rank_genes_groups_dotplot(
+            adata,
+            n_genes=-4,
+            values_to_plot="logfoldchanges",
+            cmap='bwr',
+            vmin=-4,
+            vmax=4,
+            min_logfoldchange=3,
+            colorbar_title='log fold change',
+        )
+    
+    A list specific genes can be given to check their log fold change. If a
+    dictionary, the dictionary keys will be added as labels in the plot.
+    
+    .. plot::
+        :context: close-figs
+    
+        var_names = {'T-cell': ['CD3D', 'CD3E', 'IL32'],
+                      'B-cell': ['CD79A', 'CD79B', 'MS4A1'],
+                      'myeloid': ['CST3', 'LYZ'] }
+        sc.pl.rank_genes_groups_dotplot(
+            adata,
+            var_names=var_names,
+            values_to_plot="logfoldchanges",
+            cmap='bwr',
+            vmin=-4,
+            vmax=4,
+            min_logfoldchange=3,
+            colorbar_title='log fold change',
+        )
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    tl.rank_genes_groups
+    """
+
     
     adata: Any = Field(
         ...,
@@ -1988,6 +3632,61 @@ class ScanpyPlottingRankGenesGroupsDotplot(BaseAPI):
 
 
 class ScanpyPlottingCorrelationMatrix(BaseAPI):
+    """
+    Plot the correlation matrix computed as part of `sc.tl.dendrogram`.
+    
+    Parameters
+    ----------
+    adata
+    groupby
+        Categorical data column used to create the dendrogram
+    show_correlation_numbers
+        If `show_correlation=True`, plot the correlation on top of each cell.
+    dendrogram
+        If True or a valid dendrogram key, a dendrogram based on the
+        hierarchical clustering between the `groupby` categories is added.
+        The dendrogram is computed using :func:`scanpy.tl.dendrogram`.
+        If `tl.dendrogram` has not been called previously,
+        the function is called with default parameters.
+    figsize
+        By default a figure size that aims to produce a squared correlation
+        matrix plot is used. Format is (width, height)
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin.
+    vmax
+        The value representing the upper limit of the color scale. Values larger than vmax are plotted
+        with the same color as vmax.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+    norm
+        Custom color normalization object from matplotlib. See
+        `https://matplotlib.org/stable/tutorials/colors/colormapnorms.html` for details.
+    **kwds
+        Only if `show_correlation` is True:
+        Are passed to :func:`matplotlib.pyplot.pcolormesh` when plotting the
+        correlation heatmap. `cmap` can be used to change the color palette.
+    
+    Returns
+    -------
+    If `show=False`, returns a list of :class:`matplotlib.axes.Axes` objects.
+    
+    Examples
+    --------
+    >>> import scanpy as sc
+    >>> adata = sc.datasets.pbmc68k_reduced()
+    >>> sc.tl.dendrogram(adata, "bulk_labels")
+    >>> sc.pl.correlation_matrix(adata, "bulk_labels")
+    """
+
     
     adata: Any = Field(
         ...,
@@ -2058,6 +3757,52 @@ class ScanpyPlottingCorrelationMatrix(BaseAPI):
 
 
 class ScanpyPlottingHighestExprGenes(BaseAPI):
+    """
+    Fraction of counts assigned to each gene over all cells.
+    
+    Computes, for each gene, the fraction of counts assigned to that gene within
+    a cell. The `n_top` genes with the highest mean fraction over all cells are
+    plotted as boxplots.
+    
+    This plot is similar to the `scater` package function `plotHighestExprs(type
+    = "highest-expression")`, see `here
+    <https://bioconductor.org/packages/devel/bioc/vignettes/scater/inst/doc/vignette-qc.html>`__. Quoting
+    
+        *We expect to see the “usual suspects”, i.e., mitochondrial genes, actin,
+        ribosomal protein, MALAT1. A few spike-in transcripts may also be
+        present here, though if all of the spike-ins are in the top 50, it
+        suggests that too much spike-in RNA was added. A large number of
+        pseudo-genes or predicted genes may indicate problems with alignment.*
+        -- Davis McCarthy and Aaron Lun
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    n_top
+        Number of top
+    layer
+        Layer from which to pull data.
+    gene_symbols
+        Key for field in .var that stores gene symbols if you do not want to use .var_names.
+    log
+        Plot x-axis in log scale
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    **kwds
+        Are passed to :func:`~seaborn.boxplot`.
+    
+    Returns
+    -------
+    If `show==False` a :class:`~matplotlib.axes.Axes`.
+    """
+
     
     adata: Any = Field(
         ...,
@@ -2106,6 +3851,111 @@ class ScanpyPlottingHighestExprGenes(BaseAPI):
 
 
 class ScanpyPlottingTracksplot(BaseAPI):
+    """
+    Compact plot of expression of a list of genes.
+    
+    In this type of plot each var_name is plotted as a filled line plot where the
+    y values correspond to the var_name values and x is each of the cells. Best results
+    are obtained when using raw counts that are not log.
+    
+    `groupby` is required to sort and order the values using the respective group
+    and should be a categorical value.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    var_names
+        `var_names` should be a valid subset of `adata.var_names`.
+        If `var_names` is a mapping, then the key is used as label
+        to group the values (see `var_group_labels`). The mapping values
+        should be sequences of valid `adata.var_names`. In this
+        case either coloring or 'brackets' are used for the grouping
+        of var names depending on the plot. When `var_names` is a mapping,
+        then the `var_group_labels` and `var_group_positions` are set.
+    groupby
+        The key of the observation grouping to consider.
+    use_raw
+        Use `raw` attribute of `adata` if present.
+    log
+        Plot on logarithmic axis.
+    num_categories
+        Only used if groupby observation is not categorical. This value
+        determines the number of groups into which the groupby observation
+        should be subdivided.
+    categories_order
+        Order in which to show the categories. Note: add_dendrogram or add_totals
+        can change the categories order.
+    figsize
+        Figure size when `multi_panel=True`.
+        Otherwise the `rcParam['figure.figsize]` value is used.
+        Format is (width, height)
+    dendrogram
+        If True or a valid dendrogram key, a dendrogram based on the hierarchical
+        clustering between the `groupby` categories is added.
+        The dendrogram information is computed using :func:`scanpy.tl.dendrogram`.
+        If `tl.dendrogram` has not been called previously the function is called
+        with default parameters.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols.
+        By default `var_names` refer to the index column of the `.var` DataFrame.
+        Setting this option allows alternative names to be used.
+    var_group_positions
+        Use this parameter to highlight groups of `var_names`.
+        This will draw a 'bracket' or a color block between the given start and end
+        positions. If the parameter `var_group_labels` is set, the corresponding
+        labels are added on top/left. E.g. `var_group_positions=[(4,10)]`
+        will add a bracket between the fourth `var_name` and the tenth `var_name`.
+        By giving more positions, more brackets/color blocks are drawn.
+    var_group_labels
+        Labels for each of the `var_group_positions` that want to be highlighted.
+    var_group_rotation
+        Label rotation degrees.
+        By default, labels larger than 4 characters are rotated 90 degrees.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default adata.raw.X is plotted.
+        If `use_raw=False` is set, then `adata.X` is plotted. If `layer` is set to a valid layer name,
+        then the layer is plotted. `layer` takes precedence over `use_raw`.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    **kwds
+        Are passed to :func:`~seaborn.heatmap`.
+    
+    Returns
+    -------
+    A list of :class:`~matplotlib.axes.Axes`.
+    
+    Examples
+    --------
+    Using var_names as list:
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        markers = ['C1QA', 'PSAP', 'CD79A', 'CD79B', 'CST3', 'LYZ']
+        sc.pl.tracksplot(adata, markers, groupby='bulk_labels', dendrogram=True)
+    
+    Using var_names as dict:
+    
+    .. plot::
+        :context: close-figs
+    
+        markers = {'T-cell': 'CD3D', 'B-cell': 'CD79A', 'myeloid': 'CST3'}
+        sc.pl.tracksplot(adata, markers, groupby='bulk_labels', dendrogram=True)
+    
+    .. currentmodule:: scanpy
+    
+    See Also
+    --------
+    pl.rank_genes_groups_tracksplot: to plot marker genes identified using the :func:`~scanpy.tl.rank_genes_groups` function.
+    """
+
     
     adata: Any = Field(
         ...,
@@ -2181,6 +4031,50 @@ class ScanpyPlottingTracksplot(BaseAPI):
 
 
 class ScanpyPlottingClustermap(BaseAPI):
+    """
+    Hierarchically-clustered heatmap.
+    
+    Wraps :func:`seaborn.clustermap` for :class:`~anndata.AnnData`.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    obs_keys
+        Categorical annotation to plot with a different color map.
+        Currently, only a single key is supported.
+    use_raw
+        Whether to use `raw` attribute of `adata`. Defaults to `True` if `.raw` is present.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    **kwds
+        Keyword arguments passed to :func:`~seaborn.clustermap`.
+    
+    Returns
+    -------
+    If `show` is `False`, a :class:`~seaborn.matrix.ClusterGrid` object
+    (see :func:`~seaborn.clustermap`).
+    
+    Examples
+    --------
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.krumsiek11()
+        sc.pl.clustermap(adata)
+    
+    .. plot::
+        :context: close-figs
+    
+        sc.pl.clustermap(adata, obs_keys='cell_type')
+    """
+
     
     adata: Any = Field(
         ...,
@@ -2216,6 +4110,183 @@ class ScanpyPlottingClustermap(BaseAPI):
 
 
 class ScanpyPlottingStackedViolin(BaseAPI):
+    """
+    Stacked violin plots.
+    
+    Makes a compact image composed of individual violin plots
+    (from :func:`~seaborn.violinplot`) stacked on top of each other.
+    Useful to visualize gene expression per cluster.
+    
+    Wraps :func:`seaborn.violinplot` for :class:`~anndata.AnnData`.
+    
+    This function provides a convenient interface to the
+    :class:`~scanpy.pl.StackedViolin` class. If you need more flexibility,
+    you should use :class:`~scanpy.pl.StackedViolin` directly.
+    
+    Parameters
+    ----------
+    adata
+        Annotated data matrix.
+    var_names
+        `var_names` should be a valid subset of `adata.var_names`.
+        If `var_names` is a mapping, then the key is used as label
+        to group the values (see `var_group_labels`). The mapping values
+        should be sequences of valid `adata.var_names`. In this
+        case either coloring or 'brackets' are used for the grouping
+        of var names depending on the plot. When `var_names` is a mapping,
+        then the `var_group_labels` and `var_group_positions` are set.
+    groupby
+        The key of the observation grouping to consider.
+    use_raw
+        Use `raw` attribute of `adata` if present.
+    log
+        Plot on logarithmic axis.
+    num_categories
+        Only used if groupby observation is not categorical. This value
+        determines the number of groups into which the groupby observation
+        should be subdivided.
+    categories_order
+        Order in which to show the categories. Note: add_dendrogram or add_totals
+        can change the categories order.
+    figsize
+        Figure size when `multi_panel=True`.
+        Otherwise the `rcParam['figure.figsize]` value is used.
+        Format is (width, height)
+    dendrogram
+        If True or a valid dendrogram key, a dendrogram based on the hierarchical
+        clustering between the `groupby` categories is added.
+        The dendrogram information is computed using :func:`scanpy.tl.dendrogram`.
+        If `tl.dendrogram` has not been called previously the function is called
+        with default parameters.
+    gene_symbols
+        Column name in `.var` DataFrame that stores gene symbols.
+        By default `var_names` refer to the index column of the `.var` DataFrame.
+        Setting this option allows alternative names to be used.
+    var_group_positions
+        Use this parameter to highlight groups of `var_names`.
+        This will draw a 'bracket' or a color block between the given start and end
+        positions. If the parameter `var_group_labels` is set, the corresponding
+        labels are added on top/left. E.g. `var_group_positions=[(4,10)]`
+        will add a bracket between the fourth `var_name` and the tenth `var_name`.
+        By giving more positions, more brackets/color blocks are drawn.
+    var_group_labels
+        Labels for each of the `var_group_positions` that want to be highlighted.
+    var_group_rotation
+        Label rotation degrees.
+        By default, labels larger than 4 characters are rotated 90 degrees.
+    layer
+        Name of the AnnData object layer that wants to be plotted. By default adata.raw.X is plotted.
+        If `use_raw=False` is set, then `adata.X` is plotted. If `layer` is set to a valid layer name,
+        then the layer is plotted. `layer` takes precedence over `use_raw`.
+    title
+        Title for the figure
+    colorbar_title
+        Title for the color bar. New line character (\n) can be used.
+    cmap
+        String denoting matplotlib color map.
+    standard_scale
+        Whether or not to standardize the given dimension between 0 and 1, meaning for
+        each variable or group, subtract the minimum and divide each by its maximum.
+    swap_axes
+         By default, the x axis contains `var_names` (e.g. genes) and the y axis
+         the `groupby` categories. By setting `swap_axes` then x are the
+         `groupby` categories and y the `var_names`.
+    return_fig
+        Returns :class:`DotPlot` object. Useful for fine-tuning
+        the plot. Takes precedence over `show=False`.
+    
+    stripplot
+        Add a stripplot on top of the violin plot.
+        See :func:`~seaborn.stripplot`.
+    jitter
+        Add jitter to the stripplot (only when stripplot is True)
+        See :func:`~seaborn.stripplot`.
+    size
+        Size of the jitter points.
+    density_norm
+        The method used to scale the width of each violin.
+        If 'width' (the default), each violin will have the same width.
+        If 'area', each violin will have the same area.
+        If 'count', a violin’s width corresponds to the number of observations.
+    yticklabels
+        Set to true to view the y tick labels.
+    row_palette
+        Be default, median values are mapped to the violin color using a
+        color map (see `cmap` argument). Alternatively, a 'row_palette` can
+        be given to color each violin plot row using a different colors.
+        The value should be a valid seaborn or matplotlib palette name
+        (see :func:`~seaborn.color_palette`).
+        Alternatively, a single color name or hex value can be passed,
+        e.g. `'red'` or `'#cc33ff'`.
+    show
+         Show the plot, do not return axis.
+    save
+        If `True` or a `str`, save the figure.
+        A string is appended to the default filename.
+        Infer the filetype if ending on {`'.pdf'`, `'.png'`, `'.svg'`}.
+    ax
+        A matplotlib axes object. Only works if plotting a single component.
+    vmin
+        The value representing the lower limit of the color scale. Values smaller than vmin are plotted
+        with the same color as vmin.
+    vmax
+        The value representing the upper limit of the color scale. Values larger than vmax are plotted
+        with the same color as vmax.
+    vcenter
+        The value representing the center of the color scale. Useful for diverging colormaps.
+    norm
+        Custom color normalization object from matplotlib. See
+        `https://matplotlib.org/stable/tutorials/colors/colormapnorms.html` for details.
+    **kwds
+        Are passed to :func:`~seaborn.violinplot`.
+    
+    Returns
+    -------
+    If `return_fig` is `True`, returns a :class:`~scanpy.pl.StackedViolin` object,
+    else if `show` is false, return axes dict
+    
+    See Also
+    --------
+    :class:`~scanpy.pl.StackedViolin`: The StackedViolin class can be used to to control
+        several visual parameters not available in this function.
+    :func:`~scanpy.pl.rank_genes_groups_stacked_violin` to plot marker genes identified
+        using the :func:`~scanpy.tl.rank_genes_groups` function.
+    
+    Examples
+    --------
+    Visualization of violin plots of a few genes grouped by the category `bulk_labels`:
+    
+    .. plot::
+        :context: close-figs
+        adata = sc.datasets.pbmc68k_reduced()
+        markers = ['C1QA', 'PSAP', 'CD79A', 'CD79B', 'CST3', 'LYZ']
+        sc.pl.stacked_violin(adata, markers, groupby='bulk_labels', dendrogram=True)
+    
+    Same visualization but passing var_names as dict, which adds a grouping of
+    the genes on top of the image:
+    
+    .. plot::
+        :context: close-figs
+    
+        markers = {'T-cell': 'CD3D', 'B-cell': 'CD79A', 'myeloid': 'CST3'}
+        sc.pl.stacked_violin(adata, markers, groupby='bulk_labels', dendrogram=True)
+    
+    Get StackedViolin object for fine tuning
+    
+    .. plot::
+        :context: close-figs
+    
+        vp = sc.pl.stacked_violin(adata, markers, 'bulk_labels', return_fig=True)
+        vp.add_totals().style(ylim=(0,5)).show()
+    
+    The axes used can be obtained using the get_axes() method:
+    
+    .. code-block:: python
+    
+        axes_dict = vp.get_axes()
+        print(axes_dict)
+    """
+
     
     adata: Any = Field(
         ...,

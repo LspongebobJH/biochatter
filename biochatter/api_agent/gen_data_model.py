@@ -193,6 +193,19 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
     # Jiahang: be noted that following hack could be tricky since it relies on str operations,
     # and thus can be guaranteed on only datamodel_code_generator 0.30.1.
 
+    # add docstring to data model.
+    doc = data_model.__doc__
+    doc = '\n    '.join(doc.strip().splitlines())
+    ## Escape backslashes in docstring
+    ## another hack.
+    doc = doc.replace('\\', '\\\\')  
+    codes = re.sub(
+        r'^(class \w+\(.*\):)',
+        rf'\1\n    """\n    {doc}\n    """\n', 
+        codes, 
+        flags=re.MULTILINE
+    )
+
     # remove incorrect import resulted from base_class="BaseAPI" in JsonSchemaParser.
     codes = re.sub(r"^import BaseAPI\s*", "", codes, flags=re.MULTILINE)
 
