@@ -8,10 +8,12 @@ from copy import deepcopy
 import argparse
 import importlib
 from tqdm import tqdm
+import subprocess
 from dotenv import load_dotenv
 load_dotenv()
 
 from docstring_parser import parse
+import libcst as cst
 from pydantic import Field, create_model, PrivateAttr
 from pydantic.fields import FieldInfo
 from importlib.metadata import version
@@ -203,44 +205,70 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
     )
     codes: str = parser.parse()
 
-    # Jiahang: be noted that following hack could be tricky since it relies on str operations,
-    # and thus can be guaranteed on only datamodel_code_generator 0.30.1.
+    # Parse the code into a CST
+    module = cst.parse_module(codes)
 
-    # add docstring to data model.
-    doc = inspect.getdoc(data_model)
-    doc = '\n    '.join(doc.strip().splitlines())
-    ## Escape backslashes in docstring
-    ## another hack.
-    doc = doc.replace('\\', '\\\\')  
-    codes = re.sub(
-        r'^(class \w+\(.*\):)',
-        rf'\1\n    """\n    {doc}\n    """\n', 
-        codes, 
-        flags=re.MULTILINE
-    )
+    class DataModelTransformer(cst.CSTTransformer):
+        def __init__(self, data_model: type[BaseAPIModel], need_import: bool):
+            self.data_model = data_model
+            self.need_import = need_import
+            self.doc = inspect.getdoc(data_model)
+            self.doc = '\n    '.join(self.doc.strip().splitlines())
+            self.doc = self.doc.replace('\\', '\\\\')
 
-    # remove incorrect import resulted from base_class="BaseAPI" in JsonSchemaParser.
-    codes = re.sub(r"^import BaseAPI\s*", "", codes, flags=re.MULTILINE)
+        def leave_Assign(self, original_node: cst.Assign, updated_node: cst.Assign) -> cst.Assign:
+            # Remove model_config
+            if isinstance(original_node.targets[0].target, cst.Name) and \
+                original_node.targets[0].target.value == "model_config":
+                return cst.RemovalSentinel.REMOVE
+            return updated_node
 
-    # add private attributes.
-    keys = ["_api_name", "_products_original", "_data_name"]
-    for key in keys:
-        attr = data_model.__private_attributes__[key]
-        codes += f"""\n    {key} = PrivateAttr({attr})"""
+        def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.ClassDef:
+            # Add docstring to the class
+            docstring = cst.SimpleString(f'"""\n    {self.doc}\n    """')
 
-    # remove model_config as it's already set by base_class.
-    codes = re.sub(
-        r"model_config\s*=\s*ConfigDict\(\s*.*?\s*\)",
-        "",
-        codes,
-        flags=re.DOTALL
-    ).strip()
+            # Add private attributes
+            private_attrs = []
+            keys = ["_api_name", "_products_original", "_data_name"]
+            for key in keys:
+                call = self.data_model.__private_attributes__[key].__repr__()
+                call = cst.parse_expression(call)
+                call = call.with_changes(func=cst.Name("PrivateAttr"))
 
-    # remove import if not needed.
-    if not need_import:
-        codes = re.sub(r"^\s*(import|from)\s+.*\n?", "", codes, flags=re.MULTILINE)
+                private_attrs.append(
+                    cst.SimpleStatementLine([
+                        cst.Assign(
+                            targets=[cst.AssignTarget(cst.Name(key))],
+                            value=call,
+                        )
+                    ])
+                )
+
+            return updated_node.with_changes(
+                body=updated_node.body.with_changes(
+                    body=[cst.SimpleStatementLine([cst.Expr(docstring)])] + \
+                    list(updated_node.body.body) + private_attrs
+                )
+            )
+
+        def leave_Import(self, original_node: cst.Import, updated_node: cst.Import) -> cst.Import | cst.RemovalSentinel:
+            # Remove BaseAPI import
+            for name in original_node.names:
+                if isinstance(name.name, cst.Name) and name.name.value == "BaseAPI":
+                    return cst.RemovalSentinel.REMOVE
+            return updated_node
+
+        def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom) -> cst.ImportFrom | cst.RemovalSentinel:
+            # Remove imports if not needed
+            if not self.need_import:
+                return cst.RemovalSentinel.REMOVE
+            return updated_node
+
+    # Apply the transformer
+    transformer = DataModelTransformer(data_model, need_import)
+    modified_module = module.visit(transformer)
     
-    return codes
+    return modified_module.code
 
 def simplify_desc(
     fields: dict[str, tuple[type, FieldInfo] | str], 
@@ -299,8 +327,78 @@ def simplify_desc(
 
     return fields
 
+def add_tools_dict(codes: str, data_models: list[type[BaseAPIModel]]) -> str:
+    """Add TOOLS_DICT to the end of the code using libcst.
+    
+    Args:
+        codes: The source code as a string
+        data_models: List of data model classes to include in TOOLS_DICT
+        
+    Returns:
+        Modified source code with TOOLS_DICT added
+    """
+    # Parse the source code into a CST
+    module = cst.parse_module(codes)
+    
+    # Create a transformer to add the TOOLS dictionary
+    class AddToolsTransformer(cst.CSTTransformer):
+        def __init__(self, data_models: list[type[BaseAPIModel]]):
+            self.data_models = data_models
+            
+        def leave_Module(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
+            # Create dictionary elements with proper indentation
+            elements = []
+            for data_model in self.data_models:
+                key = cst.SimpleString(f'"{data_model._api_name.default}"')
+                value = cst.Name(data_model.__name__)
+                elements.append(cst.DictElement(
+                    key=key, 
+                    value=value,
+                ))
+            
+            # Create the TOOLS_DICT assignment with two newlines before it
+            tools_dict = cst.SimpleStatementLine([
+                cst.Assign(
+                    targets=[cst.AssignTarget(cst.Name("TOOLS_DICT"))],
+                    value=cst.Dict(elements=elements)
+                )
+            ])
+            
+            # Add two newlines and the assignment to the end of the module
+            return updated_node.with_changes(
+                body=list(updated_node.body) + [
+                    tools_dict
+                ]
+            )
+    
+    # Apply the transformer
+    modified_module = module.visit(AddToolsTransformer(data_models))
+    
+    # Convert the modified CST back to source code
+    return modified_module.code
+
+def remove_tools_dict(codes: str) -> str:
+    # Parse the source code into a CST
+    module = cst.parse_module(codes)
+    
+    # Create a transformer to remove the TOOLS dictionary assignment
+    class RemoveToolsTransformer(cst.CSTTransformer):
+        def leave_Assign(self, original_node: cst.Assign, updated_node: cst.Assign) -> cst.Assign | cst.RemovalSentinel:
+            # Check if this is a TOOLS assignment
+            for target in original_node.targets:
+                if isinstance(target.target, cst.Name) and target.target.value == 'TOOLS_DICT':
+                    return cst.RemovalSentinel.REMOVE
+            return updated_node
+    
+    # Apply the transformer
+    modified_module = module.visit(RemoveToolsTransformer())
+    
+    # Convert the modified CST back to source code
+    return modified_module.code
+
 def apis_to_data_models(
         api_dict: str, 
+        need_import: bool = True,
         ) -> list[type[BaseAPIModel]]:
     """
     Although we have many string operations like hack in this implementation, all these hacks are bound to
@@ -319,9 +417,10 @@ def apis_to_data_models(
     module = api_dict['meta']['module']
 
     llm = init_chat_model(os.environ.get("MODEL"), model_provider="openai", temperature=0.7)
-    _need_import = True
 
     for _api in tqdm(api_list):
+        if "_deprecated" in _api and _api['_deprecated']:
+            continue
         api = _api['api']
         assert 'products' in _api and 'data_name' in _api, \
             "configs should contain 'products' and 'data_name'."
@@ -391,6 +490,7 @@ def apis_to_data_models(
             fields = simplify_desc(fields, llm)
             doc = simplify_desc({"doc": parsed_doc.description}, llm)['doc']
         except OutputParserException as e:
+            doc = parsed_doc.description
             print(f"The descriptions of API or arguments of {name} are not summarized correctly. Please summarize them manually.")
 
         # Create the Pydantic model
@@ -410,29 +510,28 @@ def apis_to_data_models(
             "biochatter.api_agent.base.agent_abc.BaseAPI",
             "pydantic.PrivateAttr",
         ]
-        codes = data_model_to_py(data_model, additional_imports, _need_import)
+        codes = data_model_to_py(data_model, additional_imports, need_import)
         codes_list.append(codes)
 
         # hack. Subsequent codes need no repeated imports. This is important
         # to avoid erros like __future__ import not at the top of the file.
-        _need_import = False
+        need_import = False
 
     # hack. Add TOOLS_DICT to the end of the file.
     codes = "\n\n".join(codes_list)
-    codes += "\n\nTOOLS_DICT = {"
-    for data_model in classes_list:
-        codes += f"\n    \"{data_model._api_name.default}\": {data_model.__name__},"
-    codes += "\n}"
-
     return classes_list, codes
 
-def get_output_path(package_name: str, api_dict_name: str) -> str:
-    return f"biochatter/api_agent/python/{package_name}/{api_dict_name}.py"
+def get_output_path(package_name: str, api_dict_name: str, as_module: bool = False) -> str:
+    if as_module:
+        return f"biochatter.api_agent.python.{package_name}.{api_dict_name}"
+    else:
+        return f"biochatter/api_agent/python/{package_name}/{api_dict_name}.py"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--package_name", type=str, required=True)
     parser.add_argument("--api_dict_name", type=str, required=True)
+    parser.add_argument("--rerun_whole_file", action="store_true")
     args = parser.parse_args()
 
     package_name = args.package_name
@@ -442,9 +541,46 @@ if __name__ == "__main__":
     api_dict = importlib.import_module(f"biochatter.api_agent.python.{package_name}.api_dict")
     api_dict = getattr(api_dict, api_dict_name)
 
-    data_models, codes = apis_to_data_models(api_dict)
+    if os.path.exists(output_path) and not args.rerun_whole_file:
+        output_module_path = get_output_path(package_name, api_dict_name, as_module=True)
+        output_module = importlib.import_module(output_module_path)
+        TOOLS_DICT = deepcopy(output_module.TOOLS_DICT)
 
+        # extract api in api_dict that is not in TOOLS_DICT
+        additional_apis = []
+        for api in api_dict['api_list']:
+            if get_api_path(api_dict['meta']['module'], api['api']) not in TOOLS_DICT.keys():
+                additional_apis.append(api)
+
+        with open(output_path, "r") as f:
+            codes = f.read()
+        codes = remove_tools_dict(codes)
+
+        _api_dict = {
+            "meta": api_dict['meta'],
+            "api_list": additional_apis,
+        }
+
+        data_models, new_codes = apis_to_data_models(_api_dict, need_import=False)
+        tools_list = list(TOOLS_DICT.values()) + data_models
+        new_codes = add_tools_dict(new_codes, tools_list)
+
+        codes = codes + "\n\n" + new_codes
+        
+    else:
+        data_models, codes = apis_to_data_models(api_dict)
+        codes = add_tools_dict(codes, data_models)
+
+    
     with open(output_path, "w") as f:
         f.write(codes)
+
+    # Jiahang: use subprocess is a bad practice. but there is no public api
+    # released by black. the so-called internal API is unstable, and this
+    # subprocess usage is recommended.
+
+    # code formatting by black.
+
+    subprocess.run(["black", output_path])
 
     print(f"Data models and codes have been generated and saved to {output_path}.")

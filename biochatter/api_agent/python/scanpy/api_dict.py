@@ -43,6 +43,110 @@ pp_api_list = [
 		],
 		"data_name": "data"
 	},
+    # unfinished: how to deal with dynamic products?
+    {
+        "api": sc.pp.calculate_qc_metrics,
+        "products": [
+            "data.obs[\"total_genes_by_counts\"]",
+            "data.obs[\"total_counts\"]",
+            "data.obs[\"pct_counts_in_top_50_genes\"]",
+            "data.obs[\"pct_counts_in_top_100_genes\"]",
+            "data.obs[\"pct_counts_in_top_200_genes\"]",
+        ],
+        "data_name": "adata"
+	},
+    # unfinished: n_cells and n_genes are not guaranteed to be generated.
+    # Jiahang: after all these noded being added, how to determine upstream dependencies?
+    {
+        "api": sc.pp.filter_cells,
+        "products": [
+			"data.X",
+            "data.obs[\"n_counts\"]",
+            "data.obs[\"n_genes\"]",
+        ],
+        "data_name": "data"
+	},
+    {
+        "api": sc.pp.filter_genes,
+        "products": [
+			"data.X",
+            "data.var[\"n_counts\"]",
+            "data.var[\"n_genes\"]",
+        ],
+        "data_name": "data"
+	},
+    {
+        "api": sc.pp.normalize_total,
+        "products": [
+            "data.X"
+        ],
+        "data_name": "adata"
+    },
+    # unfinished: how this api being used? doc is not clear.
+    {
+        "api": sc.pp.regress_out,
+        "products": [
+            "data.X"
+        ],
+        "data_name": "adata"
+    },
+    {
+        "api": sc.pp.scale,
+        "products": [
+            "data.X",
+            "data.var[\"mean\"]",
+            "data.var[\"std\"]",
+            "data.var[\"var\"]"
+        ],
+        "data_name": "data"
+    },
+    {
+        "api": sc.pp.sample,
+        "products": [
+            "data.X"
+        ],
+        "data_name": "data"
+	},
+    {
+        "api": sc.pp.downsample_counts,
+        "products": [
+            "data.X"
+        ],
+        "data_name": "adata"
+    },
+    {
+        "api": sc.pp.recipe_zheng17,
+        "_deprecated": True,
+        "_comment": "recipe* API are not guaranteed to work."
+    },
+    # Jiahang: how this works?
+    {
+        "api": sc.pp.combat,
+		"products": [
+			"data.X"
+		],
+		"data_name": "adata"
+    },
+    # Jiahang: how to deal with multi-inputs?
+    {
+        "api": sc.pp.scrublet,
+        "products": [
+            "data.obs[\"doublet_score\"]",
+            "data.obs[\"predicted_doublet\"]",
+            "data.uns[\"scrublet\"][\"doublet_scores_sim\"]",
+            "data.uns[\"scrublet\"][\"doublet_parents\"]",
+            "data.uns[\"scrublet\"][\"parameters\"]",
+        ],
+        "data_name": "adata"
+    },
+    {
+        "api": sc.pp.scrublet_simulate_doublets,
+        "products": [
+            "data.obsm[\"scrublet\"][\"doublet_parents\"]",
+            "data.uns[\"scrublet\"][\"parameters\"]",
+		],
+        "data_name": "adata"
+	}
 ]
 
 tl_api_list = [
