@@ -213,6 +213,60 @@ tl_api_list = [
 		],
 		"data_name": "adata"
 	},
+    # Jiahang: this case is complex, leave it for now.
+    {
+        "api": sc.tl.ingest,
+        "_deprecated": True,
+	},
+    {
+        "api": sc.tl.filter_rank_genes_groups,
+        "products": [
+            "data.uns[\"rank_genes_groups\"]"
+        ],
+        "data_name": "adata"
+	},
+    {
+        "api": sc.tl.marker_gene_overlap,
+        "products": [
+            "data.uns[\"marker_gene_overlap\"]"
+        ],
+        "data_name": "adata"
+    },
+    {
+        "api": sc.tl.score_genes,
+        "products": [
+            "data.obs[\"score\"]"
+        ],
+        "data_name": "adata"
+    },
+    {
+        "api": sc.tl.score_genes_cell_cycle,
+        "products": [
+            "data.obs[\"S_score\"]",
+            "data.obs[\"G2M_score\"]",
+            "data.obs[\"phase\"]"
+        ],
+        "data_name": "adata"
+    },
+    # Jiahang: special case, this API has no data argument.
+    {
+        "api": sc.tl.sim,
+        "_deprecated": True,
+	},
+    # Jiahang: dynamic return values.
+    {
+        "api": sc.tl.draw_graph,
+        "products": [
+            "data.uns[\"draw_graph\"]",
+            "data.obsm[\"X_draw_graph_fa\"]",
+        ],
+        "data_name": "adata"
+    },
+    {
+        "api": sc.tl.dpt,
+        "_deprecated": True,
+        "_comment": "need preprocessing codes"
+	}
 ]
 
 pl_api_list = [
@@ -278,9 +332,39 @@ pl_api_list = [
 		"products": [],
 		"data_name": "adata"
 	},
+    {
+        "api": sc.pl.rank_genes_groups,
+        "products": [],
+		"data_name": "adata"
+	},
 	{
 		"api": sc.pl.rank_genes_groups_dotplot,
 		"products": [],
+		"data_name": "adata"
+	},
+    {
+        "api": sc.pl.rank_genes_groups_violin,
+        "products": [],
+		"data_name": "adata"
+	},
+    {
+        "api": sc.pl.rank_genes_groups_heatmap,
+        "products": [],
+		"data_name": "adata"
+	},
+    {
+        "api": sc.pl.rank_genes_groups_stacked_violin,
+        "products": [],
+		"data_name": "adata"
+	},
+    {
+        "api": sc.pl.rank_genes_groups_matrixplot,
+        "products": [],
+		"data_name": "adata"
+	},
+    {
+        "api": sc.pl.rank_genes_groups_tracksplot,
+        "products": [],
 		"data_name": "adata"
 	},
 	{
@@ -309,7 +393,60 @@ pl_api_list = [
 		"api": sc.pl.stacked_violin,
 		"products": [],
 		"data_name": "adata"
-	}
+	},
+    {
+		"api": sc.pl.matrixplot,
+		"products": [],
+		"data_name": "adata"
+	},
+    {
+		"api": sc.pl.ranking,
+		"products": [],
+		"data_name": "adata",
+        "_deprecated": True,
+        "_comment": "document is too poor"
+	},
+    {
+        "api": sc.pl.filter_genes_dispersion,
+        "_deprecated": True,
+        "_comment": "description is too similar to sc.pp.highly_variable_genes"
+	},
+    {
+        "api": sc.pl.filter_genes_dispersion,
+        "_deprecated": True,
+        "_comment": "description is too similar to sc.pp.highly_variable_genes"
+	},
+    {
+        "api": sc.pl.scrublet_score_distribution,
+        "products": [],
+		"data_name": "adata"
+	},
+    {
+        "api": sc.pl.pca_loadings,
+        "products": [],
+		"data_name": "adata"
+	},
+    {
+        "api": sc.pl.pca_variance_ratio,
+        "_deprecated": True,
+        "_comment": "document is too poor"
+	},
+    # Jiahang: poor doc
+    {
+        "api": sc.pl.draw_graph,
+        "products": [],
+        "data_name": "adata"
+	},
+    {
+        "api": sc.pl.paga_path,
+        "products": [],
+        "data_name": "adata"
+    },
+	{
+        "api": sc.pl.sim,
+        "_deprecated": True,
+        "_comment": "poor doc"
+    },
 ]
 
 pp = {
