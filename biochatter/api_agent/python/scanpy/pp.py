@@ -72,15 +72,15 @@ class ScanpyPreprocessingNeighbors(BaseAPI):
         description="Determines whether to return a copy instead of writing to adata. Original type annotation: bool",
         title="Copy",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.neighbors")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.neighbors")
+    _products_original: list[str] = PrivateAttr(
         default=[
             'data.uns["neighbors"]',
             'data.obsp["distances"]',
             'data.obsp["connectivities"]',
         ]
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingLogP(BaseAPI):
@@ -120,9 +120,9 @@ class ScanpyPreprocessingLogP(BaseAPI):
     obsm: Any = Field(
         None, description="Specifies the entry of obsm to transform.", title="Obsm"
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.log1p")
-    _products_original = PrivateAttr(default=["data.X"])
-    _data_name = PrivateAttr(default="data")
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.log1p")
+    _products_original: list[str] = PrivateAttr(default=["data.X"])
+    _data_name: str = PrivateAttr(default="data")
 
 
 class ScanpyPreprocessingHighlyVariableGenes(BaseAPI):
@@ -200,8 +200,8 @@ class ScanpyPreprocessingHighlyVariableGenes(BaseAPI):
         description="Check if counts in selected layer are integers. Used for `flavor='seurat_v3'` or `'seurat_v3_paper'`.",
         title="Check Values",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.highly_variable_genes")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.highly_variable_genes")
+    _products_original: list[str] = PrivateAttr(
         default=[
             'data.var["highly_variable"]',
             'data.var["means"]',
@@ -214,7 +214,7 @@ class ScanpyPreprocessingHighlyVariableGenes(BaseAPI):
             'data.var["highly_variable_intersection"]',
         ]
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingPca(BaseAPI):
@@ -289,8 +289,8 @@ class ScanpyPreprocessingPca(BaseAPI):
         description="Determines whether a copy is returned when passing an AnnData object.",
         title="Copy",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.pca")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.pca")
+    _products_original: list[str] = PrivateAttr(
         default=[
             'data.obsm["X_pca"]',
             'data.varm["PCs"]',
@@ -298,7 +298,7 @@ class ScanpyPreprocessingPca(BaseAPI):
             'data.uns["pca"]["variance"]',
         ]
     )
-    _data_name = PrivateAttr(default="data")
+    _data_name: str = PrivateAttr(default="data")
 
 
 class ScanpyPreprocessingCalculateQcMetrics(BaseAPI):
@@ -356,8 +356,8 @@ class ScanpyPreprocessingCalculateQcMetrics(BaseAPI):
         description="No description available. Original type annotation: bool | None",
         title="Parallel",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.calculate_qc_metrics")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.calculate_qc_metrics")
+    _products_original: list[str] = PrivateAttr(
         default=[
             'data.obs["total_genes_by_counts"]',
             'data.obs["total_counts"]',
@@ -366,7 +366,7 @@ class ScanpyPreprocessingCalculateQcMetrics(BaseAPI):
             'data.obs["pct_counts_in_top_200_genes"]',
         ]
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingFilterCells(BaseAPI):
@@ -383,11 +383,11 @@ class ScanpyPreprocessingFilterCells(BaseAPI):
     copy_: Optional[Any] = Field(
         False, alias="copy", description="string", title="Copy"
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.filter_cells")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.filter_cells")
+    _products_original: list[str] = PrivateAttr(
         default=["data.X", 'data.obs["n_counts"]', 'data.obs["n_genes"]']
     )
-    _data_name = PrivateAttr(default="data")
+    _data_name: str = PrivateAttr(default="data")
 
 
 class ScanpyPreprocessingFilterGenes(BaseAPI):
@@ -438,11 +438,11 @@ class ScanpyPreprocessingFilterGenes(BaseAPI):
         description="No description available.\nOriginal type annotation: bool",
         title="Copy",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.filter_genes")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.filter_genes")
+    _products_original: list[str] = PrivateAttr(
         default=["data.X", 'data.var["n_counts"]', 'data.var["n_genes"]']
     )
-    _data_name = PrivateAttr(default="data")
+    _data_name: str = PrivateAttr(default="data")
 
 
 class ScanpyPreprocessingNormalizeTotal(BaseAPI):
@@ -495,9 +495,9 @@ class ScanpyPreprocessingNormalizeTotal(BaseAPI):
         description="Whether to modify copied input object. Not compatible with inplace=False.",
         title="Copy",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.normalize_total")
-    _products_original = PrivateAttr(default=["data.X"])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.normalize_total")
+    _products_original: list[str] = PrivateAttr(default=["data.X"])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingRegressOut(BaseAPI):
@@ -512,9 +512,9 @@ class ScanpyPreprocessingRegressOut(BaseAPI):
     copy_: Optional[Any] = Field(
         False, alias="copy", description="string", title="Copy"
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.regress_out")
-    _products_original = PrivateAttr(default=["data.X"])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.regress_out")
+    _products_original: list[str] = PrivateAttr(default=["data.X"])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingScale(BaseAPI):
@@ -563,11 +563,11 @@ class ScanpyPreprocessingScale(BaseAPI):
         description="Restrict both the derivation of scaling parameters and the scaling itself\nto a certain set of observations. The mask is specified as a boolean array\nor a string referring to an array in :attr:`~anndata.AnnData.obs`.\nThis will transform data from csc to csr format if `issparse(data)`.\nOriginal type annotation: NDArray[np.bool_] | str | None",
         title="Mask Obs",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.scale")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.scale")
+    _products_original: list[str] = PrivateAttr(
         default=["data.X", 'data.var["mean"]', 'data.var["std"]', 'data.var["var"]']
     )
-    _data_name = PrivateAttr(default="data")
+    _data_name: str = PrivateAttr(default="data")
 
 
 class ScanpyPreprocessingSample(BaseAPI):
@@ -614,9 +614,9 @@ class ScanpyPreprocessingSample(BaseAPI):
         description="Drawing probabilities (floats) or mask (bools). If `p` is an array of probabilities, it must sum to 1.",
         title="P",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.sample")
-    _products_original = PrivateAttr(default=["data.X"])
-    _data_name = PrivateAttr(default="data")
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.sample")
+    _products_original: list[str] = PrivateAttr(default=["data.X"])
+    _data_name: str = PrivateAttr(default="data")
 
 
 class ScanpyPreprocessingDownsampleCounts(BaseAPI):
@@ -655,9 +655,9 @@ class ScanpyPreprocessingDownsampleCounts(BaseAPI):
         description="Determines whether a copy of `adata` is returned. Original type annotation: bool",
         title="Copy",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.downsample_counts")
-    _products_original = PrivateAttr(default=["data.X"])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.downsample_counts")
+    _products_original: list[str] = PrivateAttr(default=["data.X"])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingCombat(BaseAPI):
@@ -685,9 +685,9 @@ class ScanpyPreprocessingCombat(BaseAPI):
         description="Whether to replace adata.X or return the corrected data with original type annotation as bool.",
         title="Inplace",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.combat")
-    _products_original = PrivateAttr(default=["data.X"])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.combat")
+    _products_original: list[str] = PrivateAttr(default=["data.X"])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingScrublet(BaseAPI):
@@ -789,8 +789,8 @@ class ScanpyPreprocessingScrublet(BaseAPI):
         description="Initial state for doublet simulation and nearest neighbors.",
         title="Random State",
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.scrublet")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.scrublet")
+    _products_original: list[str] = PrivateAttr(
         default=[
             'data.obs["doublet_score"]',
             'data.obs["predicted_doublet"]',
@@ -799,7 +799,7 @@ class ScanpyPreprocessingScrublet(BaseAPI):
             'data.uns["scrublet"]["parameters"]',
         ]
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPreprocessingScrubletSimulateDoublets(BaseAPI):
@@ -830,14 +830,14 @@ class ScanpyPreprocessingScrubletSimulateDoublets(BaseAPI):
     random_seed: Optional[Any] = Field(
         0, description="No description available.", title="Random Seed"
     )
-    _api_name = PrivateAttr(default="scanpy.preprocessing.scrublet_simulate_doublets")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.preprocessing.scrublet_simulate_doublets")
+    _products_original: list[str] = PrivateAttr(
         default=[
             'data.obsm["scrublet"]["doublet_parents"]',
             'data.uns["scrublet"]["parameters"]',
         ]
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 TOOLS_DICT = {

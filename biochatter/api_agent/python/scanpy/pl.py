@@ -204,9 +204,9 @@ class ScanpyPlottingPaga(BaseAPI):
         None, description="Matplotlib axes object. Can be Axes or None.", title="Ax"
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.paga")
-    _products_original = PrivateAttr(default=['data.uns["paga"]["pos"]'])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.paga")
+    _products_original: list[str] = PrivateAttr(default=['data.uns["paga"]["pos"]'])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingScatter(BaseAPI):
@@ -348,9 +348,9 @@ class ScanpyPlottingScatter(BaseAPI):
         title="Ax",
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.scatter")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.scatter")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingUmap(BaseAPI):
@@ -537,9 +537,9 @@ class ScanpyPlottingUmap(BaseAPI):
         ".", description="No description available.", title="Marker"
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.umap")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.umap")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingTsne(BaseAPI):
@@ -710,9 +710,9 @@ class ScanpyPlottingTsne(BaseAPI):
         ".", description="No description available.", title="Marker"
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.tsne")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.tsne")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingHeatmap(BaseAPI):
@@ -814,9 +814,9 @@ class ScanpyPlottingHeatmap(BaseAPI):
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
 
-    _api_name = PrivateAttr(default="scanpy.plotting.heatmap")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.heatmap")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingDotplot(BaseAPI):
@@ -982,9 +982,9 @@ class ScanpyPlottingDotplot(BaseAPI):
         title="Kwds",
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.dotplot")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.dotplot")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingViolin(BaseAPI):
@@ -1089,9 +1089,9 @@ class ScanpyPlottingViolin(BaseAPI):
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
 
-    _api_name = PrivateAttr(default="scanpy.plotting.violin")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.violin")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingDendrogram(BaseAPI):
@@ -1140,9 +1140,9 @@ class ScanpyPlottingDendrogram(BaseAPI):
         title="Ax",
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.dendrogram")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.dendrogram")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingDiffmap(BaseAPI):
@@ -1327,9 +1327,9 @@ class ScanpyPlottingDiffmap(BaseAPI):
         ".", description="No description available.", title="Marker"
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.diffmap")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.diffmap")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingHighlyVariableGenes(BaseAPI):
@@ -1363,9 +1363,9 @@ class ScanpyPlottingHighlyVariableGenes(BaseAPI):
         title="Highly Variable Genes",
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.highly_variable_genes")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.highly_variable_genes")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingPca(BaseAPI):
@@ -1545,9 +1545,9 @@ class ScanpyPlottingPca(BaseAPI):
         False, description="No description available.", title="Annotate Var Explained"
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.pca")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.pca")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingEmbeddingDensity(BaseAPI):
@@ -1656,9 +1656,9 @@ class ScanpyPlottingEmbeddingDensity(BaseAPI):
         title="Return Fig",
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.embedding_density")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.embedding_density")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingRankGenesGroupsDotplot(BaseAPI):
@@ -1728,9 +1728,9 @@ class ScanpyPlottingRankGenesGroupsDotplot(BaseAPI):
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
 
-    _api_name = PrivateAttr(default="scanpy.plotting.rank_genes_groups_dotplot")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.rank_genes_groups_dotplot")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingCorrelationMatrix(BaseAPI):
@@ -1798,9 +1798,9 @@ class ScanpyPlottingCorrelationMatrix(BaseAPI):
         ..., description="Additional keyword arguments for customization.", title="Kwds"
     )
 
-    _api_name = PrivateAttr(default="scanpy.plotting.correlation_matrix")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.correlation_matrix")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingHighestExprGenes(BaseAPI):
@@ -1848,9 +1848,9 @@ class ScanpyPlottingHighestExprGenes(BaseAPI):
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
 
-    _api_name = PrivateAttr(default="scanpy.plotting.highest_expr_genes")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.highest_expr_genes")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingTracksplot(BaseAPI):
@@ -1925,9 +1925,9 @@ class ScanpyPlottingTracksplot(BaseAPI):
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
 
-    _api_name = PrivateAttr(default="scanpy.plotting.tracksplot")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.tracksplot")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingClustermap(BaseAPI):
@@ -1962,9 +1962,9 @@ class ScanpyPlottingClustermap(BaseAPI):
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
 
-    _api_name = PrivateAttr(default="scanpy.plotting.clustermap")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.clustermap")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingStackedViolin(BaseAPI):
@@ -2149,9 +2149,9 @@ class ScanpyPlottingStackedViolin(BaseAPI):
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
 
-    _api_name = PrivateAttr(default="scanpy.plotting.stacked_violin")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.stacked_violin")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingRankGenesGroups(BaseAPI):
@@ -2215,9 +2215,9 @@ class ScanpyPlottingRankGenesGroups(BaseAPI):
         title="Ax",
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
-    _api_name = PrivateAttr(default="scanpy.plotting.rank_genes_groups")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.rank_genes_groups")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingRankGenesGroupsViolin(BaseAPI):
@@ -2305,9 +2305,9 @@ class ScanpyPlottingRankGenesGroupsViolin(BaseAPI):
         description="No description available. Original type annotation: DensityNorm | Empty",
         title="Scale",
     )
-    _api_name = PrivateAttr(default="scanpy.plotting.rank_genes_groups_violin")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.rank_genes_groups_violin")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingRankGenesGroupsHeatmap(BaseAPI):
@@ -2366,9 +2366,9 @@ class ScanpyPlottingRankGenesGroupsHeatmap(BaseAPI):
         title="Save",
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
-    _api_name = PrivateAttr(default="scanpy.plotting.rank_genes_groups_heatmap")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.rank_genes_groups_heatmap")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingRankGenesGroupsStackedViolin(BaseAPI):
@@ -2432,9 +2432,9 @@ class ScanpyPlottingRankGenesGroupsStackedViolin(BaseAPI):
         title="Return Fig",
     )
     kwds: Any = Field(..., description="Not specified.", title="Kwds")
-    _api_name = PrivateAttr(default="scanpy.plotting.rank_genes_groups_stacked_violin")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.rank_genes_groups_stacked_violin")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingRankGenesGroupsMatrixplot(BaseAPI):
@@ -2503,9 +2503,9 @@ class ScanpyPlottingRankGenesGroupsMatrixplot(BaseAPI):
         title="Return Fig",
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
-    _api_name = PrivateAttr(default="scanpy.plotting.rank_genes_groups_matrixplot")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.rank_genes_groups_matrixplot")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingRankGenesGroupsTracksplot(BaseAPI):
@@ -2564,9 +2564,9 @@ class ScanpyPlottingRankGenesGroupsTracksplot(BaseAPI):
         title="Save",
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
-    _api_name = PrivateAttr(default="scanpy.plotting.rank_genes_groups_tracksplot")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.rank_genes_groups_tracksplot")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingMatrixplot(BaseAPI):
@@ -2705,9 +2705,9 @@ class ScanpyPlottingMatrixplot(BaseAPI):
         description="Parameters passed to `matplotlib.pyplot.pcolor`.",
         title="Kwds",
     )
-    _api_name = PrivateAttr(default="scanpy.plotting.matrixplot")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.matrixplot")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingScrubletScoreDistribution(BaseAPI):
@@ -2746,9 +2746,9 @@ class ScanpyPlottingScrubletScoreDistribution(BaseAPI):
         description="If True or a string, save the figure with an optional file extension to infer the filetype",
         title="Save",
     )
-    _api_name = PrivateAttr(default="scanpy.plotting.scrublet_score_distribution")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.scrublet_score_distribution")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingPcaLoadings(BaseAPI):
@@ -2786,9 +2786,9 @@ class ScanpyPlottingPcaLoadings(BaseAPI):
         description="If True or a str, save the figure. A string is appended to the default filename. Infer the filetype if ending on {'.pdf', '.png', '.svg'}. Original type annotation: str | bool | None",
         title="Save",
     )
-    _api_name = PrivateAttr(default="scanpy.plotting.pca_loadings")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.pca_loadings")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingDrawGraph(BaseAPI):
@@ -2979,9 +2979,9 @@ class ScanpyPlottingDrawGraph(BaseAPI):
         description="One of the :func:`~scanpy.tl.draw_graph` layouts.",
         title="Layout",
     )
-    _api_name = PrivateAttr(default="scanpy.plotting.draw_graph")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.draw_graph")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyPlottingPagaPath(BaseAPI):
@@ -3117,9 +3117,9 @@ class ScanpyPlottingPagaPath(BaseAPI):
         description="A matplotlib axes object. Original type annotation: Axes | None",
         title="Ax",
     )
-    _api_name = PrivateAttr(default="scanpy.plotting.paga_path")
-    _products_original = PrivateAttr(default=[])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.plotting.paga_path")
+    _products_original: list[str] = PrivateAttr(default=[])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 TOOLS_DICT = {

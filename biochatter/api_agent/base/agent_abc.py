@@ -555,7 +555,7 @@ class BaseDependency(BaseObject):
         return members
     
     @classmethod
-    def create(cls, u_api_name: str, v_api_name: str):
+    def create(cls, u_api_name: str, v_api_name: str): # type: ignore
         if cls._dep_graph_dict.default:
             dep_graph_dict = cls._dep_graph_dict.default
             edge_idx = dep_graph_dict['edge_index'][f"{u_api_name}:{v_api_name}"]

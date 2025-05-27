@@ -44,14 +44,14 @@ class ScanpyToolsPaga(BaseAPI):
         title="Copy",
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.paga")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.paga")
+    _products_original: list[str] = PrivateAttr(
         default=[
             'data.uns["paga"]["connectivities"]',
             'data.uns["paga"]["connectivities_tree"]',
         ]
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsLeiden(BaseAPI):
@@ -130,11 +130,11 @@ class ScanpyToolsLeiden(BaseAPI):
         ..., description="No description available.", title="Clustering Args"
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.leiden")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.leiden")
+    _products_original: list[str] = PrivateAttr(
         default=['data.obs["leiden"]', 'data.uns["leiden"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsLouvain(BaseAPI):
@@ -196,11 +196,11 @@ class ScanpyToolsLouvain(BaseAPI):
         title="Copy",
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.louvain")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.louvain")
+    _products_original: list[str] = PrivateAttr(
         default=['data.obs["louvain"]', 'data.uns["louvain"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsUmap(BaseAPI):
@@ -290,11 +290,11 @@ class ScanpyToolsUmap(BaseAPI):
         title="Copy",
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.umap")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.umap")
+    _products_original: list[str] = PrivateAttr(
         default=['data.obsm["X_umap"]', 'data.uns["umap"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsTsne(BaseAPI):
@@ -364,11 +364,11 @@ class ScanpyToolsTsne(BaseAPI):
         title="Copy",
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.tsne")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.tsne")
+    _products_original: list[str] = PrivateAttr(
         default=['data.obsm["X_tsne"]', 'data.uns["tsne"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsDiffmap(BaseAPI):
@@ -403,11 +403,11 @@ class ScanpyToolsDiffmap(BaseAPI):
         title="Copy",
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.diffmap")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.diffmap")
+    _products_original: list[str] = PrivateAttr(
         default=['data.obsm["X_diffmap"]', 'data.uns["diffmap_evals"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsEmbeddingDensity(BaseAPI):
@@ -437,11 +437,11 @@ class ScanpyToolsEmbeddingDensity(BaseAPI):
         title="Components",
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.embedding_density")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.embedding_density")
+    _products_original: list[str] = PrivateAttr(
         default=['data.obs["umap_density"]', 'data.uns["umap_density_params"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsRankGenesGroups(BaseAPI):
@@ -531,9 +531,9 @@ class ScanpyToolsRankGenesGroups(BaseAPI):
         title="Kwds",
     )
 
-    _api_name = PrivateAttr(default="scanpy.tools.rank_genes_groups")
-    _products_original = PrivateAttr(default=['data.uns["rank_genes_groups"]'])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.tools.rank_genes_groups")
+    _products_original: list[str] = PrivateAttr(default=['data.uns["rank_genes_groups"]'])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsFilterRankGenesGroups(BaseAPI):
@@ -584,9 +584,9 @@ class ScanpyToolsFilterRankGenesGroups(BaseAPI):
         description="A boolean indicating whether to compare absolute values of log fold change.",
         title="Compare Abs",
     )
-    _api_name = PrivateAttr(default="scanpy.tools.filter_rank_genes_groups")
-    _products_original = PrivateAttr(default=['data.uns["rank_genes_groups"]'])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.tools.filter_rank_genes_groups")
+    _products_original: list[str] = PrivateAttr(default=['data.uns["rank_genes_groups"]'])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsMarkerGeneOverlap(BaseAPI):
@@ -639,9 +639,9 @@ class ScanpyToolsMarkerGeneOverlap(BaseAPI):
         description="Choose to return a marker gene dataframe or store it in `adata.uns`. Original type annotation: bool",
         title="Inplace",
     )
-    _api_name = PrivateAttr(default="scanpy.tools.marker_gene_overlap")
-    _products_original = PrivateAttr(default=['data.uns["marker_gene_overlap"]'])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.tools.marker_gene_overlap")
+    _products_original: list[str] = PrivateAttr(default=['data.uns["marker_gene_overlap"]'])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsScoreGenes(BaseAPI):
@@ -705,9 +705,9 @@ class ScanpyToolsScoreGenes(BaseAPI):
         description="Key from `adata.layers` that will be used to perform tests with original type annotation str or None.",
         title="Layer",
     )
-    _api_name = PrivateAttr(default="scanpy.tools.score_genes")
-    _products_original = PrivateAttr(default=['data.obs["score"]'])
-    _data_name = PrivateAttr(default="adata")
+    _api_name: str = PrivateAttr(default="scanpy.tools.score_genes")
+    _products_original: list[str] = PrivateAttr(default=['data.obs["score"]'])
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsScoreGenesCellCycle(BaseAPI):
@@ -736,11 +736,11 @@ class ScanpyToolsScoreGenesCellCycle(BaseAPI):
         description="Copy `adata` or modify it inplace. Original type annotation: bool",
         title="Copy",
     )
-    _api_name = PrivateAttr(default="scanpy.tools.score_genes_cell_cycle")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.score_genes_cell_cycle")
+    _products_original: list[str] = PrivateAttr(
         default=['data.obs["S_score"]', 'data.obs["G2M_score"]', 'data.obs["phase"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 class ScanpyToolsDrawGraph(BaseAPI):
@@ -805,11 +805,11 @@ class ScanpyToolsDrawGraph(BaseAPI):
         title="Copy",
     )
     kwds: Any = Field(..., description="No description available.", title="Kwds")
-    _api_name = PrivateAttr(default="scanpy.tools.draw_graph")
-    _products_original = PrivateAttr(
+    _api_name: str = PrivateAttr(default="scanpy.tools.draw_graph")
+    _products_original: list[str] = PrivateAttr(
         default=['data.uns["draw_graph"]', 'data.obsm["X_draw_graph_fa"]']
     )
-    _data_name = PrivateAttr(default="adata")
+    _data_name: str = PrivateAttr(default="adata")
 
 
 TOOLS_DICT = {

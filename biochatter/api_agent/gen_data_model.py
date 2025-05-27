@@ -213,6 +213,8 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
             self.data_model = data_model
             self.need_import = need_import
             self.doc = inspect.getdoc(data_model)
+            if self.doc is None:
+                self.doc = "No description available."
             self.doc = '\n    '.join(self.doc.strip().splitlines())
             self.doc = self.doc.replace('\\', '\\\\')
 
@@ -220,7 +222,7 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
             # Remove model_config
             if isinstance(original_node.targets[0].target, cst.Name) and \
                 original_node.targets[0].target.value == "model_config":
-                return cst.RemovalSentinel.REMOVE
+                return cst.RemovalSentinel.REMOVE # type: ignore[return-value]
             return updated_node
 
         def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.ClassDef:
@@ -237,9 +239,12 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
 
                 private_attrs.append(
                     cst.SimpleStatementLine([
-                        cst.Assign(
-                            targets=[cst.AssignTarget(cst.Name(key))],
+                        cst.AnnAssign(
+                            target=cst.Name(key),
                             value=call,
+                            annotation=cst.Annotation(
+                                cst.Name("str")
+                            )
                         )
                     ])
                 )
@@ -267,8 +272,13 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
     # Apply the transformer
     transformer = DataModelTransformer(data_model, need_import)
     modified_module = module.visit(transformer)
+    codes = modified_module.code
+
+    # hack: replace _products_original: str = to _products_original: list[str] = 
+    # since libcst not support list[str] in the type annotation.
+    codes = re.sub(r'_products_original\s*:\s*str', '_products_original: list[str]', codes)
     
-    return modified_module.code
+    return codes
 
 def simplify_desc(
     fields: dict[str, tuple[type, FieldInfo] | str], 
@@ -278,7 +288,7 @@ def simplify_desc(
     """
     _fields = {field_name: str for field_name in fields.keys()}
     output_format = create_model(
-        "OutputFormat", **_fields,
+        "OutputFormat", **_fields,  # type: ignore
     )
     desc = {}
     for key, value in fields.items():
