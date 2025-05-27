@@ -1,11 +1,10 @@
 [tool.poetry]
-name = "biochatter"
+name = "biomania-backend"
 version = "0.9.2"
 description = "Backend library for conversational AI in biomedicine"
 authors = [
-    "Sebastian Lobentanzer <sebastian.lobentanzer@gmail.com>",
+    "Jiahang Li <lspongebobjh@gmail.com>",
     "Shaohong Feng <shaohong.feng.78@gmail.com>",
-    "Andreas Maier <andreas.maier-1@uni-hamburg.de"
 ]
 repository = "https://github.com/biocypher/biochatter"
 license = "MIT"
@@ -25,13 +24,9 @@ classifiers = [
 ]
 
 [project]
-name = "biochatter"
+name = "biomania-backend"
 
 [project.urls]
-Homepage = "https://biochatter.org"
-Documentation = "https://biochatter.org"
-Repository = "https://github.com/biocypher/biochatter.git"
-Issues = "https://github.com/biocypher/biochatter/issues"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
