@@ -6,7 +6,7 @@ authors = [
     "Jiahang Li <lspongebobjh@gmail.com>",
     "Shaohong Feng <shaohong.feng.78@gmail.com>",
 ]
-repository = "https://github.com/biocypher/biochatter"
+repository = "https://github.com/OSU-BMBL/BioMANIA-backend"
 license = "MIT"
 readme = "README.md"
 packages = [
