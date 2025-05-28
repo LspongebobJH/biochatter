@@ -8,7 +8,6 @@ from .base.agent_abc import BaseFetcher, BaseInterpreter, BaseQueryBuilder
 from .base.api_agent import APIAgent
 from .base.formatters import format_as_python_call, format_as_rest_call
 from .python.anndata_agent import AnnDataIOQueryBuilder
-from .python.generic_agent import GenericQueryBuilder
 from .python.scanpy import ScanpyQueryBuilder, ScanpyFetcher, ScanpyInterpreter
 from .web.bio_tools import BioToolsFetcher, BioToolsInterpreter, BioToolsQueryBuilder
 from .web.blast import (
@@ -32,7 +31,6 @@ __all__ = [
     "BlastInterpreter",
     "BlastQueryBuilder",
     "BlastQueryParameters",
-    "GenericQueryBuilder",
     "OncoKBFetcher",
     "OncoKBInterpreter",
     "OncoKBQueryBuilder",

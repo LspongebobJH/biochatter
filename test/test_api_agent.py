@@ -15,7 +15,6 @@ from biochatter.api_agent.base.agent_abc import (
 
 
 from biochatter.api_agent.python.anndata_agent import AnnDataIOQueryBuilder, ANNDATA_IO_QUERY_PROMPT
-from biochatter.api_agent.python.scanpy_pp_reduced import ScanpyPpQueryBuilder
 
 from biochatter.api_agent.base.api_agent import APIAgent
 from biochatter.api_agent.web.blast import (
@@ -34,62 +33,7 @@ from biochatter.api_agent.web.oncokb import (
     OncoKBQueryBuilder,
     OncoKBQueryParameters,
 )
-from biochatter.api_agent.python.scanpy_pl_full import (
-    ScanpyPlQueryBuilder,
-)
-from biochatter.api_agent.python.generic_agent import GenericQueryBuilder
 from biochatter.llm_connect import Conversation, GptConversation
-
-
-SCANPY_TL_QUERY_PROMPT = """
-
-You are a world class algorithm for creating queries in structured formats. Your
-task is to use the scanpy python package to provide the user with the
-appropriate function call to answer their question. You focus on the scanpy.tl
-module, which has the following overview: Any transformation of the data matrix
-that is not *preprocessing*. In contrast to a *preprocessing* function, a *tool*
-usually adds an easily interpretable annotation to the data matrix, which can
-then be visualized with a corresponding plotting function.
-
-### Embeddings
-
-   pp.pca
-   tl.tsne
-   tl.umap
-   tl.draw_graph
-   tl.diffmap
-
-Compute densities on embeddings.
-
-   tl.embedding_density
-
-### Clustering and trajectory inference
-
-   tl.leiden
-   tl.louvain
-   tl.dendrogram
-   tl.dpt
-   tl.paga
-
-### Data integration
-
-   tl.ingest
-
-### Marker genes
-
-   tl.rank_genes_groups
-   tl.filter_rank_genes_groups
-   tl.marker_gene_overlap
-
-### Gene scores, Cell cycle
-
-   tl.score_genes
-   tl.score_genes_cell_cycle
-
-### Simulations
-
-   tl.sim
-"""
 
 
 def conversation_factory():
@@ -492,46 +436,6 @@ class TestOncoKBInterpreter:
             {"input": {expected_summary_prompt}},
         )
 
-
-class TestScanpyPlQueryBuilder:
-    @pytest.fixture
-    def mock_create_runnable(self):
-        with patch(
-            "biochatter.api_agent.python.scanpy_pl_full.ScanpyPlQueryBuilder.create_runnable",
-        ) as mock:
-            mock_runnable = MagicMock()
-            mock.return_value = mock_runnable
-            yield mock_runnable
-
-    def test_create_runnable(self):
-        pass
-
-    def test_parameterise_query(self, mock_create_runnable):
-        # Arrange
-        query_builder = ScanpyPlQueryBuilder()
-        mock_conversation = MagicMock()
-        question = "Create a scatter plot of n_genes_by_counts vs total_counts."
-        expected_input = f"{question}"
-
-        mock_query_obj = MagicMock()
-        mock_create_runnable.invoke.return_value = mock_query_obj
-
-        # Act
-        result = query_builder.build_api_query(question, mock_conversation)
-
-        # Assert
-        mock_create_runnable.invoke.assert_called_once_with(expected_input)
-        assert result == mock_query_obj
-
-
-class TestScanpyPlFetcher:
-    pass
-
-
-class TestScanpyPlInterpreter:
-    pass
-
-
 class TestAnndataIOQueryBuilder:
     @pytest.fixture
     def mock_create_runnable(self):
@@ -592,108 +496,6 @@ class TestAnndataIOQueryBuilder:
 
         # Act
         result = query_builder.build_api_query(question, mock_conversation)
-
-        # Assert
-        mock_create_runnable.invoke.assert_called_once_with(expected_input)
-        assert result == mock_query_obj
-
-
-class TestScanpyPpQueryBuilder:
-    @pytest.fixture
-    def mock_create_runnable(self):
-        with patch(
-            "biochatter.api_agent.python.scanpy_pp_reduced.ScanpyPpQueryBuilder.create_runnable",
-        ) as mock:
-            mock_runnable = MagicMock()
-            mock.return_value = mock_runnable
-            yield mock_runnable
-
-    def test_create_runnable(self):
-        pass
-
-    def test_parameterise_query(self, mock_create_runnable):
-        # Arrange
-        query_builder = ScanpyPpQueryBuilder()
-        mock_conversation = MagicMock()
-        question = "I want to use scanpy pp to filter cells with at least 200 genes"
-        expected_input = f"{question}"
-        mock_query_obj = MagicMock()
-        mock_create_runnable.invoke.return_value = mock_query_obj
-
-        # Act
-        result = query_builder.build_api_query(question, mock_conversation)
-
-        # Assert
-        mock_create_runnable.invoke.assert_called_once_with(expected_input)
-        assert result == mock_query_obj
-
-
-class TestGenericQueryBuilder:
-    @pytest.fixture
-    def mock_create_runnable(self):
-        with patch(
-            "biochatter.api_agent.python.generic_agent.GenericQueryBuilder.create_runnable",
-        ) as mock:
-            mock_runnable = MagicMock()
-            mock.return_value = mock_runnable
-            yield mock_runnable
-
-    @patch("biochatter.llm_connect.GptConversation")
-    def test_create_runnable(self, mock_conversation):
-        # Mock the list of Pydantic classes as a list of Mock objects
-        class MockTool1(BaseModel):
-            param1: str
-
-        class MockTool2(BaseModel):
-            param2: int
-
-        mock_generated_classes = [MockTool1, MockTool2]
-
-        # Mock the conversation object and LLM
-        mock_conversation_instance = mock_conversation.return_value
-        mock_llm = MagicMock()
-        mock_conversation_instance.chat = mock_llm
-
-        # Mock the LLM with tools
-        mock_llm_with_tools = MagicMock()
-        mock_llm.bind_tools.return_value = mock_llm_with_tools
-
-        # Mock the chain
-        mock_chain = MagicMock()
-        mock_llm_with_tools.__or__.return_value = mock_chain
-
-        # Act
-        builder = GenericQueryBuilder()
-        result = builder.create_runnable(
-            query_parameters=mock_generated_classes,
-            conversation=mock_conversation_instance,
-        )
-
-        # Assert
-        mock_llm.bind_tools.assert_called_once_with(mock_generated_classes, tool_choice="required")
-        mock_llm_with_tools.__or__.assert_called_once_with(
-            PydanticToolsParser(tools=mock_generated_classes),
-        )
-        # Verify the returned chain
-        assert result == mock_chain
-
-    def test_parameterise_query(self, mock_create_runnable):
-        # Arrange
-        query_builder = GenericQueryBuilder()
-        mock_conversation = MagicMock()
-        question = "i want to run PCA on my data"
-        expected_input = [("system", SCANPY_TL_QUERY_PROMPT), ("human", question)]
-        mock_query_obj = MagicMock()
-        mock_create_runnable.invoke.return_value = mock_query_obj
-        module = MagicMock()
-
-        # Act
-        result = query_builder.build_api_query(
-            question=question,
-            prompt=SCANPY_TL_QUERY_PROMPT,
-            conversation=mock_conversation,
-            module=module,
-        )
 
         # Assert
         mock_create_runnable.invoke.assert_called_once_with(expected_input)
