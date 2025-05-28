@@ -30,7 +30,7 @@ from datamodel_code_generator import DataModelType, PythonVersion
 from datamodel_code_generator.model import get_data_model_types
 from datamodel_code_generator.parser.jsonschema import JsonSchemaParser
 
-from .base.agent_abc import BaseAPIModel, BaseAPI
+from .base.agent_abc import BaseAPI
 
 def get_api_path(module: ModuleType, api: Callable) -> str:
     """Get the path of an API.
@@ -79,7 +79,7 @@ def get_info_import_path(package: ModuleType, object_name: str) -> str:
     import_path = f"biochatter.api_agent.python.{package_name}.info_hub.{object_name}"
     return import_path
     
-def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[str], need_import: bool) -> str:
+def data_model_to_py(data_model: type[BaseAPI], additional_imports: list[str], need_import: bool) -> str:
     """Convert a Pydantic model to a Python code.
     """
     json_schema = json.dumps(data_model.model_json_schema())
@@ -103,7 +103,7 @@ def data_model_to_py(data_model: type[BaseAPIModel], additional_imports: list[st
     module = cst.parse_module(codes)
 
     class DataModelTransformer(cst.CSTTransformer):
-        def __init__(self, data_model: type[BaseAPIModel], need_import: bool):
+        def __init__(self, data_model: type[BaseAPI], need_import: bool):
             self.data_model = data_model
             self.need_import = need_import
             self.doc = inspect.getdoc(data_model)
@@ -231,7 +231,7 @@ def simplify_desc(
 
     return fields
 
-def add_tools_dict(codes: str, data_models: list[type[BaseAPIModel]]) -> str:
+def add_tools_dict(codes: str, data_models: list[type[BaseAPI]]) -> str:
     """Add TOOLS_DICT to the end of the code using libcst.
     
     Args:
@@ -246,7 +246,7 @@ def add_tools_dict(codes: str, data_models: list[type[BaseAPIModel]]) -> str:
     
     # Create a transformer to add the TOOLS dictionary
     class AddToolsTransformer(cst.CSTTransformer):
-        def __init__(self, data_models: list[type[BaseAPIModel]]):
+        def __init__(self, data_models: list[type[BaseAPI]]):
             self.data_models = data_models
             
         def leave_Module(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
@@ -303,7 +303,7 @@ def remove_tools_dict(codes: str) -> str:
 def apis_to_data_models(
         api_dict: str, 
         need_import: bool = True,
-        ) -> list[type[BaseAPIModel]]:
+        ) -> list[type[BaseAPI]]:
     """
     Although we have many string operations like hack in this implementation, all these hacks are bound to
     specific version of datamodel_code_generator and pydantic. They are not bound to any specific package, module
@@ -314,7 +314,7 @@ def apis_to_data_models(
         "are based on the outputs of this package. Different versions may lead to different outputs " \
         "and thus invalidate those fine-grained operations."
     
-    base_attributes = set(dir(BaseAPIModel))
+    base_attributes = set(dir(BaseAPI))
     classes_list = []
     codes_list = []
     api_list = api_dict['api_list']
@@ -483,7 +483,7 @@ if __name__ == "__main__":
     # released by black. the so-called internal API is unstable, and this
     # subprocess usage is recommended.
 
-    # code formatting by black.
+    # code formatted by black.
 
     subprocess.run(["black", output_path])
 

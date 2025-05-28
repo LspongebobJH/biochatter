@@ -15,25 +15,7 @@ from copy import deepcopy
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, ConfigDict, Field, create_model, PrivateAttr, field_validator, model_validator
 from biochatter.llm_connect import Conversation
-from ._python_interpreter import evaluate_python_code
-
-def run_codes(code: str, state: dict[str, object]):
-    """
-    Run codes
-
-    Parameters
-    -----------
-    code : str
-        A single valid code snippet as a string.
-    state: dict[str, object]
-        A dictionary of variables to be used in the code snippet. E.g. {'sc': sc, 'adata': adata}
-    """
-    
-    try:
-        result = str(evaluate_python_code(code, state=state)[0])
-    except Exception as e:
-        return f"ERROR: {str(e)}", e
-    return result, None
+from .utils import run_codes
 
 class BaseQueryBuilder(ABC):
     """An abstract base class for query builders."""
@@ -556,8 +538,8 @@ class BaseDependency(BaseObject):
     
     @classmethod
     def create(cls, u_api_name: str, v_api_name: str): # type: ignore
-        if cls._dep_graph_dict.default:
-            dep_graph_dict = cls._dep_graph_dict.default
+        if cls._dep_graph_dict.default: # type: ignore
+            dep_graph_dict = cls._dep_graph_dict.default # type: ignore
             edge_idx = dep_graph_dict['edge_index'][f"{u_api_name}:{v_api_name}"]
             edge = dep_graph_dict['edges'][edge_idx]
             input_dep = InputDependency.model_validate(edge)
