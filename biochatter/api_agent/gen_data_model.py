@@ -31,27 +31,7 @@ from datamodel_code_generator.model import get_data_model_types
 from datamodel_code_generator.parser.jsonschema import JsonSchemaParser
 
 from .base.agent_abc import BaseAPI
-
-def get_api_path(module: ModuleType, api: Callable) -> str:
-    """Get the path of an API.
-
-    This apition takes a module and an API, and returns the path of the API.
-    """
-    return module.__name__ + '.' + api.__name__
-
-def get_class_name(module: ModuleType, api: Callable) -> str:
-    """Get the internal name of an API.
-
-    This apition takes a module and an API, and returns the internal name of the
-    API.
-    """
-
-    module_name = module.__name__
-    api_name = api.__name__
-
-    module_name = ''.join(_name.capitalize() for _name in re.findall(r'[a-zA-Z]+', module_name))
-    api_name = ''.join(_name.capitalize() for _name in re.findall(r'[a-zA-Z]+', api_name))
-    return module_name + api_name
+from .base.utils import get_data_model_name
 
 def get_py_version() -> PythonVersion:
     """Get the Python version.
@@ -73,11 +53,6 @@ def get_py_version() -> PythonVersion:
         return PythonVersion.PY_313
     if py_version[1] >= 14:
         raise ValueError("Python version must be less than 3.14 and larger than or equal to 3.9.")
-
-def get_info_import_path(package: ModuleType, object_name: str) -> str:
-    package_name = package.__name__
-    import_path = f"biochatter.api_agent.python.{package_name}.info_hub.{object_name}"
-    return import_path
     
 def data_model_to_py(data_model: type[BaseAPI], additional_imports: list[str], need_import: bool) -> str:
     """Convert a Pydantic model to a Python code.
@@ -301,7 +276,7 @@ def remove_tools_dict(codes: str) -> str:
     return modified_module.code
 
 def apis_to_data_models(
-        api_dict: str, 
+        api_dict: dict[str, dict], 
         need_import: bool = True,
         ) -> list[type[BaseAPI]]:
     """
@@ -317,17 +292,16 @@ def apis_to_data_models(
     base_attributes = set(dir(BaseAPI))
     classes_list = []
     codes_list = []
-    api_list = api_dict['api_list']
-    module = api_dict['meta']['module']
 
     llm = init_chat_model(os.environ.get("MODEL"), model_provider="openai", temperature=0.7)
 
-    for _api in tqdm(api_list):
+    for api_name, _api in tqdm(api_dict.items()):
         if "_deprecated" in _api and _api['_deprecated']:
             continue
-        api = _api['api']
         assert 'products' in _api and 'data_name' in _api, \
             "configs should contain 'products' and 'data_name'."
+        api = _api['api']
+        module = inspect.getmodule(api)
         name = api.__name__
         if name.startswith("_"):
             raise Warning(f"apition {name} is private/internal and should not be included in the data model.")
@@ -398,12 +372,12 @@ def apis_to_data_models(
             print(f"The descriptions of API or arguments of {name} are not summarized correctly. Please summarize them manually.")
 
         # Create the Pydantic model
-        fields['_api_name'] = (str, PrivateAttr(default=get_api_path(module, api)))
+        fields['_api_name'] = (str, PrivateAttr(default=api_name))
         fields['_products_original'] = (str, PrivateAttr(default=_api['products']))
         fields['_data_name'] = (str, PrivateAttr(default=_api['data_name']))
 
         data_model = create_model(
-            get_class_name(module, api),
+            get_data_model_name(api_name),
             __doc__ = doc, 
             __base__ = BaseAPI,
             **fields,
@@ -451,21 +425,16 @@ if __name__ == "__main__":
         TOOLS_DICT = deepcopy(output_module.TOOLS_DICT)
 
         # extract api in api_dict that is not in TOOLS_DICT
-        additional_apis = []
-        for api in api_dict['api_list']:
-            if get_api_path(api_dict['meta']['module'], api['api']) not in TOOLS_DICT.keys():
-                additional_apis.append(api)
+        additional_apis = {}
+        for api_name, api in api_dict.items():
+            if api_name not in TOOLS_DICT.keys():
+                additional_apis.update({api_name: api})
 
         with open(output_path, "r") as f:
             codes = f.read()
         codes = remove_tools_dict(codes)
 
-        _api_dict = {
-            "meta": api_dict['meta'],
-            "api_list": additional_apis,
-        }
-
-        data_models, new_codes = apis_to_data_models(_api_dict, need_import=False)
+        data_models, new_codes = apis_to_data_models(additional_apis, need_import=False)
         tools_list = list(TOOLS_DICT.values()) + data_models
         new_codes = add_tools_dict(new_codes, tools_list)
 
