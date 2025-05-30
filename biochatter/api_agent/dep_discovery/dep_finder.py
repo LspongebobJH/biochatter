@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 from typing import Literal
 from importlib import import_module
 import networkx as nx
+import libcst as cst
 
 from .utils import set_state, build_API_calling, Knockoff, CodeHistory
 from biochatter.api_agent.base.utils import run_codes
@@ -11,7 +12,7 @@ from biochatter.api_agent.base.utils import run_codes
 class DependencyFinder:
     MAX_CNT = 3
     SEP_LINE = "-" * 40
-
+    # Jiahang: remove these constants.
     _START_EACH_CHAIN = 0
     _FINISH_OBJ_DEP_EACH_CHAIN = _START_EACH_CHAIN + 1
     _FINISH_API_DEP_EACH_CHAIN = _FINISH_OBJ_DEP_EACH_CHAIN + 1
@@ -22,6 +23,7 @@ class DependencyFinder:
                  api_set_name: str,
                  api_sel: str | list[int], 
                  state_name: dict,
+                 api_dict: dict,
                  repr_type: Literal['nest_dict', 'code_line'] = 'code_line',
                  debug: bool = False):
         """
@@ -42,7 +44,10 @@ class DependencyFinder:
         debug : bool, default False
             Whether to run in debug mode. If True, then only run the first 3 API chains within the selected API subset.
         """
+        # Jiahang(severe): this is a temporary solution to import the API chains.
+        self.api_dict = api_dict
         self.api_chains = import_module(f'biochatter.api_agent.dep_discovery.SCANPY_PL_MULTI_LINE_SIMPLE_ARG').DATA
+        self.api_meta = import_module(f'biochatter.api_agent.dep_discovery.SCANPY_PL_MULTI_LINE_SIMPLE_ARG').META
         self.api_sel = range(len(self.api_chains)) if api_sel == 'all' else api_sel
         self.repr_type = repr_type
         assert self.repr_type == 'code_line', "Only code_line representation is supported for now."
@@ -86,14 +91,14 @@ class DependencyFinder:
                             f"Codes:\n{self.code_history.code_history}")
                 return None, False
             
-            dep_prod = dep_api['produce']
+            dep_prod = dep_api['products']
             all_dep_prod.extend(dep_prod)
 
             """Key: discover unitary dependency of each target API on products produced by the all dependent(previous) API"""
             self.knockoff_runner.preprocess(all_dep_prod, target_api, self.state_name, state)
             nec_prod = self.knockoff_runner.run_unitary()
 
-            target_api['depend_on_obj'] = nec_prod
+            target_api['dependencies_obj'] = nec_prod
             res_api_chain.append(target_api)
 
         self.run_level = DependencyFinder._FINISH_OBJ_DEP_EACH_CHAIN
@@ -108,15 +113,15 @@ class DependencyFinder:
 
         for cur_idx in range(1, num_api):
             cur_api: dict = res_api_chain[cur_idx]
-            cur_depend_on = cur_api.pop('depend_on_obj')
-            cur_depend_on_api = {}
+            cur_dependencies = cur_api.pop('dependencies_obj')
+            cur_dependencies_api = {}
             for dep_idx in range(cur_idx):
                 dep_api = res_api_chain[dep_idx]
-                dep_produce = dep_api['produce']
-                consumed_prod = list(set(cur_depend_on).intersection(set(dep_produce)))
+                dep_products = dep_api['products']
+                consumed_prod = list(set(cur_dependencies).intersection(set(dep_products)))
                 if consumed_prod: # has API dependency
-                    cur_depend_on_api[dep_api['api']] = consumed_prod
-            cur_api['depend_on'] = cur_depend_on_api
+                    cur_dependencies_api[dep_api['api']] = consumed_prod
+            cur_api['dependencies'] = cur_dependencies_api
             _res_api_chain[cur_idx] = cur_api # this line is indeed unnecessary, but still used here.
 
         print(DependencyFinder.SEP_LINE)
@@ -130,10 +135,77 @@ class DependencyFinder:
         code_lines = [line for line in code_lines if line]
 
         results = []
+
+        # Find the function call
+        class FunctionCallVisitor(cst.CSTVisitor):
+            def __init__(self):
+                self.func_name = None
+                self.args = {}
+                self.arg_types = {}
+            
+            def visit_Call(self, node: cst.Call):
+                # Get function name
+                if isinstance(node.func, cst.Name):
+                    self.func_name = node.func.value
+                elif isinstance(node.func, cst.Attribute):
+                    parts = []
+                    current = node.func
+                    while isinstance(current, cst.Attribute):
+                        parts.append(current.attr.value)
+                        current = current.value
+                    if isinstance(current, cst.Name):
+                        parts.append(current.value)
+                    self.func_name = ".".join(reversed(parts))
+                
+                # Get arguments
+                for arg in node.args:
+                    if arg.keyword:
+                        # Determine argument type
+                        if isinstance(arg.value, cst.Name):
+                            self.arg_types[arg.keyword.value] = "object"
+                        elif isinstance(arg.value, cst.Integer):
+                            self.arg_types[arg.keyword.value] = "int"
+                        elif isinstance(arg.value, cst.Float):
+                            self.arg_types[arg.keyword.value] = "float"
+                        elif isinstance(arg.value, cst.SimpleString):
+                            self.arg_types[arg.keyword.value] = "str"
+                        elif isinstance(arg.value, cst.List):
+                            self.arg_types[arg.keyword.value] = "list"
+                        elif isinstance(arg.value, cst.Tuple):
+                            self.arg_types[arg.keyword.value] = "tuple"
+                        elif isinstance(arg.value, cst.Dict):
+                            self.arg_types[arg.keyword.value] = "dict"
+                        elif isinstance(arg.value, cst.Set):
+                            self.arg_types[arg.keyword.value] = "set"
+                        elif arg.value.value in ['True', 'False']:
+                            self.arg_types[arg.keyword.value] = "bool"
+                        else:
+                            self.arg_types[arg.keyword.value] = "object"
+                        
+                        # when str, arg.value.value is tricky, it would be a string of string.
+                        self.args[arg.keyword.value] = arg.value.value
+
         for code_line in code_lines:
-            results.append(code_line)
+            # Parse the code line using libcst
+            module = cst.parse_module(code_line)
+            visitor = FunctionCallVisitor()
+            module.visit(visitor)
+            
+            if visitor.func_name:
+                results.append({
+                    'api': visitor.func_name,
+                    'args': visitor.args,
+                    'arg_types': visitor.arg_types
+                })
 
         return results
+
+    def _add_products(self, parsed_api_chain: list) -> list:
+        # import products from pre-compiled API data models
+        for idx in range(len(parsed_api_chain)):
+            parsed_api_chain[idx]['products'] = self.api_dict[parsed_api_chain[idx]['api']]['products']
+            
+        return parsed_api_chain
 
     def find_obj_dep_for_all_chains(self):
         assert self.run_level == DependencyFinder._START_EACH_CHAIN, \
@@ -145,6 +217,7 @@ class DependencyFinder:
             self.run_level = DependencyFinder._START_EACH_CHAIN
             codes = api_chain['codes']
             parsed_api_chain = self._parse_codes(codes)
+            parsed_api_chain = self._add_products(parsed_api_chain)
             res_api_chain, success = self.find_obj_dep_for_each_chain(parsed_api_chain)
             if not success:
                 continue    
@@ -163,10 +236,10 @@ class DependencyFinder:
         for api_chain in res_api_chains:
             for api in api_chain:
                 _api: dict = api.copy()
-                depend_on: dict = _api.pop('depend_on') if 'depend_on' in _api.keys() else {}
-                G.add_node(_api['api'], **_api) # depend_on should not be added
-                for dep_api_name, obj_dep in depend_on.items():
-                    G.add_edge(dep_api_name, _api['api'], depend_on=obj_dep)
+                dependencies: dict = _api.pop('dependencies') if 'dependencies' in _api.keys() else {}
+                G.add_node(_api['api'], **_api) # dependencies should not be added
+                for dep_api_name, obj_dep in dependencies.items():
+                    G.add_edge(dep_api_name, _api['api'], dependencies=obj_dep)
 
         # create a root node
         G.add_node('root')

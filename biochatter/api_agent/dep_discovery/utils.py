@@ -138,8 +138,6 @@ class ArgInfo(BaseInfo):
         Convert the arg info to python code.
         """
         arg_val = self.arg_val
-        if self.arg_type == 'str':
-            arg_val = "'" + self.arg_val + "'"
         if require_arg_name:
             return f"{self.arg_name} = {arg_val}" if arg_val is not None else f"{self.arg_name} = None"
         return f"{arg_val}" if arg_val is not None else "None"

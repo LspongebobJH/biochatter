@@ -1,3 +1,6 @@
+import re
+from types import ModuleType
+from typing import Callable
 from ._python_interpreter import evaluate_python_code
 
 def run_codes(code: str, state: dict[str, object]):
@@ -17,3 +20,14 @@ def run_codes(code: str, state: dict[str, object]):
     except Exception as e:
         return f"ERROR: {str(e)}", e
     return result, None
+
+
+def get_data_model_name(api_name: str) -> str:
+    """Get the internal name of an API.
+
+    This apition takes a module and an API, and returns the internal name of the
+    API.
+    """
+
+    api_name = ''.join(_name.capitalize() for _name in re.findall(r'[a-zA-Z]+', api_name))
+    return api_name

@@ -15,6 +15,7 @@ import networkx as nx
 import os
 import pickle
 import argparse
+import importlib
 
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
@@ -27,11 +28,14 @@ if __name__ == '__main__':
     api_sel = [0]
     date = datetime.datetime.now().strftime("%d-%m-%y")
     result_dir = f'exp/dep_graph/results/scanpy_api_dep/{api_set_name}_{date}/'
+    api_dict = importlib.import_module(f"biochatter.api_agent.python.scanpy.api_dict")
+    api_dict = getattr(api_dict, 'FULL_API_DICT')
 
     dep_finder = DependencyFinder(
         api_set_name=api_set_name,
         api_sel=api_sel,
         state_name='scanpy',
+        api_dict=api_dict,
         debug=debug
     )
 
